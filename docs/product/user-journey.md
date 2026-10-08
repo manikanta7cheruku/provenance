@@ -58,21 +58,15 @@ Email verification is supported by the architecture and enabled by configuration
 | Action | Effect | Reversible |
 |---|---|---|
 | Open original | Opens source posting in new tab | n/a |
-| Save | Match state saved | Yes |
-| Dismiss | Match state dismissed, optional reason stored as feedback | Yes |
+| Save | Match state saved | Yes. Unsave returns the match to recommended |
+| Dismiss | Match state dismissed, optional reason stored as feedback | Yes. Undo returns the match to recommended |
 | Prepare | Opens career preparation. Does not spend generation quota until a generation is requested | n/a |
 | Tailor resume | Requires explicit approval step. Starts generation workflow | Output can be rejected |
-| Mark applied | User record only. Asks for confirmation naming the company and role | Yes, undo with audit entry |
+| Mark applied | User record only. Asks for confirmation naming the company and role | Yes. Undo returns the match to ready_to_apply and is logged |
 
-## 5. States every screen must handle
+## 5. States and progress
 
-loading, empty, partial, success, error, retrying, rate limited, source unavailable, analysis pending, analysis interrupted, requires user input, completed, stale, quota exceeded, permission denied, offline.
-
-Empty states answer: what is empty, why it matters, what to do next. Error states answer: what happened, is my data safe, will it retry, what can I do. No indefinite spinners and no invented progress.
-
-## 6. Progress rules
-
-Progress comes from persisted counters. Example sequence for a search: "Found 187 postings", "187 to 143 unique", "143 to 38 candidates", "Analyzed 12 of 38". A bar is shown only when the denominator is stored. Results appear as each analysis completes.
+Screen states, operation states and progress rules are defined once, in [ux-specification.md](ux-specification.md) sections 9 and 10 and [ai-ux-patterns.md](ai-ux-patterns.md) section 6. This document does not redefine them.
 
 ## 7. Wording rules
 

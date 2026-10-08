@@ -19,5 +19,7 @@
 | [0015](0015-postgres-rls-as-defense-in-depth.md) | Postgres RLS as defense in depth | Accepted |
 | [0016](0016-opaque-sessions-over-jwt.md) | Opaque sessions over JWT | Accepted |
 | [0017](0017-one-agent-workflows-for-the-rest.md) | One agent, workflows for the rest | Accepted |
+| [0018](0018-development-stack-conventions.md) | Development stack conventions | Accepted |
+| [0019](0019-frontend-architecture-and-boundaries.md) | Frontend architecture and boundaries | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

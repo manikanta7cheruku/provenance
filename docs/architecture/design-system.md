@@ -1,79 +1,121 @@
-# Design System Specification
+# Design System
 
-Status: Decided (Phase 0). Values are proposals to be tuned in checkpoint 1.5 and verified against WCAG 2.2 AA contrast with a checker before they are final.
+Status: Decided (Phase 0 amendment, foundation implemented in checkpoint 1.1). Visual and interaction half of the **Product UX + Design System Specification**. The experience half is [ux-specification.md](../product/ux-specification.md) and [ai-ux-patterns.md](../product/ai-ux-patterns.md).
+
+The single source of values is `apps/web/src/ui/tokens.css`. Components use token names and never raw values.
 
 ## 1. Direction
 
-A calm, dense, professional workbench. Closer to a research tool than a marketing dashboard. References for interaction quality only: Linear (workflow clarity), GitHub (information density), Notion (structure), Stripe (polish). Nothing is copied visually.
+A calm, dense, professional workbench. Closer to a research tool than a marketing dashboard. Interaction references (not visual copies): Linear for workflow clarity, GitHub for information density, Notion for structure, Stripe for polish.
 
-Identity: warm neutral surfaces, one ink-blue accent, a serif for editorial moments (page titles, empty states, report headings), a clean sans for the interface, a mono face for data such as ids and counts. The serif is what keeps it from looking like a default SaaS template.
+Identity: warm neutral surfaces, one ink-blue accent, a serif used for page titles and empty states, a plain system sans for the interface, a mono face for ids and counts.
 
-Hard exclusions: gradients as decoration, glow, glassmorphism, oversized hero stats, donut charts, floating AI orbs, purple-blue AI palette, emoji in UI, large rounded cards, heavy shadows, decorative animation, chat-first navigation.
+Hierarchy comes from typography, spacing, alignment, hairline rules and progressive disclosure. It does not come from cards. Content sits directly on the page. A bordered container is used only when it groups interactive controls or separates an overlay from the page.
 
-## 2. Tokens (semantic, never hardcoded in components)
+Excluded: gradients, glow, glassmorphism, oversized hero text, donut charts, floating AI orbs, purple-blue AI palettes, emoji in the interface, large radii, heavy shadows, decorative or looping animation, chat-first navigation, badges used as decoration, arbitrary icons.
 
-### Typography
-| Role | Family (self hosted, open licensed, verify license at adoption) | Use |
+## 2. Color roles
+
+| Role | Tokens | Use |
 |---|---|---|
-| Display | Newsreader | Page titles, empty states, report headings |
-| UI | IBM Plex Sans | Interface text |
-| Data | IBM Plex Mono | Ids, counts, run traces |
+| Surface | base, raised, sunken | Page, overlays and inputs, inset regions |
+| Border | subtle, strong, control | Hairline rules, decorative separation (never for control boundaries), control boundaries at 3:1 or better |
+| Text | primary, secondary, disabled, on-accent | Body, supporting text, disabled, text on accent fill |
+| Accent | default, hover, active, subtle | The single brand color: links, primary action, selection, focus |
+| Status | success, warning, danger, info | Meaning only. Always paired with text and a distinct shape |
+| Interaction | hover, pressed, selected, focus, invalid | Derived from the roles above so states stay consistent |
 
-Scale (rem): 0.75, 0.8125, 0.875 (base for dense tables), 1, 1.125, 1.375, 1.75, 2.25. Line heights 1.25 to 1.5. Weights 400, 500, 600.
+Rules: one accent. Status colors carry meaning and are never decorative. Color is never the only signal. A component may not introduce a new color. A missing role is added to the token file and this document first.
 
-### Spacing, radius, elevation
-- Spacing: 2, 4, 6, 8, 12, 16, 24, 32, 48 px.
-- Radius: 3, 6, 10 px. Default 6. No pill shapes except small chips.
-- Elevation: borders first. One subtle shadow token for popovers and dialogs only.
+Dark theme follows the operating system and mirrors every role. It ships in 1.1 because every token pair used was checked in both themes (see checkpoint-1.1.md).
 
-### Color (light proposal, dark mirrors through the same semantic names)
-| Token | Light | Dark |
+## 3. Typography hierarchy
+
+| Role | Token | Size | Family | Weight | Use |
+|---|---|---|---|---|---|
+| Heading | text-heading | 28px | Display serif | 500 | Page title (one h1 per page) |
+| Title | text-title | 20px | Display serif | 500 | Brand wordmark, empty state titles |
+| Section | text-body-lg | 16px | UI sans | 600 | Section headings (h2) |
+| Body | text-body | 14px | UI sans | 400 | Default text and table cells |
+| Small | text-small | 13px | UI sans | 400 | Dense secondary text, shell status |
+| Caption | text-caption | 12px | UI sans | 400 | Labels, uppercase with tracking |
+
+Line heights: 1.25 for headings, 1.5 for body. Digits are tabular so numbers align in tables. Measure for reading text is capped at 64 characters. Self-hosted brand fonts (Newsreader, IBM Plex Sans) are decided in 1.5 after the visual prototypes. Until then, system stacks apply, and the type roles above do not change when the fonts do.
+
+## 4. Spacing and sizing
+
+Spacing scale (4px base): 2, 4, 8, 12, 16, 24, 32, 48. Only these values. Sizing tokens: control height 36px (28px compact), touch target 44px, sidebar 232px, content maximum 1100px.
+
+## 5. Density
+
+Two densities. Comfortable is the default. Compact (`data-density="compact"`) reduces control height and row height, and is meant for the work queue and tables. Density changes sizes only, never type roles or colors.
+
+## 6. Borders, radii, elevation
+
+- Borders: 1px hairlines. Subtle for layout, control for the edge of a control.
+- Radii: 3px and 6px. No other radii. Dots and avatars are the only circles.
+- Elevation: flat by default. A single overlay shadow exists for popovers and dialogs. Nothing else has a shadow.
+
+## 7. Interaction states
+
+Every interactive component defines all of these. A component is not done until each exists in both themes.
+
+| State | Treatment |
+|---|---|
+| Default | Role colors |
+| Hover | Surface changes to the hover role. Primary buttons darken. Never a size or position change |
+| Active (pressed) | Pressed role. Primary buttons darken further |
+| Focus-visible | 2px accent outline, 2px offset, on every interactive element. Never removed |
+| Selected | Selected role plus a 2px accent bar on the leading edge. Not color alone |
+| Disabled | Disabled text, subtle border, `not-allowed` cursor, still readable. A disabled control that needs explaining says why in text |
+| Invalid | Invalid border plus an error message associated with the field. The message says what to do |
+| Loading | A named step or a skeleton. Never an unlabeled spinner. Progress only from persisted counters |
+
+## 8. Breakpoints and responsive behavior
+
+| Name | Width | Behavior |
 |---|---|---|
-| surface.base | #FAF9F6 | #131412 |
-| surface.raised | #FFFFFF | #1B1C1A |
-| surface.sunken | #F2F0EB | #0F100F |
-| border.subtle | #E6E3DC | #2A2C28 |
-| border.strong | #CFCBC1 | #3C3E39 |
-| text.primary | #1C1B19 | #ECEAE4 |
-| text.secondary | #5B5850 | #A8A59B |
-| accent.default | #2B4A8B | #8FA8E0 |
-| accent.subtle | #E8EDF7 | #1E2740 |
-| success | #2F6B45 | #7CC49A |
-| warning | #8A5A12 | #E0B15C |
-| danger | #A6372B | #E58A7E |
-| info | #2B5E7A | #7FB6D4 |
-| focus.ring | accent.default at 2px with 2px offset | same |
+| Compact | below 600px | Single column. Menu in header. Tables become structured rows. Detail is its own screen |
+| Medium | 600 to 899px | Single column. Menu in header. Detail opens as a drawer |
+| Wide | 900px and up | Sidebar plus content. Split pane with persistent detail |
+| Large | 1200px and up | Wider detail panes and more table columns |
 
-Verdict colors reuse success, warning, danger, info plus a neutral for Not verified. Color is never the only signal: every status has text and a shape or icon.
+CSS variables cannot be used inside media queries, so these values are constants recorded here and used identically in `shell.css` and component CSS.
 
-Dark mode ships only if every screen passes contrast checks in both themes. Otherwise it ships later. It is not added as a checkbox.
+## 9. Motion principles
 
-## 3. Density
+Motion communicates a state change and nothing else. Durations come from tokens (120ms and 180ms) and the easing is one curve. Nothing loops or decorates. `prefers-reduced-motion` reduces all durations to near zero. Content never moves in a way that causes layout shift under the user's pointer.
 
-Two densities: Comfortable and Compact. Compact is the default for the work queue (row height about 36 px). Whitespace is deliberate. The authenticated app has no oversized hero sections.
+## 10. Component composition rules
 
-## 4. Components (each needs all states)
+1. `ui/` primitives are presentational. They hold no data fetching, no routing and no product vocabulary.
+2. Primitives expose semantic props (`tone`, `variant`), not style props. Callers cannot pass colors or sizes.
+3. One primary button per view. Everything else is secondary or ghost.
+4. Status is shown with the Status primitive (dot and text). Notices are inline with a leading rule, not boxed.
+5. Empty states use the EmptyState primitive and answer what, why, next.
+6. Page structure is PageHeader, then Sections. Content is not wrapped in containers.
+7. A new component needs: all states, both themes, keyboard behavior, and a place in the component gallery (introduced in 1.5).
+8. Raw values in component CSS are a defect.
 
-Buttons (primary, secondary, ghost, danger), inputs, selects, combobox, checkbox, switch, tabs, table with sortable headers and sticky header, badges and chips (sparingly), tooltip, popover, dialog, drawer and detail pane, toast, inline alert, skeleton, empty state, error state, quota state, progress (only with real denominators), evidence card, verdict row, run trace list, keyboard shortcut hint.
+## 11. Components
 
-States: default, hover, focus-visible, active, disabled, loading, error, selected.
+Built in 1.1: Button (secondary, primary, ghost), Status, Notice, Section, EmptyState, PageHeader. Planned by checkpoint: form controls and validation (1.2), table, tabs, dialog, drawer, evidence item, verdict row, run trace (1.5 and 1.6), toast and confirm (2.5).
 
-## 5. Layout
+## 12. Layout
 
 ```
-+---------+--------------------------------------------+
-| Nav     |  Toolbar: search, filters, saved views      |
-| Opportunities                                         |
-| Saved   +----------------------+---------------------+
-| Applications  Work queue table |  Detail pane        |
-| Profile |  (keyboard driven)   |  (persistent)       |
-| Runs    |                      |                     |
-| Settings+----------------------+---------------------+
++----------+------------------------------------------------+
+| Wordmark | Page title                                     |
+| Nav      | Description                                    |
+|  ...     | ---------------------------------------------- |
+|          | Section                                        |
+| Status   | Content                                        |
++----------+------------------------------------------------+
 ```
 
-Tablet: detail pane becomes a drawer. Mobile: queue becomes structured rows, detail becomes its own screen, navigation becomes a bottom bar. The desktop layout is not squeezed onto mobile.
+Wide: fixed sidebar and a scrolling content area. The wordmark and the page title share a baseline. Opportunities adds a persistent detail pane at Wide in 1.6. Below 900px the sidebar becomes a toggled menu.
 
-## 6. Keyboard map
+## 13. Keyboard map
 
 | Key | Action |
 |---|---|
@@ -87,20 +129,16 @@ Tablet: detail pane becomes a drawer. Mobile: queue becomes structured rows, det
 | ? | Show shortcuts |
 | Escape | Close detail or dialog |
 
-Shortcuts never replace visible controls. They are disabled while typing in inputs.
+Shortcuts never replace visible controls, are disabled inside text fields, and are discoverable.
 
-## 7. Motion
+## 14. Accessibility
 
-Used only to communicate state change (row inserted, panel opening, status updating). Short durations, `prefers-reduced-motion` respected, no looping decoration.
+Semantic HTML, labeled controls, visible focus, accessible dialogs and tables, polite live regions, 4.5:1 text contrast and 3:1 for control boundaries and focus, keyboard completeness, associated error text, reduced motion. Automated checks (axe) arrive in 1.5. Manual keyboard and screen reader passes happen at 3.7.
 
-## 8. Accessibility
+## 15. Copy
 
-Semantic HTML, labeled controls, visible focus, accessible dialogs and tables, live regions for status messages, 4.5:1 text contrast and 3:1 for UI components minimum, keyboard complete, error text associated with fields, tested with axe in CI and manual screen reader pass on key flows.
+Plain, specific, honest. Sentence case. No em dashes. Empty states answer what, why, next. Errors answer what happened, is my data safe, will it retry, what can I do. Predictions use hedged language.
 
-## 9. Copy
+## 16. Contrast findings
 
-Plain, specific, honest. No em dashes. Empty states answer what, why, next. Errors answer what happened, is my data safe, will it retry, what can I do. Predictions use hedged language.
-
-## 10. Implementation notes
-
-Tokens are CSS custom properties. Tailwind is configured to read them. Radix primitives or equivalent for accessible behavior. A single `tokens.css` is the source. A component gallery page (dev only) shows every component in every state in both themes.
+Token pairs are computed against WCAG 2.2 (see [checkpoint-1.1.md](../checkpoints/checkpoint-1.1.md)). `border.strong` fails 3:1 for control boundaries, so `border.control` exists and `border.strong` is decorative only.

@@ -132,10 +132,13 @@ stateDiagram-v2
   analyzing --> needs_user_input
   needs_user_input --> analyzing
   analyzing --> analysis_failed
+  analysis_failed --> queued : user retry
   analyzing --> scored
   scored --> recommended
   recommended --> saved
+  saved --> recommended : unsave
   recommended --> dismissed
+  dismissed --> recommended : undo
   recommended --> approved_for_prep
   saved --> approved_for_prep
   approved_for_prep --> generating
@@ -143,11 +146,16 @@ stateDiagram-v2
   materials_ready --> materials_approved
   materials_approved --> ready_to_apply
   ready_to_apply --> applied
+  applied --> ready_to_apply : undo
   applied --> archived
   dismissed --> archived
 ```
 
-There is deliberately no "submitting" or "submitted" state. The product cannot submit applications. `applied` is a user's own record that they applied elsewhere.
+There is deliberately no "submitting" or "submitted" state. The product cannot submit applications. `applied` is a user's own record that they applied elsewhere, and `ready_to_apply` means only that the user has what they need to apply on the employer's site.
+
+User-reversible actions have explicit reverse transitions (unsave, undo dismiss, undo applied, retry a failed analysis), each logged like any other transition. The interface offers exactly these reversals and no others.
+
+UI analysis states are **derived**, not separate backend states: Queued (queued), Processing (analyzing, no verdicts yet), Partial result (analyzing with at least one persisted verdict), Waiting for you (needs_user_input), Completed (scored or later), Failed with Retry (analysis_failed), Not eligible (gate_failed). The full vocabulary and its mapping live in [ux-specification.md](../product/ux-specification.md) section 10.
 
 ## 9. Durable work
 
@@ -183,7 +191,7 @@ Search shows persisted counters, not invented progress: "Found 187 postings", "1
 | Vectors | pgvector | Pinecone, Qdrant | Same DB, transactional with data. See ADR-0003 |
 | Agent runtime | LangGraph, pending spike | Hand-rolled loop | Checkpoint and interrupt. See ADR-0004 |
 | Frontend | React, TypeScript, Vite, TanStack Query and Table | Next.js | No SSR need behind login |
-| Styling | CSS variables as design tokens, Tailwind mapped to tokens | CSS-in-JS | Semantic tokens, small runtime |
+| Styling | CSS custom properties as design tokens in plain CSS. A utility framework is decided in checkpoint 1.5 and adopted only if configured from the tokens | CSS-in-JS, Tailwind now | Semantic tokens, no runtime. See ADR-0019 |
 | Auth | Own implementation, opaque cookie sessions | JWT, managed IdP | Revocable, simple. Provider seam kept. ADR-0016 |
 | Packaging | uv | pip, poetry | Fast, one lockfile |
 | Local runtime | Docker Compose | Native installs | Same on every OS |

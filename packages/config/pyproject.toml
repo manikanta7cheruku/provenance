@@ -1,0 +1,13 @@
+[project]
+name = "pv-config"
+version = "0.1.0"
+description = "Typed settings that fail fast on missing or insecure configuration."
+requires-python = ">=3.12"
+dependencies = ["pydantic-settings>=2.6,<3"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pv_config"]
