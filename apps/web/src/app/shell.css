@@ -1,0 +1,112 @@
+/* Responsive strategy: below 900px a single column with a toggled menu;
+   from 900px a fixed sidebar and a scrolling content area. */
+.shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "header"
+    "nav"
+    "main";
+}
+
+.shell__header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.shell__brand {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.01em;
+}
+
+.shell__nav {
+  grid-area: nav;
+  display: none;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.shell__nav[data-open="true"] {
+  display: flex;
+}
+.shell__nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0);
+  list-style: none;
+}
+.shell__link {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-touch);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.shell__link:hover {
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+}
+.shell__link[aria-current="page"] {
+  background: var(--color-selected);
+  color: var(--color-text-primary);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+.shell__status {
+  margin-top: var(--space-4);
+  padding: 0 var(--space-3);
+  font-size: var(--text-small);
+}
+
+.shell__main {
+  grid-area: main;
+  min-width: 0;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+@media (min-width: 900px) {
+  .shell {
+    grid-template-columns: var(--size-sidebar) 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "header main"
+      "nav main";
+  }
+  .shell__header {
+    /* top padding chosen so the wordmark and the page title share a baseline */
+    padding: calc(var(--space-6) - var(--space-1)) var(--space-5) var(--space-4);
+    border-bottom: none;
+    border-right: 1px solid var(--color-border-subtle);
+  }
+  .shell__menu-button {
+    display: none;
+  }
+  .shell__nav {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-self: start;
+    justify-content: space-between;
+    height: calc(100vh - 84px);
+    padding: var(--space-2) var(--space-3) var(--space-5);
+    border-bottom: none;
+    border-right: 1px solid var(--color-border-subtle);
+  }
+  .shell__link {
+    min-height: var(--size-control);
+  }
+  .shell__main {
+    max-width: var(--size-content-max);
+    padding: var(--space-5) var(--space-7) var(--space-7);
+  }
+}

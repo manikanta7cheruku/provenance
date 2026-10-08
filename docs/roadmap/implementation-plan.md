@@ -23,11 +23,11 @@ At the end of every checkpoint a report states: what was built, what was tested,
 
 ## 3. Definition of Done for a checkpoint
 
-Domain logic, validation, authorization, error handling, persistence, migration, tests, logging, observability, UI states (where UI exists), documentation, security consideration. For LLM features also: versioned prompt and schema, model id stored, token accounting, failure handling, evaluation fixture, grounding strategy, regression test, cost measurement. For agentic features also: explicit state, tool definitions, permission boundaries, termination condition, iteration budget, checkpointing, resume behavior, failure recovery, traceability, human escalation.
+Every checkpoint has technical, UX and accessibility acceptance criteria (section 11). Technical items: domain logic, validation, authorization, error handling, persistence, migration, tests, logging, observability, UI states (where UI exists), documentation, security consideration. For LLM features also: versioned prompt and schema, model id stored, token accounting, failure handling, evaluation fixture, grounding strategy, regression test, cost measurement. For agentic features also: explicit state, tool definitions, permission boundaries, termination condition, iteration budget, checkpointing, resume behavior, failure recovery, traceability, human escalation.
 
 ## 4. Phase 0: Design and Architecture (documentation only)
 
-Output: this `docs/` folder. It is an implementation-ready specification: requirements with IDs, data model, component register, agent spec, threat model, ADRs, design system, economics, operations plan, and roadmap. Exit: you review and approve, then tag v0.0.1.
+Output: this `docs/` folder. It is an implementation-ready specification: requirements with IDs, data model, component register, agent spec, threat model, ADRs, the Product UX + Design System Specification (UX principles, information architecture, navigation, journeys, route inventory, wireframes, state catalog, AI UX patterns, tokens and components), economics, operations plan, and roadmap. Exit: you review and approve, then tag v0.0.1.
 
 ## 5. Phase 1: Foundation and Core Intelligence (v0.1.0)
 
@@ -93,6 +93,58 @@ Exit: the Definition of Done in the product brief is true, and the go-live gates
 
 Security, correctness, user trust, data integrity, explainability, maintainability, reliability, performance, cost, convenience.
 
-## 10. Next step after Phase 0
 
-Approve this pack, tag v0.0.1, then begin checkpoint 1.1.
+## 10. UX as a first-class workstream
+
+UX is built progressively inside the existing checkpoints. There is no separate UI phase. The experience specification is [ux-specification.md](../product/ux-specification.md) and [ai-ux-patterns.md](../product/ai-ux-patterns.md).
+
+### 10.1 Checkpoint definition format
+
+Every checkpoint is written and reviewed in this structure:
+
+| Section | Content |
+|---|---|
+| Build | What is implemented technically and in the UI |
+| UX | What user experience is introduced or changed |
+| Technical acceptance criteria | What must work technically |
+| UX acceptance criteria | What a user must be able to accomplish and understand |
+| Accessibility acceptance criteria | Keyboard, focus, semantics, contrast, screen reader, responsive behavior |
+| Test | Backend, frontend, integration and end-to-end tests as appropriate |
+| Document | Architecture, ADR and design documentation updates |
+| Commit | One coherent commit |
+| Interview defense | What you should now be able to explain |
+
+### 10.2 UX by checkpoint
+
+The UX amendment numbered checkpoints against a shorter roadmap. It is mapped here by content to the approved numbering. No checkpoint was added, removed or reordered.
+
+| Checkpoint | UX introduced |
+|---|---|
+| 1.1 | Application shell, navigation and routing structure, responsive layout strategy, accessibility baseline, frontend folder structure and boundaries, minimum tokens. No product screens |
+| 1.2 | Sign-up, sign-in, session states, validation, error handling, expired-session behavior, accessible forms, keyboard flow, mobile layout |
+| 1.3 | Rate-limit feedback and security messages. Verification, reset and recovery screens, built behind `EMAIL_VERIFICATION_REQUIRED` |
+| 1.4 | The long-running operation state model shared by backend and frontend (queued, processing, retrying, retry available, completed, permanently failed). Minimal Runs list |
+| 1.5 | Visual prototypes of the two critical screens first. Then the design system implementation: tokens, type, spacing, density, components, form controls, feedback states. Resume upload, parse status, editable profile, evidence display with provenance. Responsive behavior |
+| 1.6 | **Core UX milestone.** Job analysis experience: overview, requirement-by-requirement analysis, evidence, missing evidence, confidence, score explanation, detail pane, fact versus inference versus suggestion, available actions, loading, partial and error states |
+| 2.1 | Discovery and source attribution |
+| 2.3 | Duplicate opportunities, reversible links, private and public postings, source provenance |
+| 2.4 | Import workflow: URL, CSV and XLSX, validation, preview, errors, security rejection messages, retry and correction |
+| 2.5 | Opportunities workbench as a major feature: table, filters, sorting, search, keyboard navigation, save, dismiss, approve, applied tracking, bulk actions, state transitions, empty, loading and error states |
+| 2.6 | Tailoring designed around human review: proposed changes, reasons, editing, claim verification, unsupported claims, approve and reject, error recovery |
+| 3.1 | GitHub connection: permission explanation, authorization, connected state, disconnect, scope transparency, failure and retry |
+| 3.2 | Career preparation reuses the existing interaction language and pipeline patterns |
+| 3.3 | Plan, usage, remaining quota, limits, upgrade state if applicable |
+| 3.4 | Export progress, success and failure |
+| 3.5 | Run Inspector and admin console: run status, stages, errors, evidence, cost, diagnostics designed around operational questions |
+| 3.6 | Evaluation views: dataset and run selection, results, regression visibility, comparison, failure inspection |
+| 3.7 | Production UX hardening: accessibility, responsive, error, loading and empty state reviews, security feedback, failure recovery, smoke tests, cross-browser checks |
+
+## 11. Definition of UI/UX done
+
+"UI/UX complete" never means "the page looks good". It means the experience is understandable, consistent, accessible, responsive, state-complete, explainable, recoverable when something fails, consistent with the domain and state model, appropriate for an AI-assisted workflow, and grounded in evidence wherever the product makes an AI claim.
+
+At 1.6 specifically, a user must be able to see what the requirement is, whether they meet it, what evidence supports the conclusion, how confident the system is, why the score was produced, what is missing, and what to do next, without logs, prompts, model output, database records or developer tools.
+
+## 12. Next step
+
+Checkpoint 1.1 is documented in [checkpoints/checkpoint-1.1.md](../checkpoints/checkpoint-1.1.md). Checkpoint 1.2 follows when 1.1 is verified on your machine.

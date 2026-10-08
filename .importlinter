@@ -1,0 +1,33 @@
+[importlinter]
+root_packages =
+    pv_api
+    pv_persistence
+    pv_config
+    pv_domain
+include_external_packages = True
+
+[importlinter:contract:domain-is-pure]
+name = Domain imports no framework and no other project package
+type = forbidden
+source_modules =
+    pv_domain
+forbidden_modules =
+    fastapi
+    starlette
+    sqlalchemy
+    alembic
+    psycopg
+    pydantic
+    pydantic_settings
+    pv_api
+    pv_persistence
+    pv_config
+
+[importlinter:contract:layers]
+name = Dependencies point downward only
+type = layers
+layers =
+    pv_api
+    pv_persistence
+    pv_config
+    pv_domain

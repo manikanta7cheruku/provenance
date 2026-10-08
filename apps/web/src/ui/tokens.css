@@ -1,0 +1,115 @@
+/* Design tokens: the only place raw values live. Components use these names.
+   Breakpoints cannot be CSS variables inside media queries, so they are constants
+   documented here and in docs/architecture/design-system.md:
+   compact < 600px, medium 600-899px, wide >= 900px, large >= 1200px. */
+:root {
+  /* Typography */
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --text-caption: 0.75rem;
+  --text-small: 0.8125rem;
+  --text-body: 0.875rem;
+  --text-body-lg: 1rem;
+  --text-title: 1.25rem;
+  --text-heading: 1.75rem;
+  --leading-tight: 1.25;
+  --leading-body: 1.5;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --tracking-label: 0.04em;
+
+  /* Spacing (4px base) */
+  --space-0: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Sizing */
+  --size-control: 36px;
+  --size-control-compact: 28px;
+  --size-touch: 44px;
+  --size-sidebar: 232px;
+  --size-content-max: 1100px;
+  --measure: 64ch;
+
+  /* Radii: two values only */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+
+  /* Elevation: flat by default. One overlay shadow for popovers and dialogs. */
+  --shadow-overlay: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* Motion: only to communicate state change */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Focus */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Color roles: surface */
+  --color-surface-base: #faf9f6;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f2f0eb;
+  /* Color roles: border */
+  --color-border-subtle: #e6e3dc;
+  --color-border-strong: #cfcbc1; /* decorative only: below 3:1 */
+  --color-border-control: #8a867c; /* boundaries of inputs and buttons: 3:1 or better */
+  /* Color roles: text */
+  --color-text-primary: #1c1b19;
+  --color-text-secondary: #5b5850;
+  --color-text-disabled: #8c887f;
+  --color-text-on-accent: #ffffff;
+  /* Color roles: accent */
+  --color-accent: #2b4a8b;
+  --color-accent-hover: #223b70;
+  --color-accent-active: #1a2d57;
+  --color-accent-subtle: #e8edf7;
+  /* Color roles: status */
+  --color-success: #2f6b45;
+  --color-warning: #8a5a12;
+  --color-danger: #a6372b;
+  --color-info: #2b5e7a;
+  /* Interaction state roles */
+  --color-hover: var(--color-surface-sunken);
+  --color-pressed: var(--color-border-subtle);
+  --color-selected: var(--color-accent-subtle);
+  --color-focus: var(--color-accent);
+  --color-invalid: var(--color-danger);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shadow-overlay: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --color-surface-base: #131412;
+    --color-surface-raised: #1b1c1a;
+    --color-surface-sunken: #0f100f;
+    --color-border-subtle: #2a2c28;
+    --color-border-strong: #3c3e39;
+    --color-border-control: #7a7c75;
+    --color-text-primary: #eceae4;
+    --color-text-secondary: #a8a59b;
+    --color-text-disabled: #6f7068;
+    --color-text-on-accent: #131412;
+    --color-accent: #8fa8e0;
+    --color-accent-hover: #a5bbea;
+    --color-accent-active: #b9caf0;
+    --color-accent-subtle: #1e2740;
+    --color-success: #7cc49a;
+    --color-warning: #e0b15c;
+    --color-danger: #e58a7e;
+    --color-info: #7fb6d4;
+  }
+}
+
+/* Density: components size themselves from these roles. Compact is for dense work screens. */
+[data-density="compact"] {
+  --size-control: var(--size-control-compact);
+}

@@ -4,6 +4,8 @@ Phase 0 planning pack. Start with the product requirements, then the architectur
 
 ## Product
 - [Product requirements](product/product-requirements.md)
+- [Product UX specification](product/ux-specification.md)
+- [AI-specific UX patterns](product/ai-ux-patterns.md)
 - [User journey and UX flow](product/user-journey.md)
 - [Search, company and source requirements](product/search-requirements.md)
 - [Career preparation requirements](product/career-preparation-requirements.md)
@@ -35,6 +37,8 @@ Phase 0 planning pack. Start with the product requirements, then the architectur
 - [Runbook index](operations/runbook-index.md)
 
 ## Delivery
+- [Checkpoint 1.1](checkpoints/checkpoint-1.1.md)
+- [Git workflow](engineering/git-workflow.md)
 - [Master implementation plan](roadmap/implementation-plan.md)
 - [Development setup](development-setup.md)
 

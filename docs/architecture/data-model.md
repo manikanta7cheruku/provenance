@@ -118,3 +118,20 @@ Global tables used by tenants (for example `job_postings`) use policies that all
 ## 6. Versioning
 
 Prompts, schemas, extractors, scoring configs and rules carry explicit version strings stored with every result. Any result can be traced to the exact versions that produced it.
+
+## 8. Canonical state vocabularies
+
+One definition per vocabulary. The UI mapping is in [ux-specification.md](../product/ux-specification.md) section 10. The frontend types are generated from the OpenAPI schema (ADR-0019), so there is no second definition.
+
+| Vocabulary | Values |
+|---|---|
+| Task state (`tasks.state`) | queued, running, succeeded, retry_scheduled, dead_letter, cancelled |
+| Match state (`job_matches.state`) | queued, gate_failed, analyzing, needs_user_input, analysis_failed, scored, recommended, saved, dismissed, approved_for_prep, generating, materials_ready, materials_approved, ready_to_apply, applied, archived |
+| Resume parse state (`resume_versions.parse_status`) | uploaded, parsing, parsed, parse_failed |
+| Resume review state (`resume_versions.review_status`) | pending_review, confirmed |
+| Flagged fields (`resume_versions.flagged_field_count`) | Count of parsed fields below the validation threshold. Greater than zero means the UI shows Needs correction |
+| Verdict | met, partial, not_verified, conflicting, blocker |
+| Evidence kind | direct, inferred, missing, conflicting |
+| Claim origin | posting, evidence, inference, suggestion |
+
+Client-only transport states (idle, uploading) exist in the browser and are never stored.

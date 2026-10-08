@@ -84,12 +84,21 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 ### Decision and generation
 | ID | Requirement | Phase |
 |---|---|---|
-| FR-ACT-1 | Actions: save, dismiss, approve for preparation, open original, mark applied | 2 |
+| FR-ACT-1 | Actions: save, dismiss, approve for preparation, open original, mark applied. Save, dismiss and applied are reversible | 2 |
 | FR-ACT-2 | No application submission state exists anywhere | 2 |
 | FR-TAI-1 | Tailored resume bullets, side by side with originals, each claim linked to evidence | 2 |
 | FR-TAI-2 | Grounding verifier flags unsupported claims. User accepts, rejects, or edits | 2 |
 | FR-PRP-1 | Career preparation module (questions, gaps, roadmap, mock interview) built on existing services | 3 |
 | FR-EXP-1 | Server-side CSV, XLSX, PDF, DOCX exports generated from structured data | 3 |
+
+### Experience
+| ID | Requirement | Phase |
+|---|---|---|
+| FR-UX-1 | Every screen implements the state catalog in the UX specification | each checkpoint |
+| FR-UX-2 | Every verdict shows its evidence, evidence kind, confidence band and next action without developer tools | 1.6 |
+| FR-UX-3 | Facts, inferences and AI suggestions are visually and verbally distinct | 1.6 |
+| FR-UX-4 | Frontend states mirror backend state vocabularies with no UI-only states | each checkpoint |
+| FR-UX-5 | WCAG 2.2 AA where practical, keyboard complete, responsive across the three layouts | each checkpoint |
 
 ### Operations
 | ID | Requirement | Phase |
