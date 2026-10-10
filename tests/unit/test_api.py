@@ -48,7 +48,12 @@ def test_every_response_has_a_request_id(client: TestClient) -> None:
 
 
 def test_docs_are_hidden_in_production(make_settings: Make) -> None:
-    settings = make_settings(environment="production", cors_origins="https://app.example.com")
+    settings = make_settings(
+        environment="production",
+        cors_origins="https://app.example.com",
+        public_base_url="https://app.example.com",
+        smtp_host="smtp.example.com",
+    )
     with TestClient(create_app(settings)) as prod_client:
         assert prod_client.get("/api/docs").status_code == 404
         assert prod_client.get("/api/openapi.json").status_code == 404
@@ -78,3 +83,32 @@ def test_json_log_formatter_emits_allowlisted_fields_only() -> None:
     assert payload["request_id"] == "abc"
     assert "password" not in payload
     assert "should-not-appear" not in json.dumps(payload)
+
+
+def test_security_headers_are_set(client: TestClient) -> None:
+    response = client.get("/healthz")
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+
+
+def test_api_responses_are_not_cached(client: TestClient) -> None:
+    assert client.get("/api/v1/status").headers["cache-control"] == "no-store"
+
+
+def test_oversized_request_body_is_rejected_before_any_work(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/auth/login",
+        content=b"x" * 1_200_000,
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 413
+    assert response.json()["code"] == "PAYLOAD_TOO_LARGE"
+
+
+def test_validation_errors_use_the_shared_error_shape(client: TestClient) -> None:
+    response = client.post("/api/v1/auth/login", json={"email": "a@example.com"})
+    assert response.status_code == 422
+    body = response.json()
+    assert body["code"] == "VALIDATION_FAILED"
+    assert "password" in body["fields"]

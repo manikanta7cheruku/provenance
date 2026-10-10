@@ -62,10 +62,32 @@
   color: var(--color-text-primary);
   box-shadow: inset 2px 0 0 var(--color-accent);
 }
-.shell__status {
+.shell__footer {
   margin-top: var(--space-4);
+}
+.shell__account {
+  padding: 0 var(--space-1) var(--space-3) var(--space-3);
+}
+.shell__account-email {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shell__account .button {
+  margin-left: calc(var(--space-4) * -1);
+  min-height: var(--size-touch);
+}
+.shell__status {
   padding: 0 var(--space-3);
   font-size: var(--text-small);
+}
+.app-status {
+  padding: var(--space-6) var(--space-5);
+}
+.banner {
+  margin-bottom: var(--space-5);
 }
 
 .shell__main {

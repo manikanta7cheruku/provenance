@@ -12,14 +12,20 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from pv_api import __version__
+from pv_api.errors import ApiError, api_error_handler, validation_error_handler
 from pv_api.logging_config import configure_logging
-from pv_api.routes import ops, v1
+from pv_api.mail import Mailer, build_mailer
+from pv_api.ratelimiter import RateLimiter
+from pv_api.routes import admin, auth, ops, profile, v1
+from pv_api.security.middleware import body_limit, origin_guard, security_headers
 from pv_config import Settings, get_settings
 from pv_domain.failures import FailureClass
+from pv_domain.ratelimit import DEFAULT_POLICIES, RatePolicy
 from pv_persistence.engine import create_db_engine
 
 logger = logging.getLogger("pv_api")
@@ -73,7 +79,12 @@ async def unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
     )
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    rate_policies: dict[str, RatePolicy] | None = None,
+    mailer: Mailer | None = None,
+) -> FastAPI:
     cfg = settings if settings is not None else get_settings()
     configure_logging(cfg.log_level)
     engine = create_db_engine(cfg.database_url.get_secret_value())
@@ -96,6 +107,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = cfg
     app.state.engine = engine
+    app.state.limiter = RateLimiter(engine, rate_policies or DEFAULT_POLICIES)
+    app.state.mailer = mailer if mailer is not None else build_mailer(cfg)
 
     if cfg.cors_origin_list:
         app.add_middleware(
@@ -105,8 +118,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
             allow_headers=["Content-Type", "X-CSRF-Token"],
         )
+    # Each registration wraps the previous ones, so the last is outermost.
+    app.middleware("http")(origin_guard)
+    app.middleware("http")(body_limit)
+    app.middleware("http")(security_headers)
     app.middleware("http")(request_context)
+
+    app.add_exception_handler(ApiError, api_error_handler)
+    app.add_exception_handler(RequestValidationError, validation_error_handler)
     app.add_exception_handler(Exception, unhandled_exception)
+
     app.include_router(ops.router)
     app.include_router(v1.router, prefix="/api/v1")
+    app.include_router(auth.router, prefix="/api/v1")
+    app.include_router(profile.router, prefix="/api/v1")
+    app.include_router(admin.router, prefix="/api/v1")
     return app

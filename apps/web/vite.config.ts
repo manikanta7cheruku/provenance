@@ -11,6 +11,7 @@ export default defineConfig({
     strictPort: true,
     // Windows bind mounts do not deliver file-change events into containers.
     watch: { usePolling: true, interval: 300 },
-    proxy: { "/api": { target: apiTarget, changeOrigin: true } },
+    // xfwd forwards the real client address so the API can rate limit per client.
+    proxy: { "/api": { target: apiTarget, changeOrigin: true, xfwd: true } },
   },
 });

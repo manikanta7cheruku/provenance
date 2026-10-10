@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Button } from "../ui";
 import { NAV_ITEMS, SETTINGS_ITEM } from "./nav";
+import { NavAccount } from "./NavAccount";
 import { NavStatus } from "./NavStatus";
+import { VerificationBanner } from "./VerificationBanner";
 
 export function Shell() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -49,11 +51,15 @@ export function Shell() {
             </li>
           ))}
         </ul>
-        <div className="shell__status">
-          <NavStatus />
+        <div className="shell__footer">
+          <NavAccount />
+          <div className="shell__status">
+            <NavStatus />
+          </div>
         </div>
       </nav>
       <main id="main" className="shell__main">
+        <VerificationBanner />
         <Outlet />
       </main>
     </div>

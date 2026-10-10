@@ -22,6 +22,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests/integration"]
 addopts = "-ra -m 'not integration'"
 markers = ["integration: needs a migrated PostgreSQL (run with: pytest -m integration)"]
 

@@ -21,5 +21,7 @@
 | [0017](0017-one-agent-workflows-for-the-rest.md) | One agent, workflows for the rest | Accepted |
 | [0018](0018-development-stack-conventions.md) | Development stack conventions | Accepted |
 | [0019](0019-frontend-architecture-and-boundaries.md) | Frontend architecture and boundaries | Accepted |
+| [0020](0020-sessions-csrf-and-rate-limiting.md) | Sessions, CSRF protection and rate limiting | Accepted |
+| [0021](0021-tenant-isolation-implementation.md) | Tenant isolation implementation | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

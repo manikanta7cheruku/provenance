@@ -135,3 +135,12 @@ One definition per vocabulary. The UI mapping is in [ux-specification.md](../pro
 | Claim origin | posting, evidence, inference, suggestion |
 
 Client-only transport states (idle, uploading) exist in the browser and are never stored.
+
+## 9. Tables created so far
+
+| Migration | Tables | Notes |
+|---|---|---|
+| 0001 | none (extensions and grants) | vector, citext, pg_trgm. Application role privileges |
+| 0002 | users, sessions, email_tokens, invites, audit_events, rate_limit_buckets, profile_entries | `invites` and `rate_limit_buckets` were not in the Phase 0 model. `audit_events` carries a `category` (audit or security) and is append-only for the application role. `profile_entries` is under Row Level Security with `owner_user_id` |
+
+Identity tables (users, sessions, email_tokens, invites) are intentionally outside Row Level Security. See ADR-0021.

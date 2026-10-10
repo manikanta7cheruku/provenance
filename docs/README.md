@@ -38,6 +38,7 @@ Phase 0 planning pack. Start with the product requirements, then the architectur
 
 ## Delivery
 - [Checkpoint 1.1](checkpoints/checkpoint-1.1.md)
+- [Checkpoints 1.2 and 1.3](checkpoints/checkpoint-1.2-1.3.md)
 - [Git workflow](engineering/git-workflow.md)
 - [Master implementation plan](roadmap/implementation-plan.md)
 - [Development setup](development-setup.md)
