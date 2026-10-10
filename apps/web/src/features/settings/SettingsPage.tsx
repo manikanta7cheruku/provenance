@@ -1,16 +1,15 @@
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { PageHeader, Section } from "../../ui";
+import { AccountSection } from "./AccountSection";
 import { SystemStatusPanel } from "./SystemStatusPanel";
 
-// Account, usage and connection sections are added here by later checkpoints.
+// Usage and connection sections are added here by later checkpoints.
 export function SettingsPage() {
   useDocumentTitle("Settings");
   return (
     <>
-      <PageHeader
-        title="Settings"
-        description="Account controls arrive with sign-in in checkpoint 1.2. System status is live now."
-      />
+      <PageHeader title="Settings" description="Your account and the state of the system." />
+      <AccountSection />
       <Section title="System status">
         <SystemStatusPanel />
       </Section>

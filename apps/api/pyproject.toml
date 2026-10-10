@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115,<1",
     "uvicorn[standard]>=0.32,<1",
+    "argon2-cffi>=23.1,<26",
     "pv-config",
     "pv-domain",
     "pv-persistence",

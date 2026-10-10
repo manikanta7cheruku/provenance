@@ -29,7 +29,7 @@ export const PLANNED_SCREENS: Record<string, PlannedScreen> = {
     title: "Profile",
     description: "Your evidence base: resume, projects, skills and anything else you add.",
     why: "Every conclusion about a job is traced back to evidence stored here.",
-    next: "Resume upload and the editable profile arrive in checkpoint 1.5. Sign-in comes first, in 1.2.",
+    next: "Resume upload and the editable profile arrive in checkpoint 1.5.",
   },
   "/runs": {
     title: "Runs",

@@ -11,6 +11,15 @@ x-api-env: &api-env
   SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
   CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  SIGNUP_MODE: ${SIGNUP_MODE:-invite}
+  EMAIL_VERIFICATION_REQUIRED: ${EMAIL_VERIFICATION_REQUIRED:-false}
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:5173}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+  MAIL_FROM: ${MAIL_FROM:-Provenance <no-reply@localhost>}
 
 services:
   postgres:
@@ -58,6 +67,9 @@ services:
       - --reload
       - --reload-dir=/app/apps
       - --reload-dir=/app/packages
+      # Development only: trust X-Forwarded-For from the web dev proxy so rate limits see real clients.
+      - --proxy-headers
+      - --forwarded-allow-ips=*
     environment:
       <<: *api-env
       WATCHFILES_FORCE_POLLING: "true"
@@ -87,6 +99,21 @@ services:
         limits:
           cpus: "1.0"
           memory: 512M
+
+  # Optional local inbox for verification and reset emails.
+  # Start with: docker compose --profile mail up --build
+  # Then set SMTP_HOST=mailpit, SMTP_PORT=1025, SMTP_STARTTLS=false in .env.
+  # Check Docker Hub for a current tag and put it in MAILPIT_TAG.
+  mailpit:
+    profiles: ["mail"]
+    image: axllent/mailpit:${MAILPIT_TAG:-v1.21.8}
+    ports:
+      - "127.0.0.1:8025:8025"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
 
   web:
     build:

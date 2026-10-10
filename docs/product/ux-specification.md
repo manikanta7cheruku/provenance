@@ -69,9 +69,9 @@ The end-to-end flow is in [user-journey.md](user-journey.md). Each journey is ch
 | Route | Screen | Checkpoint | Notes |
 |---|---|---|---|
 | any | App shell, navigation, status indicator | 1.1 | Built |
-| `/settings` | Settings (the `settings` feature) with system status | 1.1 | System status live, account in 1.2 |
-| `/signin` `/signup` | Authentication | 1.2 | |
-| `/verify-email` `/reset-password` | Recovery flows | 1.3 | Behind EMAIL_VERIFICATION_REQUIRED |
+| `/settings` | Settings (the `settings` feature): account, password, system status | 1.1 and 1.2 | Built |
+| `/signin` `/signup` | Authentication (the `auth` feature) | 1.2 | Built |
+| `/forgot-password` `/reset-password` `/verify-email` | Recovery flows | 1.3 | Built. Verification is enforced only when EMAIL_VERIFICATION_REQUIRED is true |
 | `/runs` | Minimal run list | 1.4 | Full inspector 3.5 |
 | `/profile` | Resume upload, parse status, editable profile, evidence | 1.5 | |
 | `/opportunities` | Basic list and paste-a-job | 1.6 | Full workbench at 2.5 |

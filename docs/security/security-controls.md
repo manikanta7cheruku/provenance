@@ -1,5 +1,11 @@
 # Security Controls
 
+## Delivered in checkpoints 1.2 and 1.3
+
+Passwords (Argon2id), opaque sessions with rotation and revocation, cookie flags, CSRF token and Origin check, repository scoping plus Row Level Security with FORCE, isolation tests including raw SQL, policy-driven rate limits, security headers, request size limit, append-only audit log, uniform authentication errors, invite-only signup, email verification and reset flows (verification enforced by flag), per-field input limits. See ADR-0020 and ADR-0021.
+
+Not yet delivered: file handling (1.5), untrusted content handling (1.6), SSRF (2.4), export hardening (3.4), connector tokens (3.1), quotas (3.3), backups and incident drills (3.7), dependency vulnerability audit in CI (deferred).
+
 Status: Decided (Phase 0). Each control lists the checkpoint that delivers it.
 
 | Area | Control | Checkpoint |
