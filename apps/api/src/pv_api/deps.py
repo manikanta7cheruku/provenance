@@ -10,7 +10,6 @@ from sqlalchemy.engine import Engine
 
 from pv_api.errors import ApiError
 from pv_api.http import client_ip
-from pv_api.mail import Mailer
 from pv_api.ratelimiter import RateLimiter
 from pv_api.services.auth_service import AuthContext, resolve_session
 from pv_config import Settings
@@ -34,15 +33,9 @@ def get_limiter(request: Request) -> RateLimiter:
     return limiter
 
 
-def get_mailer(request: Request) -> Mailer:
-    mailer: Mailer = request.app.state.mailer
-    return mailer
-
-
 SettingsDep = Annotated[Settings, Depends(get_settings_dep)]
 EngineDep = Annotated[Engine, Depends(get_engine)]
 LimiterDep = Annotated[RateLimiter, Depends(get_limiter)]
-MailerDep = Annotated[Mailer, Depends(get_mailer)]
 
 
 def ip_hash_of(request: Request, settings: Settings) -> str:
@@ -69,13 +62,7 @@ def require_user(
     return auth
 
 
-def require_csrf(
-    request: Request,
-    auth: Annotated[AuthContext, Depends(require_user)],
-    settings: SettingsDep,
-    engine: EngineDep,
-) -> AuthContext:
-    """State-changing requests from a signed-in browser must carry the CSRF token."""
+def _check_csrf(request: Request, auth: AuthContext, settings: Settings, engine: Engine) -> None:
     expected = csrf_token_for(auth.session_token, settings.secret_key.get_secret_value())
     supplied = request.headers.get("x-csrf-token", "")
     if not supplied or not safe_equals(supplied, expected):
@@ -93,6 +80,16 @@ def require_csrf(
             "This request was blocked for your safety. Reload the page and try again.",
             failure_class=FailureClass.SECURITY_REJECTED,
         )
+
+
+def require_csrf(
+    request: Request,
+    auth: Annotated[AuthContext, Depends(require_user)],
+    settings: SettingsDep,
+    engine: EngineDep,
+) -> AuthContext:
+    """State-changing requests from a signed-in browser must carry the CSRF token."""
+    _check_csrf(request, auth, settings, engine)
     return auth
 
 
@@ -118,7 +115,19 @@ def require_admin(auth: Annotated[AuthContext, Depends(require_user)]) -> AuthCo
     return auth
 
 
+def require_admin_csrf(
+    request: Request,
+    auth: Annotated[AuthContext, Depends(require_admin)],
+    settings: SettingsDep,
+    engine: EngineDep,
+) -> AuthContext:
+    """Admin mutations: the role check runs first (404 for everyone else), then CSRF."""
+    _check_csrf(request, auth, settings, engine)
+    return auth
+
+
 CurrentUser = Annotated[AuthContext, Depends(require_user)]
 CsrfUser = Annotated[AuthContext, Depends(require_csrf)]
 WriterUser = Annotated[AuthContext, Depends(require_verified_writer)]
 AdminUser = Annotated[AuthContext, Depends(require_admin)]
+AdminWriter = Annotated[AuthContext, Depends(require_admin_csrf)]

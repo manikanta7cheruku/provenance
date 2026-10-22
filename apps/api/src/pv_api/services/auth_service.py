@@ -4,6 +4,8 @@ Rules that hold for every flow here:
 - Tokens (session, verification, reset, invite) are stored only as hashes.
 - Failures that could reveal whether an account exists use one message.
 - Security-relevant events are written to the append-only audit log.
+- Emails are enqueued in the SAME transaction that issues the token (checkpoint 1.4),
+  so a token never exists without its email task and vice versa.
 """
 
 import uuid
@@ -23,6 +25,7 @@ from pv_api.security.passwords import (
     verify_dummy,
     verify_password,
 )
+from pv_api.services.mail_queue import enqueue_email
 from pv_config import Settings
 from pv_domain.auth import (
     generate_token,
@@ -54,7 +57,6 @@ class AuthContext:
 @dataclass(frozen=True)
 class RegisterResult:
     context: AuthContext
-    verification_token: str
 
 
 def _now() -> datetime:
@@ -127,6 +129,18 @@ def _issue_email_token(db: Session, user_id: uuid.UUID, purpose: str, ttl: timed
     return token
 
 
+def issue_verification_email(db: Session, user_id: uuid.UUID, email: str) -> None:
+    """Issue a verification token and queue its email (same transaction as the caller)."""
+    token = _issue_email_token(db, user_id, "verify", VERIFY_TOKEN_TTL)
+    enqueue_email(db, template="verify", to=email, token=token, owner_user_id=user_id)
+
+
+def issue_reset_email(db: Session, user_id: uuid.UUID, email: str) -> None:
+    """Issue a password reset token and queue its email (same transaction as the caller)."""
+    token = _issue_email_token(db, user_id, "reset", RESET_TOKEN_TTL)
+    enqueue_email(db, template="reset", to=email, token=token, owner_user_id=user_id)
+
+
 def _consume_email_token(db: Session, token: str, purpose: str) -> uuid.UUID | None:
     """Atomically mark a valid token used. Returns the user id, or None if not valid."""
     row = db.execute(
@@ -143,7 +157,7 @@ def _consume_email_token(db: Session, token: str, purpose: str) -> uuid.UUID | N
     return row[0] if row is not None else None
 
 
-def _revoke_sessions(db: Session, user_id: uuid.UUID) -> None:
+def revoke_sessions(db: Session, user_id: uuid.UUID) -> None:
     db.execute(
         update(UserSession)
         .where(UserSession.user_id == user_id, UserSession.revoked_at.is_(None))
@@ -215,6 +229,7 @@ def register(
                     .where(
                         Invite.code_hash == hash_token(invite_code.strip()),
                         Invite.used_at.is_(None),
+                        Invite.revoked_at.is_(None),
                         Invite.expires_at > _now(),
                     )
                     .with_for_update()
@@ -240,7 +255,7 @@ def register(
                 invite.used_at = _now()
                 invite.used_by = user.id
             session_id, session_token = _create_session(db, settings, user.id, user_agent)
-            verification_token = _issue_email_token(db, user.id, "verify", VERIFY_TOKEN_TTL)
+            issue_verification_email(db, user.id, email)
             context = AuthContext(
                 user_id=user.id,
                 email=email,
@@ -264,7 +279,7 @@ def register(
         actor_user_id=context.user_id,
         ip_hash=ip_hash,
     )
-    return RegisterResult(context=context, verification_token=verification_token)
+    return RegisterResult(context=context)
 
 
 def login(
@@ -376,7 +391,7 @@ def change_password(
     new_hash = hash_password(new_password)
     with Session(engine, expire_on_commit=False) as db, db.begin():
         db.execute(update(User).where(User.id == context.user_id).values(password_hash=new_hash))
-        _revoke_sessions(db, context.user_id)
+        revoke_sessions(db, context.user_id)
         session_id, session_token = _create_session(db, settings, context.user_id, user_agent)
 
     record_audit(
@@ -396,15 +411,14 @@ def change_password(
     )
 
 
-def request_email_verification(
-    engine: Engine, limiter: RateLimiter, context: AuthContext
-) -> str | None:
-    """Returns a new verification token, or None when the email is already verified."""
+def request_email_verification(engine: Engine, limiter: RateLimiter, context: AuthContext) -> bool:
+    """Queues a verification email. Returns False when the email is already verified."""
     limiter.check("verify_request_user", str(context.user_id))
     if context.email_verified:
-        return None
+        return False
     with Session(engine) as db, db.begin():
-        return _issue_email_token(db, context.user_id, "verify", VERIFY_TOKEN_TTL)
+        issue_verification_email(db, context.user_id, context.email)
+    return True
 
 
 def confirm_email(engine: Engine, limiter: RateLimiter, token: str, ip_hash: str) -> None:
@@ -434,8 +448,8 @@ def forgot_password(
     *,
     email: str,
     ip_hash: str,
-) -> tuple[str, str] | None:
-    """Returns (email, token) when an account exists. The caller answers identically either way."""
+) -> None:
+    """Queues a reset email when an account exists. The caller answers identically either way."""
     email = normalize_email(email)
     email_key = keyed_hash(settings.secret_key.get_secret_value(), email)
     limiter.check("password_reset_ip", ip_hash)
@@ -444,12 +458,10 @@ def forgot_password(
         user = db.execute(
             select(User).where(User.email == email, User.is_active.is_(True))
         ).scalar_one_or_none()
-        if user is None:
-            result: tuple[str, str] | None = None
-            user_id: uuid.UUID | None = None
-        else:
+        user_id: uuid.UUID | None = None
+        if user is not None:
             user_id = user.id
-            result = (user.email, _issue_email_token(db, user.id, "reset", RESET_TOKEN_TTL))
+            issue_reset_email(db, user.id, user.email)
     record_audit(
         engine,
         category="audit",
@@ -458,7 +470,6 @@ def forgot_password(
         ip_hash=ip_hash,
         metadata={"email_hash": email_key},
     )
-    return result
 
 
 def reset_password(
@@ -492,7 +503,7 @@ def reset_password(
         db.execute(
             update(User).where(User.id == user_id).values(password_hash=hash_password(new_password))
         )
-        _revoke_sessions(db, user_id)
+        revoke_sessions(db, user_id)
     record_audit(
         engine,
         category="audit",

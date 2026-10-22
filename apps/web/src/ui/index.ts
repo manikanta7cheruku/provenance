@@ -1,3 +1,6 @@
+export { ActionButton } from "./ActionButton";
+export { ConfirmDialog } from "./ConfirmDialog";
+export { DataTable } from "./DataTable";
 export { Button } from "./Button";
 export { EmptyState } from "./EmptyState";
 export { Notice } from "./Notice";

@@ -9,7 +9,7 @@ dependencies = []
 package = false
 
 [tool.uv.workspace]
-members = ["apps/api", "packages/*"]
+members = ["apps/api", "apps/worker", "packages/*"]
 
 [dependency-groups]
 dev = [
@@ -34,10 +34,18 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B", "SIM", "S"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["pv_api", "pv_config", "pv_domain", "pv_persistence"]
+known-first-party = [
+    "pv_api",
+    "pv_config",
+    "pv_domain",
+    "pv_llm",
+    "pv_mail",
+    "pv_persistence",
+    "pv_worker",
+]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S105", "S106"]
+"tests/**" = ["S101", "S105", "S106", "E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -45,8 +53,19 @@ strict = true
 explicit_package_bases = true
 mypy_path = [
     "apps/api/src",
+    "apps/worker/src",
     "packages/config/src",
     "packages/domain/src",
+    "packages/llm/src",
+    "packages/mail/src",
     "packages/persistence/src",
 ]
-packages = ["pv_api", "pv_config", "pv_domain", "pv_persistence"]
+packages = [
+    "pv_api",
+    "pv_config",
+    "pv_domain",
+    "pv_llm",
+    "pv_mail",
+    "pv_persistence",
+    "pv_worker",
+]

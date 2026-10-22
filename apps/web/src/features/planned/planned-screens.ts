@@ -31,10 +31,4 @@ export const PLANNED_SCREENS: Record<string, PlannedScreen> = {
     why: "Every conclusion about a job is traced back to evidence stored here.",
     next: "Resume upload and the editable profile arrive in checkpoint 1.5.",
   },
-  "/runs": {
-    title: "Runs",
-    description: "A history of analysis runs and what each one did.",
-    why: "Runs let you see what happened, how long it took and what evidence was used.",
-    next: "Run tracking starts in checkpoint 1.4. The full inspector arrives in Phase 3.",
-  },
 };

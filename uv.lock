@@ -13,7 +13,10 @@ members = [
     "pv-api",
     "pv-config",
     "pv-domain",
+    "pv-llm",
+    "pv-mail",
     "pv-persistence",
+    "pv-worker",
 ]
 
 [[package]]
@@ -872,6 +875,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "pv-config" },
     { name = "pv-domain" },
+    { name = "pv-mail" },
     { name = "pv-persistence" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -882,6 +886,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "pv-config", editable = "packages/config" },
     { name = "pv-domain", editable = "packages/domain" },
+    { name = "pv-mail", editable = "packages/mail" },
     { name = "pv-persistence", editable = "packages/persistence" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32,<1" },
 ]
@@ -903,6 +908,36 @@ version = "0.1.0"
 source = { editable = "packages/domain" }
 
 [[package]]
+name = "pv-llm"
+version = "0.1.0"
+source = { editable = "packages/llm" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pv-config" },
+    { name = "pv-domain" },
+    { name = "pv-persistence" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27,<1" },
+    { name = "pv-config", editable = "packages/config" },
+    { name = "pv-domain", editable = "packages/domain" },
+    { name = "pv-persistence", editable = "packages/persistence" },
+]
+
+[[package]]
+name = "pv-mail"
+version = "0.1.0"
+source = { editable = "packages/mail" }
+dependencies = [
+    { name = "pv-config" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pv-config", editable = "packages/config" }]
+
+[[package]]
 name = "pv-persistence"
 version = "0.1.0"
 source = { editable = "packages/persistence" }
@@ -919,6 +954,25 @@ requires-dist = [
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4" },
     { name = "pv-config", editable = "packages/config" },
     { name = "sqlalchemy", specifier = ">=2.0.36,<3" },
+]
+
+[[package]]
+name = "pv-worker"
+version = "0.1.0"
+source = { editable = "apps/worker" }
+dependencies = [
+    { name = "pv-config" },
+    { name = "pv-domain" },
+    { name = "pv-mail" },
+    { name = "pv-persistence" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pv-config", editable = "packages/config" },
+    { name = "pv-domain", editable = "packages/domain" },
+    { name = "pv-mail", editable = "packages/mail" },
+    { name = "pv-persistence", editable = "packages/persistence" },
 ]
 
 [[package]]

@@ -2,18 +2,16 @@
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
+from fastapi import APIRouter, Depends, Request, Response
 
 from pv_api.deps import (
     CsrfUser,
     EngineDep,
     LimiterDep,
-    MailerDep,
     SettingsDep,
     ip_hash_of,
     optional_auth,
 )
-from pv_api.mail import send_reset_email, send_verification_email
 from pv_api.schemas import (
     AuthConfig,
     ChangePasswordRequest,
@@ -30,6 +28,7 @@ from pv_api.services import auth_service
 from pv_api.services.auth_service import AuthContext
 from pv_config import Settings
 from pv_domain.auth import csrf_token_for
+from pv_mail import delivery_hint
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -95,11 +94,9 @@ def register(
     payload: RegisterRequest,
     request: Request,
     response: Response,
-    background: BackgroundTasks,
     settings: SettingsDep,
     engine: EngineDep,
     limiter: LimiterDep,
-    mailer: MailerDep,
 ) -> SessionResponse:
     ip_hash = ip_hash_of(request, settings)
     limiter.check("register_ip", ip_hash)
@@ -113,9 +110,6 @@ def register(
         user_agent=request.headers.get("user-agent"),
     )
     _set_session_cookie(response, result.context.session_token, settings)
-    background.add_task(
-        send_verification_email, mailer, settings, result.context.email, result.verification_token
-    )
     return _session_response(result.context, settings)
 
 
@@ -184,14 +178,14 @@ def request_verification(
     settings: SettingsDep,
     engine: EngineDep,
     limiter: LimiterDep,
-    mailer: MailerDep,
-    background: BackgroundTasks,
 ) -> MessageResponse:
-    token = auth_service.request_email_verification(engine, limiter, context)
-    if token is None:
+    if not auth_service.request_email_verification(engine, limiter, context):
         return MessageResponse(message="Your email is already confirmed.")
-    background.add_task(send_verification_email, mailer, settings, context.email, token)
-    return MessageResponse(message="We sent a confirmation link to your email address.")
+    hint = delivery_hint(settings)
+    return MessageResponse(
+        message=f"We queued a confirmation link for your email address. {hint.text}",
+        delivery_hint=hint.mode,
+    )
 
 
 @router.post("/email/verify/confirm", response_model=MessageResponse)
@@ -213,18 +207,21 @@ def forgot_password(
     settings: SettingsDep,
     engine: EngineDep,
     limiter: LimiterDep,
-    mailer: MailerDep,
-    background: BackgroundTasks,
 ) -> MessageResponse:
-    """Always answers the same way, whether or not an account exists."""
-    result = auth_service.forgot_password(
+    """Always answers the same way, whether or not an account exists.
+
+    The delivery hint depends only on configuration, so it cannot reveal which addresses exist.
+    """
+    auth_service.forgot_password(
         engine, settings, limiter, email=payload.email, ip_hash=ip_hash_of(request, settings)
     )
-    if result is not None:
-        email, token = result
-        background.add_task(send_reset_email, mailer, settings, email, token)
+    hint = delivery_hint(settings)
     return MessageResponse(
-        message="If an account exists for that address, we sent a link to reset the password."
+        message=(
+            "If an account exists for that address, we will send a link to reset the "
+            f"password. {hint.text}"
+        ),
+        delivery_hint=hint.mode,
     )
 
 

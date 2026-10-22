@@ -14,12 +14,30 @@ x-api-env: &api-env
   SIGNUP_MODE: ${SIGNUP_MODE:-invite}
   EMAIL_VERIFICATION_REQUIRED: ${EMAIL_VERIFICATION_REQUIRED:-false}
   PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:5173}
-  SMTP_HOST: ${SMTP_HOST:-}
-  SMTP_PORT: ${SMTP_PORT:-587}
+  # "-" (not ":-") means: use mailpit only when the variable is UNSET. An empty SMTP_HOST in
+  # .env is respected and selects log mode (emails written to the worker log).
+  SMTP_HOST: ${SMTP_HOST-mailpit}
+  SMTP_PORT: ${SMTP_PORT-1025}
   SMTP_USERNAME: ${SMTP_USERNAME:-}
   SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-  SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+  SMTP_STARTTLS: ${SMTP_STARTTLS-false}
   MAIL_FROM: ${MAIL_FROM:-Provenance <no-reply@localhost>}
+  DEV_INBOX_URL: ${DEV_INBOX_URL:-http://localhost:8025}
+
+x-worker-env: &worker-env
+  <<: *api-env
+  WORKER_POLL_INTERVAL_SECONDS: ${WORKER_POLL_INTERVAL_SECONDS:-1.0}
+  WORKER_LEASE_SECONDS: ${WORKER_LEASE_SECONDS:-120}
+  WORKER_HEARTBEAT_SECONDS: ${WORKER_HEARTBEAT_SECONDS:-10}
+  TASK_RETENTION_DAYS: ${TASK_RETENTION_DAYS:-7}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-}
+  LLM_EMBEDDING_MODEL: ${LLM_EMBEDDING_MODEL:-}
+  LLM_EMBEDDING_DIMENSIONS: ${LLM_EMBEDDING_DIMENSIONS:-768}
+  LLM_MIN_INTERVAL_SECONDS: ${LLM_MIN_INTERVAL_SECONDS:-0}
+  LLM_INPUT_PRICE_PER_MILLION: ${LLM_INPUT_PRICE_PER_MILLION:-0}
+  LLM_OUTPUT_PRICE_PER_MILLION: ${LLM_OUTPUT_PRICE_PER_MILLION:-0}
+  LLM_EMBEDDING_PRICE_PER_MILLION: ${LLM_EMBEDDING_PRICE_PER_MILLION:-0}
 
 services:
   postgres:
@@ -100,15 +118,53 @@ services:
           cpus: "1.0"
           memory: 512M
 
-  # Optional local inbox for verification and reset emails.
-  # Start with: docker compose --profile mail up --build
-  # Then set SMTP_HOST=mailpit, SMTP_PORT=1025, SMTP_STARTTLS=false in .env.
-  # Check Docker Hub for a current tag and put it in MAILPIT_TAG.
+  # Background worker: sends email and (from checkpoint 1.5) runs parsing and analysis.
+  # Same image as the API. It has no reload: after editing worker code run
+  #   .\scripts\pv.ps1 restart worker
+  # Run more workers to go faster: docker compose up -d --scale worker=2
+  worker:
+    build: *api-build
+    image: provenance-api:dev
+    command: ["python", "-m", "pv_worker"]
+    environment: *worker-env
+    volumes:
+      - ./apps/api:/app/apps/api:ro
+      - ./apps/worker:/app/apps/worker:ro
+      - ./packages:/app/packages:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+    healthcheck:
+      # The worker touches a file every heartbeat. Healthy means "touched in the last minute".
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os,sys,tempfile,time; p=os.path.join(tempfile.gettempdir(),'pv_worker_alive'); sys.exit(0 if time.time()-os.path.getmtime(p)<60 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    # SIGTERM lets the worker finish the task in hand. Give it time before SIGKILL.
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  # Local inbox for verification and reset emails. UI: http://localhost:8025, SMTP: mailpit:1025.
+  # Verified against the official release list on 2026-10-22 (newer releases exist; see
+  # docs/providers/mailpit.md before changing MAILPIT_TAG).
   mailpit:
-    profiles: ["mail"]
-    image: axllent/mailpit:${MAILPIT_TAG:-v1.21.8}
+    image: axllent/mailpit:${MAILPIT_TAG:-v1.30.5}
     ports:
       - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
     deploy:
       resources:
         limits:

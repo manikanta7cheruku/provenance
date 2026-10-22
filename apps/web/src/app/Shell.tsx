@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Button } from "../ui";
-import { NAV_ITEMS, SETTINGS_ITEM } from "./nav";
+import { visibleNavItems, SETTINGS_ITEM } from "./nav";
+import { useSession } from "../lib/session";
 import { NavAccount } from "./NavAccount";
 import { NavStatus } from "./NavStatus";
 import { VerificationBanner } from "./VerificationBanner";
@@ -9,6 +10,8 @@ import { VerificationBanner } from "./VerificationBanner";
 export function Shell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { state } = useSession();
+  const user = state.kind === "authenticated" ? state.user : null;
 
   // Close the mobile menu after navigating, and when Escape is pressed.
   useEffect(() => {
@@ -23,7 +26,7 @@ export function Shell() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [menuOpen]);
 
-  const links = [...NAV_ITEMS, SETTINGS_ITEM];
+  const links = [...visibleNavItems(user), SETTINGS_ITEM];
 
   return (
     <div className="shell">
