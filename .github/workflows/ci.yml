@@ -45,7 +45,7 @@ jobs:
       - run: uv run mypy
       - run: uv run lint-imports
       - name: Unit tests
-        run: uv run pytest
+        run: uv run pytest -m "not integration"
       - name: Create application role
         run: |
           PGPASSWORD=ci_owner_pw psql -h localhost -U provenance -d provenance -v ON_ERROR_STOP=1 \
