@@ -1,4 +1,5 @@
 # Development-oriented image: editable installs, source bind-mounted by compose.
+# The same image runs the API, the migrations and the worker (only the command differs).
 # A minimal multi-stage production image is added in checkpoint 3.7 (ADR-0018).
 FROM python:3.12-slim-bookworm
 
@@ -16,6 +17,7 @@ RUN pip install --no-cache-dir "uv>=0.5,<1" \
 WORKDIR /app
 COPY .python-version pyproject.toml uv.lock ./
 COPY apps/api ./apps/api
+COPY apps/worker ./apps/worker
 COPY packages ./packages
 RUN uv sync --frozen --no-dev --all-packages
 

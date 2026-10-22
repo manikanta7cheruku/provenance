@@ -3,7 +3,7 @@
 | ADR | Title | Status |
 |---|---|---|
 | [0001](0001-modular-monolith.md) | Modular monolith | Accepted |
-| [0002](0002-postgresql-task-queue.md) | PostgreSQL task queue | Accepted |
+| [0002](0002-postgresql-task-queue.md) | PostgreSQL task queue | Accepted, refined by 0022 |
 | [0003](0003-pgvector-instead-of-a-separate-vector-database.md) | pgvector instead of a separate vector database | Accepted |
 | [0004](0004-langgraph-for-the-agentic-subgraph-pending-spike.md) | LangGraph for the agentic subgraph (pending spike) | Accepted, pending spike |
 | [0005](0005-human-approval-boundary.md) | Human approval boundary | Accepted |
@@ -23,5 +23,7 @@
 | [0019](0019-frontend-architecture-and-boundaries.md) | Frontend architecture and boundaries | Accepted |
 | [0020](0020-sessions-csrf-and-rate-limiting.md) | Sessions, CSRF protection and rate limiting | Accepted |
 | [0021](0021-tenant-isolation-implementation.md) | Tenant isolation implementation | Accepted |
+| [0022](0022-queue-semantics-and-system-tables.md) | Queue semantics, payload erasure and system tables | Accepted |
+| [0023](0023-admin-scope-and-guards.md) | Administrator scope and guards | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

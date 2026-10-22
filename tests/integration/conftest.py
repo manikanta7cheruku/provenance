@@ -15,7 +15,9 @@ from helpers import (
     unique_email,
 )
 from pydantic import ValidationError
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
 
 from pv_api.main import create_app
 from pv_config import Settings, get_settings
@@ -39,18 +41,47 @@ def engine(settings: Settings) -> Iterator[Engine]:
     db_engine.dispose()
 
 
-@pytest.fixture
-def mailer() -> RecordingMailer:
-    return RecordingMailer()
+def _clean_test_tasks(engine: Engine) -> None:
+    """Remove queued mail for throw-away test accounts and test-only task types.
+
+    Without this, a worker started later would send junk email for @example.com users.
+    """
+    with Session(engine) as db, db.begin():
+        db.execute(
+            text(
+                """
+                DELETE FROM tasks
+                 WHERE task_type LIKE 'test.%'
+                    OR owner_user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com')
+                """
+            )
+        )
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _task_cleanup(engine: Engine) -> Iterator[None]:
+    _clean_test_tasks(engine)
+    yield
+    _clean_test_tasks(engine)
+
+
+def _task_cleanup(engine: Engine) -> Iterator[None]:
+    _clean_test_tasks(engine)
+    yield
+    _clean_test_tasks(engine)
 
 
 @pytest.fixture
-def build_app(settings: Settings, mailer: RecordingMailer) -> Callable[..., FastAPI]:
+def mailer(engine: Engine, settings: Settings) -> RecordingMailer:
+    return RecordingMailer(engine, settings.public_base_url)
+
+
+@pytest.fixture
+def build_app(settings: Settings) -> Callable[..., FastAPI]:
     def _build(policies: dict[str, RatePolicy] | None = None, **overrides: Any) -> FastAPI:
         return create_app(
             settings.model_copy(update=overrides),
             rate_policies=policies or generous_policies(),
-            mailer=mailer,
         )
 
     return _build

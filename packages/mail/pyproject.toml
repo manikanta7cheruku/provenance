@@ -1,0 +1,16 @@
+[project]
+name = "pv-mail"
+version = "0.1.0"
+description = "Provenance outgoing mail: transports, templates and delivery hints."
+requires-python = ">=3.12"
+dependencies = ["pv-config"]
+
+[tool.uv.sources]
+pv-config = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pv_mail"]

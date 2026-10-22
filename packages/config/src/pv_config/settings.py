@@ -59,6 +59,27 @@ class Settings(BaseSettings):
     smtp_password: SecretStr = SecretStr("")
     smtp_starttls: bool = True
     mail_from: str = "Provenance <no-reply@localhost>"
+    # Shown to developers when mail goes to the local inbox (Mailpit).
+    dev_inbox_url: str = "http://localhost:8025"
+
+    # Background worker (checkpoint 1.4)
+    worker_poll_interval_seconds: float = 1.0
+    # Visibility timeout: how long a claimed task stays hidden before another worker may take it.
+    worker_lease_seconds: int = 120
+    worker_heartbeat_seconds: int = 10
+    task_retention_days: int = 7
+
+    # AI provider (checkpoint 1.4 adds the plumbing; features arrive in 1.5 and 1.6).
+    # Model names and prices are configuration, never code.
+    # See docs/operations/llm-provider-gemini.md.
+    gemini_api_key: SecretStr = SecretStr("")
+    llm_model: str = ""
+    llm_embedding_model: str = ""
+    llm_embedding_dimensions: int = 768
+    llm_min_interval_seconds: float = 0.0
+    llm_input_price_per_million: float = 0.0
+    llm_output_price_per_million: float = 0.0
+    llm_embedding_price_per_million: float = 0.0
 
     @field_validator("database_url", "migration_database_url")
     @classmethod
@@ -81,6 +102,39 @@ class Settings(BaseSettings):
             raise ValueError("session lifetimes must be at least 1 day")
         return value
 
+    @field_validator("worker_poll_interval_seconds")
+    @classmethod
+    def _check_poll_interval(cls, value: float) -> float:
+        if value <= 0:
+            raise ValueError("WORKER_POLL_INTERVAL_SECONDS must be greater than 0")
+        return value
+
+    @field_validator("worker_lease_seconds")
+    @classmethod
+    def _check_lease(cls, value: int) -> int:
+        if value < 10:
+            raise ValueError("WORKER_LEASE_SECONDS must be at least 10")
+        return value
+
+    @field_validator("worker_heartbeat_seconds", "task_retention_days", "llm_embedding_dimensions")
+    @classmethod
+    def _check_at_least_one(cls, value: int) -> int:
+        if value < 1:
+            raise ValueError("this value must be at least 1")
+        return value
+
+    @field_validator(
+        "llm_min_interval_seconds",
+        "llm_input_price_per_million",
+        "llm_output_price_per_million",
+        "llm_embedding_price_per_million",
+    )
+    @classmethod
+    def _check_not_negative(cls, value: float) -> float:
+        if value < 0:
+            raise ValueError("this value must not be negative")
+        return value
+
     @model_validator(mode="after")
     def _check_cross_field_rules(self) -> Self:
         app_user = _db_user(self.database_url.get_secret_value())
@@ -92,6 +146,8 @@ class Settings(BaseSettings):
             )
         if self.session_idle_days > self.session_max_days:
             raise ValueError("SESSION_IDLE_DAYS must not exceed SESSION_MAX_DAYS")
+        if self.worker_lease_seconds <= self.worker_heartbeat_seconds:
+            raise ValueError("WORKER_LEASE_SECONDS must be greater than WORKER_HEARTBEAT_SECONDS")
         if self.environment == "production":
             problems: list[str] = []
             for name, secret in (

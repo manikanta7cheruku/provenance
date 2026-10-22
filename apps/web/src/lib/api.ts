@@ -30,6 +30,8 @@ export interface SessionResponse {
 
 export interface MessageResponse {
   message: string;
+  /** For email messages: what really happens to the email ("log", "smtp_dev" or "smtp"). */
+  delivery_hint?: string | null;
 }
 
 /** Every API failure arrives in one shape. This class carries it to the UI. */

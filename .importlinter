@@ -1,6 +1,9 @@
 [importlinter]
 root_packages =
     pv_api
+    pv_worker
+    pv_llm
+    pv_mail
     pv_persistence
     pv_config
     pv_domain
@@ -19,7 +22,11 @@ forbidden_modules =
     psycopg
     pydantic
     pydantic_settings
+    httpx
     pv_api
+    pv_worker
+    pv_llm
+    pv_mail
     pv_persistence
     pv_config
 
@@ -27,7 +34,9 @@ forbidden_modules =
 name = Dependencies point downward only
 type = layers
 layers =
-    pv_api
+    pv_api | pv_worker
+    pv_llm
+    pv_mail
     pv_persistence
     pv_config
     pv_domain

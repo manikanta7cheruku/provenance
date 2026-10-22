@@ -19,9 +19,8 @@ from fastapi.responses import JSONResponse
 from pv_api import __version__
 from pv_api.errors import ApiError, api_error_handler, validation_error_handler
 from pv_api.logging_config import configure_logging
-from pv_api.mail import Mailer, build_mailer
 from pv_api.ratelimiter import RateLimiter
-from pv_api.routes import admin, auth, ops, profile, v1
+from pv_api.routes import admin, auth, ops, profile, runs, v1
 from pv_api.security.middleware import body_limit, origin_guard, security_headers
 from pv_config import Settings, get_settings
 from pv_domain.failures import FailureClass
@@ -83,7 +82,6 @@ def create_app(
     settings: Settings | None = None,
     *,
     rate_policies: dict[str, RatePolicy] | None = None,
-    mailer: Mailer | None = None,
 ) -> FastAPI:
     cfg = settings if settings is not None else get_settings()
     configure_logging(cfg.log_level)
@@ -108,7 +106,6 @@ def create_app(
     app.state.settings = cfg
     app.state.engine = engine
     app.state.limiter = RateLimiter(engine, rate_policies or DEFAULT_POLICIES)
-    app.state.mailer = mailer if mailer is not None else build_mailer(cfg)
 
     if cfg.cors_origin_list:
         app.add_middleware(
@@ -132,5 +129,6 @@ def create_app(
     app.include_router(v1.router, prefix="/api/v1")
     app.include_router(auth.router, prefix="/api/v1")
     app.include_router(profile.router, prefix="/api/v1")
+    app.include_router(runs.router, prefix="/api/v1")
     app.include_router(admin.router, prefix="/api/v1")
     return app

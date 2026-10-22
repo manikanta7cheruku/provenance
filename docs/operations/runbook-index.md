@@ -4,9 +4,9 @@ Each runbook is written in checkpoint 3.7 (earlier ones when their component is 
 
 | Runbook | First written |
 |---|---|
-| Worker failure | 1.4 |
-| Stuck task | 1.4 |
-| Dead-letter task | 1.4 |
+| [Worker failure](runbooks/worker-failure.md) | 1.4 (written) |
+| [Stuck task](runbooks/stuck-task.md) | 1.4 (written) |
+| [Dead-letter task](runbooks/dead-letter-task.md) | 1.4 (written) |
 | Database failure | 3.7 |
 | Database migration rollback | 3.7 |
 | Failed deployment | 3.7 |

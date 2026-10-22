@@ -1,0 +1,69 @@
+/* Data screens: tables, action buttons, confirmation dialog.
+   Colors come from the page (currentColor) so both themes work. The design system
+   checkpoint (1.5) replaces these with tokens and checks contrast with axe. */
+
+.data-table__scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-block: 1rem;
+}
+.data-table__scroll:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+.data-table__caption {
+  text-align: left;
+  font-weight: 600;
+  padding-block: 0.25rem 0.5rem;
+}
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  vertical-align: top;
+}
+.data-table th { font-weight: 600; white-space: nowrap; }
+.data-table td.num, .data-table th.num { text-align: right; }
+
+.action {
+  font: inherit;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+}
+.action:disabled { opacity: 0.55; cursor: not-allowed; }
+.action:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.action--primary { background: #1f3f7a; border-color: #1f3f7a; color: #ffffff; }
+.action--danger { background: #8f1d16; border-color: #8f1d16; color: #ffffff; }
+
+.confirm {
+  max-width: min(32rem, calc(100vw - 2rem));
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 1.25rem;
+  color: inherit;
+  background: Canvas;
+}
+.confirm::backdrop { background: rgb(0 0 0 / 0.5); }
+.confirm__title { margin-top: 0; font-size: 1.125rem; }
+.confirm__actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .action--primary, .action--danger { border-color: ButtonText; }
+}

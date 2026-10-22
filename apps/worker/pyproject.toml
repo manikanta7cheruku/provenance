@@ -1,0 +1,24 @@
+[project]
+name = "pv-worker"
+version = "0.1.0"
+description = "Provenance background worker."
+requires-python = ">=3.12"
+dependencies = [
+    "pv-config",
+    "pv-domain",
+    "pv-mail",
+    "pv-persistence",
+]
+
+[tool.uv.sources]
+pv-config = { workspace = true }
+pv-domain = { workspace = true }
+pv-mail = { workspace = true }
+pv-persistence = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pv_worker"]

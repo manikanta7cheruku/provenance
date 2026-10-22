@@ -69,6 +69,7 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci
       - run: npm run check:boundaries
+      - run: npm run check:states
       - run: npm run typecheck
       - run: npm run build
 

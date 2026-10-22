@@ -1,37 +1,67 @@
 """Shared test helpers for integration tests (a uniquely named module on purpose:
 two conftest.py files cannot be imported by name without ambiguity)."""
 
-import re
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import update
+from sqlalchemy import text, update
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from pv_domain.auth import generate_token, hash_token
 from pv_domain.ratelimit import DEFAULT_POLICIES, RatePolicy
+from pv_mail import link_for, render_email
 from pv_persistence.models import Invite, User
 
 PASSWORD = "correct horse battery staple"
 
 
 class RecordingMailer:
-    def __init__(self) -> None:
-        self.sent: list[tuple[str, str, str]] = []
+    """Reads the emails the API queued (checkpoint 1.4: the API no longer sends mail itself).
 
-    def send(self, to: str, subject: str, body: str) -> None:
-        self.sent.append((to, subject, body))
+    It sees only tasks created after it was built, so tests do not see each other's mail.
+    The worker must NOT be running while integration tests run (pv.ps1 itest stops it),
+    otherwise it would send and erase the payloads before the test reads them.
+    """
+
+    def __init__(self, engine: Engine, base_url: str) -> None:
+        self._engine = engine
+        self._base_url = base_url
+        with Session(engine) as db:
+            self._since = db.execute(text("SELECT clock_timestamp()")).scalar_one()
+
+    def _queued(self) -> list[tuple[str, str, str]]:
+        with Session(self._engine) as db:
+            rows = db.execute(
+                text(
+                    """
+                    SELECT payload->'args'->>'template', payload->'secret'->>'to',
+                           payload->'secret'->>'token'
+                      FROM tasks
+                     WHERE task_type = 'send_email' AND created_at >= :since
+                       AND payload->'secret' IS NOT NULL
+                     ORDER BY created_at, id
+                    """
+                ),
+                {"since": self._since},
+            ).all()
+        return [(str(t), str(to), str(token)) for t, to, token in rows]
+
+    @property
+    def sent(self) -> list[tuple[str, str, str]]:
+        result: list[tuple[str, str, str]] = []
+        for template, to, token in self._queued():
+            message = render_email(template, link=link_for(template, self._base_url, token))
+            result.append((to, message.subject, message.body))
+        return result
 
     def last_token_for(self, to: str) -> str:
-        bodies = [body for recipient, _, body in self.sent if recipient == to]
-        assert bodies, f"no email was sent to {to}"
-        match = re.search(r"token=([A-Za-z0-9_-]+)", bodies[-1])
-        assert match, "no token link in the email"
-        return match.group(1)
+        tokens = [token for _, recipient, token in self._queued() if recipient == to]
+        assert tokens, f"no email was queued for {to}"
+        return tokens[-1]
 
 
 @dataclass
