@@ -45,21 +45,21 @@ jobs:
       - run: uv run mypy
       - run: uv run lint-imports
 
-      - name: Unit tests
-        run: uv run pytest -m "not integration"
-
       - name: Create application role
         run: |
           PGPASSWORD=ci_owner_pw psql -h localhost -U provenance -d provenance -v ON_ERROR_STOP=1 \
             -c "CREATE ROLE provenance_app LOGIN PASSWORD 'ci_app_pw' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS"
 
-      - name: Apply migrations
-        run: uv run alembic -c packages/persistence/alembic.ini upgrade head
-
       - name: Verify application database credentials
         run: |
           PGPASSWORD=ci_app_pw psql -h localhost -U provenance_app -d provenance -v ON_ERROR_STOP=1 \
             -c "SELECT current_user, current_database()"
+
+      - name: Apply migrations
+        run: uv run alembic -c packages/persistence/alembic.ini upgrade head
+
+      - name: Unit tests
+        run: uv run pytest -m "not integration"
 
       - name: Integration tests
         run: uv run pytest -m integration
