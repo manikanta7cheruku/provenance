@@ -25,5 +25,9 @@
 | [0021](0021-tenant-isolation-implementation.md) | Tenant isolation implementation | Accepted |
 | [0022](0022-queue-semantics-and-system-tables.md) | Queue semantics, payload erasure and system tables | Accepted |
 | [0023](0023-admin-scope-and-guards.md) | Administrator scope and guards | Accepted |
+| [0024](0024-resume-studio-editor-approach.md) | Resume studio editor approach | Proposed, pending spike |
+| [0025](0025-resume-pdf-rendering.md) | Resume PDF rendering | Proposed, pending spike |
+| [0026](0026-deterministic-scoring-and-learned-ranker.md) | Deterministic scoring now, learned ranker later | Accepted |
+| [0027](0027-build-first-sequencing-and-paid-service-placeholders.md) | Build-first sequencing and paid-service placeholders | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

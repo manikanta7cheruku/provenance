@@ -25,16 +25,22 @@ A source cannot be enabled without a completed record, and verification expires 
 
 | Source | Intended role | State |
 |---|---|---|
-| Greenhouse job boards | Employer ATS public board data | Unverified. Verify at 2.2 |
-| Lever postings | Employer ATS public postings | Unverified. Verify at 2.2 |
-| Ashby job boards | Employer ATS public postings | Unverified. Verify at 2.2 |
-| Remotive | Remote jobs feed or API | Unverified. Verify attribution and use limits at 2.2 |
-| Adzuna | Job search API with key | Unverified. Verify coverage for target countries and terms at 2.2 |
+| Greenhouse job boards | Employer ATS public board data | Unverified. Verify at 2.4, build at 2.5 |
+| Lever postings | Employer ATS public postings | Unverified. Verify at 2.4, build at 2.5 |
+| Ashby job boards | Employer ATS public postings | Unverified. Verify at 2.4, build at 2.5 |
+| Remotive | Remote jobs feed or API | Unverified. Verify attribution and use limits at 2.4 |
+| Adzuna | Job search API with key | Unverified. Verify coverage for target countries and terms at 2.4 |
 | Company career pages | First-party | Per company. Check robots and terms before any fetch |
 | LinkedIn | User import only | No automated access. Do not build any |
 | Indeed, Wellfound, Naukri, Handshake | User import only unless an official integration is verified | No automated access assumed |
 | GitHub | Candidate evidence via official API and OAuth | Unverified. Verify at 3.1 |
 | LeetCode, CodeChef, GeeksforGeeks | Candidate evidence via user provided URL or export only unless an official API exists | Unverified. Verify at 3.1 |
+
+### Open verification questions (2026-10-30)
+
+- Which candidate sources cover India and early-career roles is unknown. Coverage is checked at 2.4 from official documentation.
+- No Indian job platform has been verified to offer a permitted feed. None is assumed to. User import remains the path for platforms without a verified integration.
+- A browser extension that sends a page the user is viewing to the product is under consideration. Each target site's terms must be read before it is built. No decision is made.
 
 ## 3. Rules
 

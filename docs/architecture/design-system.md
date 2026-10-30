@@ -113,7 +113,7 @@ Built in 1.1: Button (secondary, primary, ghost), Status, Notice, Section, Empty
 +----------+------------------------------------------------+
 ```
 
-Wide: fixed sidebar and a scrolling content area. The wordmark and the page title share a baseline. Opportunities adds a persistent detail pane at Wide in 1.6. Below 900px the sidebar becomes a toggled menu.
+Wide: fixed sidebar and a scrolling content area. The wordmark and the page title share a baseline. Opportunities adds a persistent detail pane at Wide in 1.9. Below 900px the sidebar becomes a toggled menu.
 
 ## 13. Keyboard map
 

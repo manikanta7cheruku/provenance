@@ -79,7 +79,7 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 | FR-ELG-1 | Deterministic four-state eligibility (eligible, not_eligible, uncertain, requires_user_input) | 1 |
 | FR-AGT-1 | Evidence Resolution Agent: bounded, checkpointed, interruptible | 1 |
 | FR-SCO-1 | Versioned deterministic scoring and recommendation bands, each with reasons | 1 |
-| FR-UI-1 | Opportunities workbench: table, filters, detail pane, keyboard flow | 1 basic, 2 full |
+| FR-UI-1 | Opportunities workbench: table, filters (remote, hybrid, location, salary, seniority, employment type, company, source), detail pane, keyboard flow | 1 basic, 2 full |
 
 ### Decision and generation
 | ID | Requirement | Phase |
@@ -89,14 +89,21 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 | FR-TAI-1 | Tailored resume bullets, side by side with originals, each claim linked to evidence | 2 |
 | FR-TAI-2 | Grounding verifier flags unsupported claims. User accepts, rejects, or edits | 2 |
 | FR-PRP-1 | Career preparation module (questions, gaps, roadmap, mock interview) built on existing services | 3 |
-| FR-EXP-1 | Server-side CSV, XLSX, PDF, DOCX exports generated from structured data | 3 |
+| FR-EXP-1 | Server-side CSV, XLSX, DOCX exports generated from structured data (resume PDF export arrives with the resume studio in 2.1) | 3 |
+| FR-RES-1 | Resume studio: create and edit resumes with a structured editor, live preview, 20 or more templates, professional PDF export. Details in [resume-studio-requirements.md](resume-studio-requirements.md) | 2 |
+| FR-RES-8 | Free plan includes one resume with rate-limited exports. Plans and limits later | 2 basic, 3 enforced |
+| FR-APP-1 | Application text drafts (cover note, answers to common questions) grounded in the user's evidence, labelled as drafts. The user edits and submits them. The product never submits | 2 |
+| FR-SHL-1 | Periodic shortlist email of the few opportunities worth the user's time, each with its reason. Selection is deterministic | 2 |
+| FR-GAP-1 | Gap-to-qualify plan for near-miss jobs: the missing evidence, what would count as proof, suggested learning or project work | 1 basic, 3 deeper |
+| FR-FBK-1 | Verdict feedback ("was this right?") stored as labels with version information, for evaluation (ADR-0026) | 1 |
+| FR-PRP-2 | Outreach and referral drafts. The user sends them | 3 |
 
 ### Experience
 | ID | Requirement | Phase |
 |---|---|---|
 | FR-UX-1 | Every screen implements the state catalog in the UX specification | each checkpoint |
-| FR-UX-2 | Every verdict shows its evidence, evidence kind, confidence band and next action without developer tools | 1.6 |
-| FR-UX-3 | Facts, inferences and AI suggestions are visually and verbally distinct | 1.6 |
+| FR-UX-2 | Every verdict shows its evidence, evidence kind, confidence band and next action without developer tools | 1.9 |
+| FR-UX-3 | Facts, inferences and AI suggestions are visually and verbally distinct | 1.9 |
 | FR-UX-4 | Frontend states mirror backend state vocabularies with no UI-only states | each checkpoint |
 | FR-UX-5 | WCAG 2.2 AA where practical, keyboard complete, responsive across the three layouts | each checkpoint |
 
@@ -129,7 +136,7 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 - Bypassing authentication, CAPTCHAs, anti-bot systems, or rate limits.
 - A general chat assistant as the primary interface.
 - Microservices at the start.
-- Payment processing in Phases 1 to 3. Plans and quotas exist. Billing does not.
+- Collecting real payments before a payment provider is chosen and its terms are verified. Plans and quotas exist in Phase 3. A payment provider interface stays disabled until then (ADR-0027).
 
 ## 7. Success metrics
 
@@ -166,6 +173,8 @@ Per evidence item: **Direct**, **Inferred**, **Missing**, **Conflicting**. The U
 - [Search, company and source requirements](search-requirements.md)
 - [Career preparation requirements](career-preparation-requirements.md)
 - [Export and reporting requirements](export-reporting-requirements.md)
+- [Resume studio requirements](resume-studio-requirements.md)
+- [Competitor landscape](competitor-landscape.md)
 - [AI economics](ai-economics.md)
 - [Identity and data lifecycle requirements](../security/identity-and-data-lifecycle-requirements.md)
 - [Admin and operational requirements](../operations/admin-operations-requirements.md)

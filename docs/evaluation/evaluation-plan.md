@@ -2,7 +2,7 @@
 
 Status: Decided (Phase 0). Awareness starts in Phase 1. Full harness in checkpoint 3.6.
 
-## 1. Phase 1 evaluation awareness (checkpoints 1.5 and 1.6)
+## 1. Phase 1 evaluation awareness (checkpoints 1.6 to 1.9)
 
 - Every prompt, schema and model has a version string. Results store these versions.
 - A seed dataset of about 15 to 20 job postings is created with labeling guidelines, covering easy, ambiguous, buried sponsorship, contradictory location, long posting, remote, entry-level, and at least two prompt-injection attempts.

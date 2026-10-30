@@ -1,6 +1,6 @@
 # Provenance documentation index
 
-Phase 0 planning pack. Start with the product requirements, then the architecture overview.
+Phase 0 planning pack, extended by later checkpoints (roadmap revision 2, 2026-10-30). Start with the product requirements, then the architecture overview.
 
 ## Product
 - [Product requirements](product/product-requirements.md)
@@ -11,6 +11,8 @@ Phase 0 planning pack. Start with the product requirements, then the architectur
 - [Career preparation requirements](product/career-preparation-requirements.md)
 - [Export and reporting requirements](product/export-reporting-requirements.md)
 - [Business model](product/business-model.md)
+- [Competitor landscape](product/competitor-landscape.md)
+- [Resume studio requirements](product/resume-studio-requirements.md)
 - [AI economics and cost model](product/ai-economics.md)
 
 ## Architecture
@@ -39,6 +41,7 @@ Phase 0 planning pack. Start with the product requirements, then the architectur
 ## Delivery
 - [Checkpoint 1.1](checkpoints/checkpoint-1.1.md)
 - [Checkpoints 1.2 and 1.3](checkpoints/checkpoint-1.2-1.3.md)
+- [Checkpoint 1.4](checkpoints/checkpoint-1.4.md)
 - [Git workflow](engineering/git-workflow.md)
 - [Master implementation plan](roadmap/implementation-plan.md)
 - [Development setup](development-setup.md)

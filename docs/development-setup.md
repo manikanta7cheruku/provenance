@@ -47,7 +47,7 @@ None are needed for Phase 0. Needed from Phase 1:
 |---|---|---|---|
 | Gemini API key | Google AI Studio | `.env` as `GEMINI_API_KEY` | Checkpoint 1.4 |
 | Groq API key (backup) | Groq console | `.env` as `GROQ_API_KEY` | Optional |
-| Adzuna app id and key | Adzuna developer portal | `.env` | Checkpoint 2.1 |
+| Adzuna app id and key | Adzuna developer portal | `.env` | Checkpoint 2.5 |
 | GitHub OAuth app | GitHub, Settings, Developer settings | `.env` | Checkpoint 3.1 |
 | Resend or Brevo SMTP | Provider dashboard (needs your own domain) | `.env` | Production only |
 

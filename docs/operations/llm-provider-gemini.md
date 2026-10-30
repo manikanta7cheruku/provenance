@@ -43,7 +43,7 @@ Restart the worker so it reads the new `.env`: `.\scripts\pv.ps1 restart worker`
 Edit `LLM_MODEL` in `.env`, run `ai-check`, restart the worker. Results store the model name per call (`llm_calls.model`), so history stays truthful.
 
 ## 5. Change the embedding model or dimensions
-The embedding size is **fixed in the database** when checkpoint 1.5 creates the `vector(768)` column. To use a different size you need a migration and a re-embedding of every stored chunk. Do not change `LLM_EMBEDDING_DIMENSIONS` alone: `ai-check` will fail if the model returns a different size than configured, which is the early warning.
+The embedding size is **fixed in the database** when checkpoint 1.7 creates the `vector(768)` column. To use a different size you need a migration and a re-embedding of every stored chunk. Do not change `LLM_EMBEDDING_DIMENSIONS` alone: `ai-check` will fail if the model returns a different size than configured, which is the early warning.
 
 ## 6. Prices and cost
 Cost is estimated, never invented. Copy the per-million-token prices from the provider's **official pricing page** into `.env`:
@@ -73,7 +73,7 @@ Error text from the provider is never copied into logs or the database, because 
 The rest of the system depends only on the `LLMProvider` protocol in `pv_llm.base` (`list_models`, `generate`, `embed`). To add a provider:
 1. Add a class in `packages/llm/src/pv_llm/<provider>.py` that implements the protocol and raises `LLMError(retryable=...)`.
 2. Add its settings (key, prices) to `pv_config.Settings` and `.env.example`.
-3. Select the provider where the first feature calls it (checkpoint 1.5 adds the single factory function). Keep model names in configuration.
+3. Select the provider where the first feature calls it (checkpoint 1.6 adds the single factory function). Keep model names in configuration.
 4. Record every call with `pv_llm.record_result`, so cost and usage stay comparable.
 5. Add a unit test with `httpx.MockTransport` like `tests/unit/test_llm.py`, and write an ADR.
 
