@@ -280,7 +280,7 @@ The shortcut map is in [design-system.md](../architecture/design-system.md) sect
 - Plain and specific. Sentence case. No em dashes.
 - Say what the system did: "Analyzed", "Imported by you", "Found".
 - Predictions are hedged: "Likely", "Potential", "High-priority preparation area".
-- Never "AI-powered" as a headline.
+- Never "AI-powered" as a headline. <!-- copy-check: allow -->
 - Errors name the cause in user terms and the next step.
 - Numbers come from stored data and are rounded deliberately.
 - Buttons are verbs: "Save", "Prepare materials", "Mark as applied".

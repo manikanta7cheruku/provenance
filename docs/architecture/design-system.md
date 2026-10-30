@@ -137,7 +137,7 @@ Semantic HTML, labeled controls, visible focus, accessible dialogs and tables, p
 
 ## 15. Copy
 
-Plain, specific, honest. Sentence case. No em dashes. Empty states answer what, why, next. Errors answer what happened, is my data safe, will it retry, what can I do. Predictions use hedged language.
+Plain, specific, honest. Sentence case. No em dashes. `npm run check:copy` fails the build on em dashes, sparkle emoji and stock marketing or AI-template phrases anywhere in the repository. Empty states answer what, why, next. Errors answer what happened, is my data safe, will it retry, what can I do. Predictions use hedged language.
 
 ## 16. Contrast findings
 

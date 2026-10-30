@@ -10,6 +10,7 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "check:states": "node scripts/check-states.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
+    "check:copy": "node scripts/check-copy.mjs",
     "check:tokens": "node scripts/check-tokens.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",

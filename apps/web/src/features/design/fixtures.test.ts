@@ -32,6 +32,6 @@ describe("sample data", () => {
   });
 
   it("uses no em dashes in the copy", () => {
-    expect(JSON.stringify([SAMPLE_JOBS, SAMPLE_REQUIREMENTS])).not.toContain("—");
+    expect(JSON.stringify([SAMPLE_JOBS, SAMPLE_REQUIREMENTS])).not.toContain("\u2014");
   });
 });

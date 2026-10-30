@@ -170,6 +170,7 @@ SELECT worker_id, last_seen_at, tasks_processed FROM worker_heartbeats ORDER BY 
             Run "npm" @("run", "check:states")
             Run "npm" @("run", "check:tokens")
             Run "npm" @("run", "check:contrast")
+            Run "npm" @("run", "check:copy")
             Run "npm" @("run", "typecheck")
             Run "npm" @("test")
             Run "npm" @("run", "build")
