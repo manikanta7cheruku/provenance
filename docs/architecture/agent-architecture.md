@@ -100,4 +100,4 @@ Each step writes to `workflow_steps`, each model call to `llm_calls`, each tool 
 
 ## 10. Runtime decision (LangGraph)
 
-Phase 1 checkpoint 1.5 begins with a short spike comparing LangGraph's Postgres checkpointer and interrupt/resume against a hand-rolled loop with our own state table. Criteria: lines of code we would own, resume correctness under worker kill, debuggability, dependency weight. The result is written into ADR-0004. Either way the state schema above is ours and the domain does not import the framework.
+Phase 1 checkpoint 1.9 begins with a short spike comparing LangGraph's Postgres checkpointer and interrupt/resume against a hand-rolled loop with our own state table. Criteria: lines of code we would own, resume correctness under worker kill, debuggability, dependency weight. The result is written into ADR-0004. Either way the state schema above is ours and the domain does not import the framework.

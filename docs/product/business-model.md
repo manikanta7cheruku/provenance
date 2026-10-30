@@ -64,6 +64,8 @@ Example plan shape (illustrative only):
 
 Free users keep full access to evidence-based explanations. The free tier limits volume, not trust features.
 
+Free resume studio: one resume with rate-limited exports. More resumes, per-job versions and premium templates belong to paid plans. Limits are set at checkpoint 3.3 from measured cost. First users receive a lower founding price, decided later.
+
 ## 4. Free-tier LLM privacy warning
 
 Free LLM tiers from some providers may use submitted prompts to improve their products. That is acceptable for your own test data and not acceptable for real users' resumes. Before real users are onboarded, production must use a paid tier with a no-training policy, verified in the provider's current terms. This is a launch gate.
@@ -77,6 +79,10 @@ Free LLM tiers from some providers may use submitted prompts to improve their pr
 - Deletion flow tested.
 - Domain with SPF and DKIM configured for email.
 
-## 6. Pricing approach
+## 6. Competitors and build-first decision
+
+See [competitor-landscape.md](competitor-landscape.md) for the unverified competitor review. On 2026-10-30 the owner decided to build the full product in sequence and to defer paid services. The demand risk this carries is recorded in [ADR-0027](../adr/0027-build-first-sequencing-and-paid-service-placeholders.md). Willingness to pay has not been measured.
+
+## 7. Pricing approach
 
 Set no prices until cost per analyzed job and per generation are measured on at least one real cohort. Then price so a typical user's cost is a modest fraction of revenue, with headroom for support and growth. The margin is a business decision made with that data.

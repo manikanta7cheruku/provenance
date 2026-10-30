@@ -12,7 +12,7 @@ The agent needs typed state, checkpointing, interrupt and resume across worker c
 Hand-rolled loop with our own state table; LangGraph; other agent frameworks.
 
 ## Decision
-Provisional: LangGraph for the subgraph only, confirmed or reversed by a spike in checkpoint 1.6 comparing it to a hand-rolled loop.
+Provisional: LangGraph for the subgraph only, confirmed or reversed by a spike in checkpoint 1.9 comparing it to a hand-rolled loop.
 
 ## Why
 Checkpoint and interrupt are hard to get right. But a framework is a dependency we must understand. The spike keeps the choice evidence based.
