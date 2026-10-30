@@ -35,6 +35,17 @@ h3 {
   line-height: var(--leading-tight);
 }
 
+/* Every page has one h1 and it is the display serif, whether or not it uses PageHeader. */
+h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-heading);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.01em;
+}
+h1 + p {
+  margin-top: var(--space-2);
+}
+
 a {
   color: var(--color-accent);
   text-underline-offset: 0.2em;

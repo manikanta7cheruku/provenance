@@ -81,8 +81,15 @@ jobs:
       - run: npm ci
       - run: npm run check:boundaries
       - run: npm run check:states
+      - run: npm run check:tokens
+      - run: npm run check:contrast
       - run: npm run typecheck
+      - run: npm test
       - run: npm run build
+      - name: Install the browser for accessibility checks
+        run: npx playwright install --with-deps chromium
+      - name: Browser and accessibility checks (axe, keyboard, themes)
+        run: npm run test:e2e
 
   secrets:
     runs-on: ubuntu-24.04

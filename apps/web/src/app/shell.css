@@ -79,6 +79,10 @@
   margin-left: calc(var(--space-4) * -1);
   min-height: var(--size-touch);
 }
+.shell__theme {
+  padding: 0 var(--space-3) var(--space-3);
+  font-size: var(--text-small);
+}
 .shell__status {
   padding: 0 var(--space-3);
   font-size: var(--text-small);

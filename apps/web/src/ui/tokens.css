@@ -1,12 +1,18 @@
 /* Design tokens: the only place raw values live. Components use these names.
-   Breakpoints cannot be CSS variables inside media queries, so they are constants
-   documented here and in docs/architecture/design-system.md:
+   Every color is a light-dark(light, dark) pair, so one declaration serves both themes and the
+   theme switch only changes `color-scheme` (see lib/theme.ts and docs/adr/0028).
+   Contrast of every used pair is computed by `npm run check:contrast`.
+   Breakpoints cannot be CSS variables inside media queries, so they are constants documented
+   here and in docs/architecture/design-system.md:
    compact < 600px, medium 600-899px, wide >= 900px, large >= 1200px. */
 :root {
-  /* Typography */
-  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* "light dark" follows the operating system. data-theme overrides it (below). */
+  color-scheme: light dark;
+
+  /* Typography. Fonts are self-hosted through @fontsource (see fonts.css). */
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --text-caption: 0.75rem;
   --text-small: 0.8125rem;
   --text-body: 0.875rem;
@@ -36,6 +42,8 @@
   --size-touch: 44px;
   --size-sidebar: 232px;
   --size-content-max: 1100px;
+  --size-detail-pane: 26rem;
+  --size-dot: 8px;
   --measure: 64ch;
 
   /* Radii: two values only */
@@ -43,7 +51,7 @@
   --radius-md: 6px;
 
   /* Elevation: flat by default. One overlay shadow for popovers and dialogs. */
-  --shadow-overlay: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-overlay: 0 4px 16px light-dark(rgb(28 27 25 / 0.14), rgb(0 0 0 / 0.55));
 
   /* Motion: only to communicate state change */
   --duration-fast: 120ms;
@@ -55,28 +63,33 @@
   --focus-ring-offset: 2px;
 
   /* Color roles: surface */
-  --color-surface-base: #faf9f6;
-  --color-surface-raised: #ffffff;
-  --color-surface-sunken: #f2f0eb;
+  --color-surface-base: light-dark(#faf9f6, #131412);
+  --color-surface-raised: light-dark(#ffffff, #1b1c1a);
+  --color-surface-sunken: light-dark(#f2f0eb, #0f100f);
   /* Color roles: border */
-  --color-border-subtle: #e6e3dc;
-  --color-border-strong: #cfcbc1; /* decorative only: below 3:1 */
-  --color-border-control: #8a867c; /* boundaries of inputs and buttons: 3:1 or better */
+  --color-border-subtle: light-dark(#e6e3dc, #2a2c28);
+  --color-border-strong: light-dark(#cfcbc1, #3c3e39); /* decorative only: below 3:1 */
+  --color-border-control: light-dark(#8a867c, #7a7c75); /* boundaries of inputs and buttons: 3:1 or better */
   /* Color roles: text */
-  --color-text-primary: #1c1b19;
-  --color-text-secondary: #5b5850;
-  --color-text-disabled: #8c887f;
-  --color-text-on-accent: #ffffff;
+  --color-text-primary: light-dark(#1c1b19, #eceae4);
+  --color-text-secondary: light-dark(#5b5850, #a8a59b);
+  --color-text-disabled: light-dark(#8c887f, #6f7068); /* exempt from contrast rules, still readable */
+  --color-text-on-accent: light-dark(#ffffff, #131412);
+  --color-text-on-danger: light-dark(#ffffff, #131412);
   /* Color roles: accent */
-  --color-accent: #2b4a8b;
-  --color-accent-hover: #223b70;
-  --color-accent-active: #1a2d57;
-  --color-accent-subtle: #e8edf7;
-  /* Color roles: status */
-  --color-success: #2f6b45;
-  --color-warning: #8a5a12;
-  --color-danger: #a6372b;
-  --color-info: #2b5e7a;
+  --color-accent: light-dark(#2b4a8b, #8fa8e0);
+  --color-accent-hover: light-dark(#223b70, #a5bbea);
+  --color-accent-active: light-dark(#1a2d57, #b9caf0);
+  --color-accent-subtle: light-dark(#e8edf7, #1e2740);
+  /* Color roles: status. Meaning only, always paired with text and a distinct shape. */
+  --color-success: light-dark(#2f6b45, #7cc49a);
+  --color-warning: light-dark(#8a5a12, #e0b15c);
+  --color-danger: light-dark(#a6372b, #e58a7e);
+  --color-info: light-dark(#2b5e7a, #7fb6d4);
+  --color-danger-fill: light-dark(#a6372b, #e58a7e);
+  /* Color roles: overlays and placeholders */
+  --color-backdrop: light-dark(rgb(28 27 25 / 0.45), rgb(0 0 0 / 0.6));
+  --color-skeleton: light-dark(#ebe8e1, #242623);
   /* Interaction state roles */
   --color-hover: var(--color-surface-sunken);
   --color-pressed: var(--color-border-subtle);
@@ -85,28 +98,12 @@
   --color-invalid: var(--color-danger);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --shadow-overlay: 0 4px 16px rgba(0, 0, 0, 0.5);
-    --color-surface-base: #131412;
-    --color-surface-raised: #1b1c1a;
-    --color-surface-sunken: #0f100f;
-    --color-border-subtle: #2a2c28;
-    --color-border-strong: #3c3e39;
-    --color-border-control: #7a7c75;
-    --color-text-primary: #eceae4;
-    --color-text-secondary: #a8a59b;
-    --color-text-disabled: #6f7068;
-    --color-text-on-accent: #131412;
-    --color-accent: #8fa8e0;
-    --color-accent-hover: #a5bbea;
-    --color-accent-active: #b9caf0;
-    --color-accent-subtle: #1e2740;
-    --color-success: #7cc49a;
-    --color-warning: #e0b15c;
-    --color-danger: #e58a7e;
-    --color-info: #7fb6d4;
-  }
+/* An explicit choice from the theme control wins over the operating system. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 /* Density: components size themselves from these roles. Compact is for dense work screens. */

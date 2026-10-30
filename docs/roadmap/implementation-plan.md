@@ -15,12 +15,13 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-25 checkpoints in total. Four are done and merged (1.1 to 1.4). Twenty-one remain.
+25 checkpoints in total. Four are done and merged (1.1 to 1.4). Checkpoint 1.5 is built and awaiting merge. Twenty remain after it.
 
 | Checkpoint | State |
 |---|---|
 | 1.1, 1.2, 1.3, 1.4 | Done, merged, CI green |
-| 1.5 to 1.9 | Not started. 1.5 is next and its plan needs approval before building |
+| 1.5 | Built on branch phase-1/checkpoint-1.5-design-system, awaiting review and merge |
+| 1.6 to 1.9 | Not started |
 | 2.1 to 2.9 | Not started |
 | 3.1 to 3.7 | Not started |
 

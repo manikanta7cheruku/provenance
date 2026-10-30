@@ -51,7 +51,7 @@ export function AccountSection() {
   return (
     <>
       <Section title="Account">
-        <table className="data-table">
+        <table className="kv-table">
           <caption className="visually-hidden">Account</caption>
           <tbody>
             <tr>

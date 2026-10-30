@@ -1,69 +1,147 @@
-/* Data screens: tables, action buttons, confirmation dialog.
-   Colors come from the page (currentColor) so both themes work. The design system
-   checkpoint (1.5) replaces these with tokens and checks contrast with axe. */
+/* Data screens: tables, action buttons and the dialog. Tokens only, both themes. */
 
+/* Table */
 .data-table__scroll {
   overflow-x: auto;
   max-width: 100%;
-  margin-block: 1rem;
+  margin-block: var(--space-4);
 }
-.data-table__scroll:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
 .data-table {
-  border-collapse: collapse;
   width: 100%;
+  border-collapse: collapse;
   font-variant-numeric: tabular-nums;
 }
 .data-table__caption {
+  padding-block: var(--space-1) var(--space-2);
   text-align: left;
-  font-weight: 600;
-  padding-block: 0.25rem 0.5rem;
+  font-weight: var(--weight-semibold);
 }
 .data-table th,
 .data-table td {
+  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
   text-align: left;
-  padding: 0.5rem 0.75rem 0.5rem 0;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   vertical-align: top;
 }
-.data-table th { font-weight: 600; white-space: nowrap; }
-.data-table td.num, .data-table th.num { text-align: right; }
+.data-table thead th {
+  border-bottom-color: var(--color-border-strong);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.data-table tbody th {
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+.data-table td.num,
+.data-table th.num {
+  text-align: right;
+}
+.data-table tbody tr:hover {
+  background: var(--color-hover);
+}
+/* Selected row: a role color plus a leading accent bar, never color alone. */
+.data-table tbody tr[aria-current="true"] {
+  background: var(--color-selected);
+}
+.data-table tbody tr[aria-current="true"] > :first-child {
+  box-shadow: inset 2px 0 0 var(--color-accent);
+  padding-left: var(--space-2);
+}
+[data-density="compact"] .data-table th,
+[data-density="compact"] .data-table td {
+  padding-block: var(--space-1);
+}
 
+/* Action button used inside data screens. Meaning comes from the label, not from color. */
 .action {
-  font: inherit;
-  min-height: 44px;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 1px solid currentColor;
+  min-height: var(--size-touch);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 }
-.action:disabled { opacity: 0.55; cursor: not-allowed; }
-.action:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-.action--primary { background: #1f3f7a; border-color: #1f3f7a; color: #ffffff; }
-.action--danger { background: #8f1d16; border-color: #8f1d16; color: #ffffff; }
-
-.confirm {
-  max-width: min(32rem, calc(100vw - 2rem));
-  border: 1px solid currentColor;
-  border-radius: 6px;
-  padding: 1.25rem;
-  color: inherit;
-  background: Canvas;
+.action:hover {
+  background: var(--color-hover);
 }
-.confirm::backdrop { background: rgb(0 0 0 / 0.5); }
-.confirm__title { margin-top: 0; font-size: 1.125rem; }
-.confirm__actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+.action:active {
+  background: var(--color-pressed);
+}
+.action:disabled {
+  border-color: var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.action--primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+.action--primary:hover {
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+}
+.action--primary:active {
+  border-color: var(--color-accent-active);
+  background: var(--color-accent-active);
+}
+.action--danger {
+  border-color: var(--color-danger-fill);
+  background: var(--color-danger-fill);
+  color: var(--color-text-on-danger);
+}
+.action--danger:active {
+  background: var(--color-danger-fill);
+  border-color: var(--color-text-primary);
+}
 
-.visually-hidden {
-  position: absolute;
-  width: 1px; height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+/* Dialog on the native <dialog> element */
+.dialog {
+  width: min(32rem, calc(100vw - var(--space-5)));
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-overlay);
+}
+.dialog::backdrop {
+  background: var(--color-backdrop);
+}
+.dialog__title {
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-semibold);
+}
+.dialog__body {
+  margin-top: var(--space-3);
+}
+.dialog__body > * + * {
+  margin-top: var(--space-2);
+}
+.dialog__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-5);
 }
 
 @media (forced-colors: active) {
-  .action--primary, .action--danger { border-color: ButtonText; }
+  .action--primary,
+  .action--danger {
+    border-color: ButtonText;
+  }
+  .data-table tbody tr[aria-current="true"] > :first-child {
+    box-shadow: inset 4px 0 0 Highlight;
+  }
 }

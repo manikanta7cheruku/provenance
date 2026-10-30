@@ -1,8 +1,34 @@
-.runs { max-width: 64rem; }
-.runs h1:focus { outline: none; }
-.runs__lead { max-width: 42rem; }
-.runs__steps { list-style: none; padding: 0; margin: 1rem 0; }
-.runs__steps li { display: flex; gap: 1rem; padding-block: 0.5rem; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
-.runs__steps .runs__step-name { flex: 1; }
-.runs__error { border-left: 3px solid currentColor; padding: 0.25rem 0 0.25rem 0.75rem; margin-block: 1rem; }
-.runs__pager { display: flex; gap: 0.75rem; align-items: center; margin-block: 1rem; }
+.runs {
+  max-width: 64rem;
+}
+.runs h1:focus {
+  outline: none;
+}
+.runs__lead {
+  max-width: 42rem;
+}
+.runs__steps {
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+.runs__steps li {
+  display: flex;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.runs__steps .runs__step-name {
+  flex: 1;
+}
+.runs__error {
+  margin-block: var(--space-4);
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 2px solid var(--color-danger);
+}
+.runs__pager {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-block: var(--space-4);
+}

@@ -1,20 +1,100 @@
-.admin { max-width: 72rem; }
-.admin h1:focus { outline: none; }
-.admin__nav { display: flex; flex-wrap: wrap; gap: 1.25rem; padding-block: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
-.admin__nav a { color: inherit; padding-block: 0.5rem; text-decoration: none; border-bottom: 2px solid transparent; }
-.admin__nav a:hover { text-decoration: underline; }
-.admin__nav a[aria-current="page"] { font-weight: 600; border-bottom-color: currentColor; }
-.admin__counts { display: flex; flex-wrap: wrap; gap: 2rem; margin-block: 1rem; }
-.admin__counts dt { font-size: 0.875rem; }
-.admin__counts dd { margin: 0; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
-.admin__filters { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; margin-block: 1rem; }
-.admin__field { display: flex; flex-direction: column; gap: 0.25rem; }
-.admin__field input, .admin__field select { font: inherit; min-height: 44px; padding: 0.25rem 0.5rem; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; }
-.admin__field input:focus-visible, .admin__field select:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.admin__message { border-left: 3px solid currentColor; padding: 0.25rem 0 0.25rem 0.75rem; margin-block: 1rem; }
-.admin__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block: 1rem; }
-.admin__code { font-family: ui-monospace, "IBM Plex Mono", monospace; word-break: break-all; font-size: 1.125rem; padding: 0.5rem; border: 1px dashed currentColor; }
-.admin__pager { display: flex; gap: 0.75rem; align-items: center; margin-block: 1rem; }
-.admin__muted { opacity: 0.8; }
-.admin h1 { margin-top: 0; }
-.admin__message--error { border-left-style: double; border-left-width: 6px; }
+.admin {
+  max-width: 72rem;
+}
+.admin h1:focus {
+  outline: none;
+}
+.admin__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-bottom: var(--space-4);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.admin__nav a {
+  padding-block: var(--space-2);
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+.admin__nav a:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+.admin__nav a[aria-current="page"] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text-primary);
+  font-weight: var(--weight-semibold);
+}
+.admin__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin-block: var(--space-4);
+}
+.admin__counts dt {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+.admin__counts dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+.admin__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: end;
+  margin-block: var(--space-4);
+}
+.admin__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.admin__field input,
+.admin__field select {
+  min-height: var(--size-touch);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+.admin__message {
+  margin-block: var(--space-4);
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 2px solid var(--color-info);
+}
+.admin__message--error {
+  border-left-color: var(--color-danger);
+}
+.admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block: var(--space-4);
+}
+.admin__code {
+  padding: var(--space-2);
+  border: 1px dashed var(--color-border-control);
+  font-family: var(--font-mono);
+  font-size: var(--text-body-lg);
+  word-break: break-all;
+}
+.admin__pager {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-block: var(--space-4);
+}
+.admin__muted {
+  color: var(--color-text-secondary);
+}
+.admin h1 {
+  margin-top: 0;
+}

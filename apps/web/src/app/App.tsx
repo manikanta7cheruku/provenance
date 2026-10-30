@@ -7,6 +7,7 @@ import {
   UserPage,
   UsersPage,
 } from "../features/admin";
+import { DesignLayout, GalleryPage, JobDetailPrototype, WorkbenchPrototype } from "../features/design";
 import {
   ForgotPasswordPage,
   ResetPasswordPage,
@@ -28,8 +29,24 @@ import { Shell } from "./Shell";
 /** Screens that are built. Everything else in the navigation still shows a "planned" page. */
 const BUILT_PATHS = new Set(["/runs", "/admin"]);
 
-/** Composition only: providers, routes and the shell. Screens live in features/. */
+/**
+ * Composition only: providers, routes and the shell. Screens live in features/.
+ * The design routes sit outside the providers on purpose: they need no sign-in and no API.
+ */
 export function App() {
+  return (
+    <Routes>
+      <Route path="/design" element={<DesignLayout />}>
+        <Route index element={<GalleryPage />} />
+        <Route path="workbench" element={<WorkbenchPrototype />} />
+        <Route path="job" element={<JobDetailPrototype />} />
+      </Route>
+      <Route path="/*" element={<ProductApp />} />
+    </Routes>
+  );
+}
+
+function ProductApp() {
   return (
     <SystemStatusProvider>
       <SessionProvider>

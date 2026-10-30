@@ -38,7 +38,7 @@ export function SystemStatusPanel() {
 
   return (
     <>
-      <table className="data-table">
+      <table className="kv-table">
         <caption className="visually-hidden">System status</caption>
         <tbody>
           <tr>

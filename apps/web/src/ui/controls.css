@@ -1,0 +1,170 @@
+/* Form controls beyond the text field: select, multiline, checkbox, segmented control, file drop,
+   and the skeleton. Tokens only. */
+
+/* Multiline and select share the field input look from components.css */
+.field__input--multiline {
+  min-height: calc(var(--size-touch) * 2);
+  padding-block: var(--space-2);
+  line-height: var(--leading-body);
+  resize: vertical;
+}
+.field__input--select {
+  padding-right: var(--space-2);
+}
+
+/* Checkbox with its label to the right */
+.check {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.check + .check {
+  margin-top: var(--space-3);
+}
+.check__input {
+  flex: none;
+  width: var(--space-4);
+  height: var(--space-4);
+  margin: var(--space-2) 0 0;
+  accent-color: var(--color-accent);
+}
+.check__label {
+  display: block;
+  padding-block: var(--space-1);
+  font-weight: var(--weight-medium);
+}
+
+/* Segmented control: radio inputs drawn as one joined strip */
+.segmented {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.segmented__legend {
+  padding: 0;
+  margin-bottom: var(--space-1);
+  font-weight: var(--weight-medium);
+}
+.segmented__options {
+  display: inline-flex;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+}
+.segmented__option {
+  position: relative;
+  display: block;
+}
+.segmented__option + .segmented__option {
+  border-left: 1px solid var(--color-border-control);
+}
+.segmented__input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.segmented__label {
+  display: flex;
+  align-items: center;
+  min-height: calc(var(--size-control) - 2px);
+  padding: 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-medium);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.segmented__option:first-child .segmented__label {
+  border-radius: calc(var(--radius-md) - 1px) 0 0 calc(var(--radius-md) - 1px);
+}
+.segmented__option:last-child .segmented__label {
+  border-radius: 0 calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0;
+}
+.segmented__input:hover + .segmented__label {
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+}
+/* Selected: tint plus an underline bar, so the state is not color alone */
+.segmented__input:checked + .segmented__label {
+  background: var(--color-selected);
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+  color: var(--color-text-primary);
+}
+.segmented__input:focus-visible + .segmented__label {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.segmented__input:disabled + .segmented__label {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+/* File drop */
+.filedrop {
+  margin-top: var(--space-1);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border-control);
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.filedrop[data-dragging="true"] {
+  background: var(--color-selected);
+  border-style: solid;
+  border-color: var(--color-accent);
+}
+.filedrop[data-invalid="true"] {
+  border-color: var(--color-invalid);
+}
+.filedrop__input {
+  display: block;
+  max-width: 100%;
+  color: var(--color-text-primary);
+  font: inherit;
+}
+.filedrop__input::file-selector-button {
+  min-height: var(--size-control);
+  margin-right: var(--space-3);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+.filedrop__input::file-selector-button:hover {
+  background: var(--color-hover);
+}
+.filedrop__text {
+  margin-top: var(--space-3);
+  color: var(--color-text-secondary);
+}
+.filedrop__name {
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+}
+
+/* Skeleton: quiet shapes that hold the layout. The pulse stops under reduced motion (base.css). */
+.skeleton__line {
+  display: block;
+  height: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-skeleton);
+  animation: skeleton-pulse 1.4s var(--ease-standard) infinite alternate;
+}
+.skeleton__line + .skeleton__line {
+  margin-top: var(--space-3);
+}
+.skeleton__line[data-last="true"] {
+  width: 60%;
+}
+@keyframes skeleton-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
