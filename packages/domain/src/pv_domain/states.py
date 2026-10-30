@@ -39,6 +39,16 @@ class StepState(StrEnum):
     SKIPPED = "skipped"
 
 
+# What the user sees for an uploaded resume. The browser adds Idle and Uploading itself.
+class ResumeUiState(StrEnum):
+    UPLOADED = "uploaded"
+    PARSING = "parsing"
+    PARSED = "parsed"
+    NEEDS_CORRECTION = "needs_correction"
+    CONFIRMED = "confirmed"
+    FAILED = "failed"
+
+
 class UiState(StrEnum):
     QUEUED = "queued"
     PROCESSING = "processing"

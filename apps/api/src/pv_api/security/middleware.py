@@ -11,11 +11,15 @@ from pv_api.http import client_ip
 from pv_config import Settings
 from pv_domain.auth import keyed_hash
 from pv_domain.failures import FailureClass
+from pv_domain.resume import MAX_UPLOAD_BYTES
 from pv_persistence.audit import record_audit
 
 CallNext = Callable[[Request], Awaitable[Response]]
 
-MAX_BODY_BYTES = 1_048_576  # 1 MiB. Resume uploads get their own limit in checkpoint 1.5.
+MAX_BODY_BYTES = 1_048_576  # 1 MiB for ordinary JSON requests.
+# The resume upload carries a file. The route also enforces the cap while reading the stream.
+UPLOAD_PATH = "/api/v1/resume"
+MAX_UPLOAD_REQUEST_BYTES = MAX_UPLOAD_BYTES + 16_384
 _UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
@@ -53,7 +57,9 @@ async def origin_guard(request: Request, call_next: CallNext) -> Response:
 
 async def body_limit(request: Request, call_next: CallNext) -> Response:
     declared = request.headers.get("content-length")
-    if declared is not None and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
+    is_upload = request.method == "POST" and request.url.path == UPLOAD_PATH
+    limit = MAX_UPLOAD_REQUEST_BYTES if is_upload else MAX_BODY_BYTES
+    if declared is not None and declared.isdigit() and int(declared) > limit:
         return JSONResponse(
             status_code=413,
             content={

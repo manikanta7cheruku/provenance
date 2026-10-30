@@ -5,6 +5,7 @@ description = "Provenance provider-independent LLM interface with a Gemini REST 
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.27,<1",
+    "pydantic>=2,<3",
     "pv-config",
     "pv-domain",
     "pv-persistence",

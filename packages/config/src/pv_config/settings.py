@@ -69,7 +69,10 @@ class Settings(BaseSettings):
     worker_heartbeat_seconds: int = 10
     task_retention_days: int = 7
 
-    # AI provider (checkpoint 1.4 adds the plumbing; features arrive in 1.5 and 1.6).
+    # Private file storage (resumes). A directory today; an S3-compatible bucket in checkpoint 3.7.
+    file_storage_dir: str = "./storage"
+
+    # AI provider (checkpoint 1.4 adds the plumbing; resume parsing is the first feature, 1.6).
     # Model names and prices are configuration, never code.
     # See docs/operations/llm-provider-gemini.md.
     gemini_api_key: SecretStr = SecretStr("")

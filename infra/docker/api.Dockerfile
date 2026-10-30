@@ -21,6 +21,9 @@ COPY apps/worker ./apps/worker
 COPY packages ./packages
 RUN uv sync --frozen --no-dev --all-packages
 
+# Private file storage. The named volume copies this ownership on first use.
+RUN mkdir -p /data/files && chown -R app:app /data/files
+
 USER app
 EXPOSE 8000
 CMD ["uvicorn", "pv_api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

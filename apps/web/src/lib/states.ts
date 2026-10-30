@@ -75,3 +75,63 @@ export function describeState(state: UiState): StateDescription {
 export function isActiveState(state: UiState): boolean {
   return state === "queued" || state === "processing" || state === "retrying";
 }
+
+/** What the user sees for an uploaded resume. The browser adds Idle and Uploading itself. */
+export const RESUME_UI_STATES = [
+  "uploaded",
+  "parsing",
+  "parsed",
+  "needs_correction",
+  "confirmed",
+  "failed",
+] as const;
+
+export type ResumeUiState = (typeof RESUME_UI_STATES)[number];
+
+export interface ResumeStateDescription {
+  label: string;
+  tone: StateTone;
+  explanation: string;
+}
+
+const RESUME_INFO: Record<ResumeUiState, ResumeStateDescription> = {
+  uploaded: {
+    label: "Uploaded",
+    tone: "neutral",
+    explanation: "Your file is stored. Reading it starts in a moment.",
+  },
+  parsing: {
+    label: "Reading your resume",
+    tone: "neutral",
+    explanation: "We are turning it into editable entries. You can leave this page; it keeps going.",
+  },
+  parsed: {
+    label: "Ready to review",
+    tone: "warn",
+    explanation: "Check the entries below, fix anything that is wrong, then confirm.",
+  },
+  needs_correction: {
+    label: "Needs correction",
+    tone: "warn",
+    explanation: "Some entries are missing details that help your matches. Add them, or confirm anyway.",
+  },
+  confirmed: {
+    label: "Confirmed",
+    tone: "ok",
+    explanation: "You have reviewed your profile. It is ready for job analysis.",
+  },
+  failed: {
+    label: "Could not read it",
+    tone: "danger",
+    explanation: "Your file is safe. See below for what to do next.",
+  },
+};
+
+export function describeResumeState(state: ResumeUiState): ResumeStateDescription {
+  return RESUME_INFO[state];
+}
+
+/** Uploaded and parsing change by themselves, so the page keeps asking until they settle. */
+export function isResumeBusy(state: ResumeUiState): boolean {
+  return state === "uploaded" || state === "parsing";
+}

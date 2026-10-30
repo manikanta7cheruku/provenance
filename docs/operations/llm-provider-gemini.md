@@ -79,3 +79,9 @@ The rest of the system depends only on the `LLMProvider` protocol in `pv_llm.bas
 
 ## 10. What was checked
 The REST shapes used (base `v1beta`, `x-goog-api-key` header, `models.list` with `supportedGenerationMethods`, `generateContent`, `embedContent` with `outputDimensionality`, `usageMetadata` token counts) were checked against the official API reference on 2026-10-22. The unit tests use a mocked HTTP transport. **A live call has not been made**: run `ai-check` with your key to confirm.
+
+## First feature using the model: resume parsing (checkpoint 1.6)
+
+The worker task `parse_resume` makes one structured call per resume (and one guided retry if the answer does not match the schema). Each call is recorded in `llm_calls` with purpose `resume_parse`, the prompt version (`resume-parse-1`, in `pv_llm.resume_parse`) and a content hash, never text. It needs `GEMINI_API_KEY` and `LLM_MODEL`. Without them a parse ends as a visible, retryable failure with the message "The reading service is not set up yet", and nothing crashes or loops.
+
+The whole resume text is sent to the provider. On a free tier that text may be used to improve the provider's products, so use only your own test data until a paid tier with no-training terms is in place (see [ADR-0027](../adr/0027-build-first-sequencing-and-paid-service-placeholders.md)).

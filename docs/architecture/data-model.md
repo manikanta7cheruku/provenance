@@ -143,4 +143,7 @@ Client-only transport states (idle, uploading) exist in the browser and are neve
 | 0001 | none (extensions and grants) | vector, citext, pg_trgm. Application role privileges |
 | 0002 | users, sessions, email_tokens, invites, audit_events, rate_limit_buckets, profile_entries | `invites` and `rate_limit_buckets` were not in the Phase 0 model. `audit_events` carries a `category` (audit or security) and is append-only for the application role. `profile_entries` is under Row Level Security with `owner_user_id` |
 
+| 0003 | tasks, worker_heartbeats, workflow_runs, workflow_steps, llm_calls, user_stats | See ADR-0022 and queue-and-observability.md |
+| 0004 | resumes, profile_preferences. profile_entries gains source, source_resume_id, source_key, position | `resumes` holds metadata only (name, kind, size, sha256, a generated storage key, parse and review status, generation, counts, an error code). One row per user, enforced by a unique index. `profile_preferences` is one typed row per user. Both are under Row Level Security, enabled and forced, with the same policy as `profile_entries`. See ADR-0029 |
+
 Identity tables (users, sessions, email_tokens, invites) are intentionally outside Row Level Security. See ADR-0021.
