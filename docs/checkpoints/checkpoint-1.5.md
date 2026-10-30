@@ -67,6 +67,11 @@ Roadmap revision 2 split the old 1.5 in two. This checkpoint is the design half.
 
 [ADR-0028](../adr/0028-design-system-implementation.md), [design-system.md](../architecture/design-system.md) (theme, fonts, components, checks), [ux-specification.md](../product/ux-specification.md) (prototype status), [operator-commands.md](../operations/operator-commands.md) (`webtest`), CI workflow.
 
+## 7a. Follow-ups made during review
+
+- **Test marking fix (from 1.4).** Tests under `tests/integration` were never marked, so a plain `pytest` ran them against a live stack and failed (timeouts, no queued mail because the worker consumed it). A collection hook in `tests/integration/conftest.py` now marks them. The default run is the unit gate (161 tests) and `pytest -m integration` runs the 146 integration tests, which passed with the worker stopped. A duplicated cleanup fixture in the same file was removed.
+- **Copy check.** `npm run check:copy` fails the build on em dashes, sparkle emoji and stock marketing or AI-template phrases anywhere in the repository. It runs in CI and in `pv.ps1 test`.
+
 ## 8. Commit
 
 ```
@@ -89,7 +94,9 @@ You should be able to explain:
 
 **Run in this checkpoint (on a Windows machine, Edge through Playwright):** TypeScript type check, boundary check, state check, token check, contrast check (70 pairs), 28 unit tests, the production build, and 32 browser tests (axe on 3 design routes and 7 product screens in 2 themes, plus behavior tests). Screenshots of the gallery, both prototypes, the shell and a 390px width were inspected by eye; one inconsistent sample number and one clipped table column were found and fixed.
 
-**Not verified:** GitHub CI on the pushed branch (the Linux job installs Playwright's own Chromium, which was not downloaded locally), Firefox and Safari, real touch devices, any screen reader, `docker compose up` with the changed web files, and the product screens against the real API (the browser tests mock it). Python code was not touched, so ruff, mypy, import-linter and pytest were not re-run here, and CI will run them.
+**CI:** merged in PR 5 with the jobs python, web and secrets green. The web job ran the browser tests on Linux with Playwright's Chromium.
+
+**Not verified:** Firefox and Safari, real touch devices, any screen reader, `docker compose up` with the changed web files, and the product screens against the real API (the browser tests mock it). Python code was not touched, so ruff, mypy, import-linter and pytest were not re-run here, and CI will run them.
 
 Likeliest first-CI problems: Playwright browser install step needing a newer version flag, a font weight file missing after a `@fontsource` update, and axe flagging something only Linux rendering shows (for example a different fallback font width).
 
