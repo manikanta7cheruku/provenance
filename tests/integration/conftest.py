@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from pv_api.main import create_app
 from pv_config import Settings, get_settings
 from pv_domain.ratelimit import RatePolicy
+from pv_files import FileStorage, LocalDiskStorage
 from pv_persistence.engine import create_db_engine
 
 
@@ -85,18 +86,29 @@ def mailer(engine: Engine, settings: Settings) -> RecordingMailer:
 
 @pytest.fixture
 def build_app(settings: Settings) -> Callable[..., FastAPI]:
-    def _build(policies: dict[str, RatePolicy] | None = None, **overrides: Any) -> FastAPI:
+    def _build(
+        policies: dict[str, RatePolicy] | None = None,
+        storage: FileStorage | None = None,
+        **overrides: Any,
+    ) -> FastAPI:
         return create_app(
             settings.model_copy(update=overrides),
             rate_policies=policies or generous_policies(),
+            storage=storage,
         )
 
     return _build
 
 
 @pytest.fixture
-def app(build_app: Callable[..., FastAPI]) -> FastAPI:
-    return build_app()
+def storage(tmp_path: Path) -> FileStorage:
+    """A private folder per test, so resume files never leak between tests or into ./storage."""
+    return LocalDiskStorage(tmp_path / "files")
+
+
+@pytest.fixture
+def app(build_app: Callable[..., FastAPI], storage: FileStorage) -> FastAPI:
+    return build_app(storage=storage)
 
 
 @pytest.fixture

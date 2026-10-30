@@ -4,7 +4,7 @@
 
 Passwords (Argon2id), opaque sessions with rotation and revocation, cookie flags, CSRF token and Origin check, repository scoping plus Row Level Security with FORCE, isolation tests including raw SQL, policy-driven rate limits, security headers, request size limit, append-only audit log, uniform authentication errors, invite-only signup, email verification and reset flows (verification enforced by flag), per-field input limits. See ADR-0020 and ADR-0021.
 
-Not yet delivered: file handling (1.6), untrusted content handling (1.8), SSRF (2.7), export hardening (3.4), connector tokens (3.1), quotas (3.3), backups and incident drills (3.7), dependency vulnerability audit in CI (deferred).
+Not yet delivered: untrusted content handling of job text (1.8), SSRF (2.7), export hardening (3.4), connector tokens (3.1), quotas (3.3), backups and incident drills (3.7), dependency vulnerability audit in CI (deferred).
 
 Status: Decided (Phase 0). Each control lists the checkpoint that delivers it.
 
@@ -22,7 +22,7 @@ Status: Decided (Phase 0). Each control lists the checkpoint that delivers it.
 | Input limits | Request size, upload size, field lengths | 1.3 |
 | Audit log | Append only audit_events for sensitive actions | 1.3 |
 | Logging | Structured, PII-safe, run_id | 1.4 |
-| File handling | Private storage, signed URLs, type sniffing, parse limits | 1.6 |
+| File handling | Private storage behind an interface, server-generated keys, no public URL, owner-only download, type decided from the first bytes, size cap while streaming, zip bomb and XML entity guards, page and character caps, parse in the worker. Delivered in 1.6, see ADR-0029 | 1.6 |
 | Untrusted content | Isolation, schema validation, no tools in extraction | 1.8 |
 | SSRF | Hardened fetch layer | 2.7 |
 | Exports | Formula neutralization | 3.4 |

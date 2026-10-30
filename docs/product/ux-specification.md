@@ -239,7 +239,7 @@ The backend defines the states ([data-model.md](../architecture/data-model.md) s
 | Server | Confirmed | review_status confirmed |
 | Server | Failed, then Retry | parse_status parse_failed. Retry creates a new parse task |
 
-This sequence (Idle, Uploading, Uploaded, Parsing, Parsed, Needs correction, Failed, Retry) is the contract for checkpoint 1.6.
+This sequence (Idle, Uploading, Uploaded, Parsing, Parsed, Needs correction, Failed, Retry) is the contract for checkpoint 1.6. It is built there: the server states come from `resume_ui_state` in `pv_domain.resume`, the browser adds Idle and Uploading, and `npm run check:states` keeps the TypeScript list equal to the backend list. A confirmed state was added: the person reviews the entries and confirms, and "Needs correction" is computed from the current entries so it clears as they fix them.
 
 ### 10.4 Rule
 

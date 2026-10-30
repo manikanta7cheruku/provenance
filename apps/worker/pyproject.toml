@@ -6,6 +6,8 @@ requires-python = ">=3.12"
 dependencies = [
     "pv-config",
     "pv-domain",
+    "pv-files",
+    "pv-llm",
     "pv-mail",
     "pv-persistence",
 ]
@@ -13,6 +15,8 @@ dependencies = [
 [tool.uv.sources]
 pv-config = { workspace = true }
 pv-domain = { workspace = true }
+pv-files = { workspace = true }
+pv-llm = { workspace = true }
 pv-mail = { workspace = true }
 pv-persistence = { workspace = true }
 

@@ -70,3 +70,15 @@ Find what holds a port: `Get-NetTCPConnection -LocalPort 8025 | Select-Object Ow
 | a real SMTP host | Real delivery | Your provider. Production requires this |
 
 Emails are always queued first. If nothing arrives, check the worker is running (`status`) before anything else.
+
+## Stored files (resumes)
+
+Uploaded resumes live in the Docker volume `files`, mounted at `/data/files` in the `api` and the `worker` containers (`FILE_STORAGE_DIR`). Names are random keys, never the user's file name. The volume survives `down` and is removed only by `reset` (which deletes volumes).
+
+| Need | Command |
+|---|---|
+| How many files are stored | `docker compose exec worker sh -c "ls -A /data/files/resumes \| wc -l"` |
+| Where the volume is | `docker volume inspect provenance_files` |
+| Back it up | Copy the volume contents with the database backup (checkpoint 3.7 adds the scheduled backup) |
+
+Never open or copy a user's file to debug a problem. Use the resume id, the run and the error code. See [the resume parsing runbook](runbooks/resume-parse-failed.md).

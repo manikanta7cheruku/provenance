@@ -75,7 +75,7 @@ def test_client_cannot_choose_the_owner(app: FastAPI, make_account: MakeAccount)
     victim, attacker = make_account(app), make_account(app)
     response = attacker.client.post(
         ENTRIES,
-        json={"entry_type": "skill", "data": {}, "owner_user_id": victim.user_id},
+        json={"entry_type": "skill", "data": {"name": "x"}, "owner_user_id": victim.user_id},
         headers=attacker.csrf,
     )
     assert response.status_code == 201

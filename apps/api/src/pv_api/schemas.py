@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Checks(BaseModel):
@@ -115,8 +115,114 @@ class ProfileEntryOut(BaseModel):
     entry_type: str
     data: dict[str, Any]
     user_edited: bool
+    # "resume" when a parse created it, "user" when the person added it. Editing keeps the source
+    # and sets user_edited, so the screen can say "from your resume" or "added or edited by you".
+    source: str = "user"
+    # Recommended fields still empty (advice shown as "needs correction", never a block).
+    flags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+
+
+class FieldSpecOut(BaseModel):
+    name: str
+    label: str
+    kind: str
+    max_length: int
+    required: bool
+    recommended: bool
+    hint: str
+
+
+class EntrySpecOut(BaseModel):
+    entry_type: str
+    label: str
+    plural: str
+    primary_field: str
+    fields: list[FieldSpecOut]
+
+
+# ---- resume (checkpoint 1.6)
+class ResumeOut(BaseModel):
+    id: uuid.UUID
+    original_filename: str
+    file_kind: Literal["pdf", "docx"]
+    size_bytes: int
+    # What the person is shown. The browser adds Idle and Uploading itself.
+    ui_state: Literal["uploaded", "parsing", "parsed", "needs_correction", "confirmed", "failed"]
+    can_retry: bool
+    # A plain sentence when ui_state is "failed".
+    error_message: str | None
+    kept_entry_count: int
+    # Entries the model proposed that were not found in the resume text, so they were not stored.
+    dropped_entry_count: int
+    flagged_entry_count: int
+    page_count: int | None
+    run_id: uuid.UUID | None
+    created_at: datetime
+    parsed_at: datetime | None
+    confirmed_at: datetime | None
+
+
+# ---- preferences (checkpoint 1.6)
+RemotePreference = Literal["remote", "hybrid", "onsite", "any"]
+EmploymentType = Literal["full_time", "part_time", "internship", "contract", "freelance"]
+Currency = Literal["INR", "USD", "CAD", "GBP", "EUR", "AED", "SGD", "AUD"]
+
+
+def _clean_list(values: list[str], *, max_items: int, max_length: int) -> list[str]:
+    cleaned: list[str] = []
+    for value in values:
+        text = " ".join(value.split())
+        if not text:
+            continue
+        if len(text) > max_length:
+            raise ValueError(f"Each item must be at most {max_length} characters.")
+        if text.casefold() not in {c.casefold() for c in cleaned}:
+            cleaned.append(text)
+    if len(cleaned) > max_items:
+        raise ValueError(f"Enter at most {max_items} items.")
+    return cleaned
+
+
+class PreferencesIn(BaseModel):
+    target_roles: list[str] = Field(default_factory=list, max_length=60)
+    authorized_countries: list[str] = Field(default_factory=list, max_length=60)
+    needs_sponsorship: bool | None = None
+    locations: list[str] = Field(default_factory=list, max_length=60)
+    open_to_relocate: bool | None = None
+    remote_preference: RemotePreference | None = None
+    employment_types: list[EmploymentType] = Field(default_factory=list, max_length=5)
+    min_salary_amount: int | None = Field(default=None, ge=0, le=1_000_000_000)
+    min_salary_currency: Currency | None = None
+    exclusions: list[str] = Field(default_factory=list, max_length=60)
+
+    @field_validator("target_roles", "exclusions")
+    @classmethod
+    def _short_lists(cls, value: list[str]) -> list[str]:
+        return _clean_list(value, max_items=20, max_length=80)
+
+    @field_validator("authorized_countries", "locations")
+    @classmethod
+    def _place_lists(cls, value: list[str]) -> list[str]:
+        return _clean_list(value, max_items=30, max_length=60)
+
+    @field_validator("employment_types")
+    @classmethod
+    def _unique_types(cls, value: list[str]) -> list[str]:
+        return list(dict.fromkeys(value))
+
+    @model_validator(mode="after")
+    def _salary_pair(self) -> "PreferencesIn":
+        if (self.min_salary_amount is None) != (self.min_salary_currency is None):
+            raise ValueError("Enter both an amount and a currency, or neither.")
+        return self
+
+
+class PreferencesOut(PreferencesIn):
+    model_config = ConfigDict(from_attributes=True)
+
+    updated_at: datetime | None = None
 
 
 # ---- admin: overview counters (unchanged from checkpoint 1.2)

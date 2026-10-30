@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, Text, func
-from sqlalchemy.dialects.postgresql import CITEXT, JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, CITEXT, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -100,7 +100,70 @@ class ProfileEntry(Base):
     entry_type: Mapped[str] = mapped_column(Text)
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     user_edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    # "resume" for entries a parse created, "user" for entries the person added (migration 0004).
+    source: Mapped[str] = mapped_column(Text, default="user")
+    source_resume_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("resumes.id", ondelete="SET NULL"), default=None
+    )
+    # The identity key the parser gave this entry. Editing the entry does not change it, so a
+    # re-parse still recognises the entry and does not add it a second time.
+    source_key: Mapped[str | None] = mapped_column(Text, default=None)
+    position: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 1.6: resumes and preferences (migration 0004)
+
+
+class Resume(Base):
+    """One stored resume per user. Metadata only: the file lives in private storage."""
+
+    __tablename__ = "resumes"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    original_filename: Mapped[str] = mapped_column(Text)
+    file_kind: Mapped[str] = mapped_column(Text)
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    sha256: Mapped[str] = mapped_column(Text)
+    storage_key: Mapped[str] = mapped_column(Text, unique=True)
+    parse_status: Mapped[str] = mapped_column(Text, default="uploaded")
+    review_status: Mapped[str] = mapped_column(Text, default="pending")
+    parse_generation: Mapped[int] = mapped_column(Integer, default=1)
+    page_count: Mapped[int | None] = mapped_column(Integer, default=None)
+    char_count: Mapped[int | None] = mapped_column(Integer, default=None)
+    kept_entry_count: Mapped[int] = mapped_column(Integer, default=0)
+    dropped_entry_count: Mapped[int] = mapped_column(Integer, default=0)
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workflow_runs.id", ondelete="SET NULL"), default=None
+    )
+    parser_version: Mapped[str | None] = mapped_column(Text, default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    parsed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class ProfilePreferences(Base):
+    """What the person is looking for. Typed columns so the eligibility engine can read them."""
+
+    __tablename__ = "profile_preferences"
+
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    target_roles: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
+    authorized_countries: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
+    needs_sponsorship: Mapped[bool | None] = mapped_column(Boolean, default=None)
+    locations: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
+    open_to_relocate: Mapped[bool | None] = mapped_column(Boolean, default=None)
+    remote_preference: Mapped[str | None] = mapped_column(Text, default=None)
+    employment_types: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
+    min_salary_amount: Mapped[int | None] = mapped_column(Integer, default=None)
+    min_salary_currency: Mapped[str | None] = mapped_column(Text, default=None)
+    exclusions: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

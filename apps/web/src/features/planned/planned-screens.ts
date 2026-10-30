@@ -25,10 +25,4 @@ export const PLANNED_SCREENS: Record<string, PlannedScreen> = {
     why: "Provenance never submits applications. This list is your own tracking record.",
     next: "Application tracking arrives with the workbench in Phase 2.",
   },
-  "/profile": {
-    title: "Profile",
-    description: "Your evidence base: resume, projects, skills and anything else you add.",
-    why: "Every conclusion about a job is traced back to evidence stored here.",
-    next: "Resume upload and the editable profile arrive in checkpoint 1.5.",
-  },
 };

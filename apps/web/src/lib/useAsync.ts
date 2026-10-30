@@ -17,6 +17,8 @@ export function useAsync<T>(load: (signal: AbortSignal) => Promise<T>, deps: rea
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  // A loaded result can legitimately be null (for example "no resume yet"), so track it apart.
+  const [loaded, setLoaded] = useState(false);
   const [tick, setTick] = useState(0);
   const loadRef = useRef(load);
   loadRef.current = load;
@@ -28,6 +30,7 @@ export function useAsync<T>(load: (signal: AbortSignal) => Promise<T>, deps: rea
       .current(controller.signal)
       .then((result) => {
         setData(result);
+        setLoaded(true);
         setError(null);
       })
       .catch((caught: unknown) => {
@@ -42,5 +45,5 @@ export function useAsync<T>(load: (signal: AbortSignal) => Promise<T>, deps: rea
   }, [...deps, tick]);
 
   const reload = useCallback(() => setTick((value) => value + 1), []);
-  return { data, error, loading: data === null && error === null, refreshing, reload };
+  return { data, error, loading: !loaded && error === null, refreshing, reload };
 }

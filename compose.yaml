@@ -23,6 +23,8 @@ x-api-env: &api-env
   SMTP_STARTTLS: ${SMTP_STARTTLS-false}
   MAIL_FROM: ${MAIL_FROM:-Provenance <no-reply@localhost>}
   DEV_INBOX_URL: ${DEV_INBOX_URL:-http://localhost:8025}
+  # Private file storage (resumes). The api and the worker share this volume.
+  FILE_STORAGE_DIR: ${FILE_STORAGE_DIR:-/data/files}
 
 x-worker-env: &worker-env
   <<: *api-env
@@ -94,6 +96,7 @@ services:
     volumes:
       - ./apps/api:/app/apps/api:ro
       - ./packages:/app/packages:ro
+      - files:/data/files
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -131,6 +134,7 @@ services:
       - ./apps/api:/app/apps/api:ro
       - ./apps/worker:/app/apps/worker:ro
       - ./packages:/app/packages:ro
+      - files:/data/files
     depends_on:
       postgres:
         condition: service_healthy
@@ -193,4 +197,5 @@ services:
 
 volumes:
   pgdata:
+  files:
   web_node_modules:

@@ -78,13 +78,14 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   onUnauthorized = handler;
 }
 
-export async function request<T>(
-  method: Method,
-  path: string,
-  options: { body?: unknown; signal?: AbortSignal } = {},
-): Promise<T> {
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+interface SendOptions {
+  headers: Record<string, string>;
+  body?: BodyInit | undefined;
+  signal?: AbortSignal | undefined;
+}
+
+async function send<T>(method: Method, path: string, options: SendOptions): Promise<T> {
+  const headers: Record<string, string> = { Accept: "application/json", ...options.headers };
   if (method !== "GET" && csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
   let response: Response;
@@ -92,7 +93,7 @@ export async function request<T>(
     response = await fetch(path, {
       method,
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.body,
       signal: options.signal,
       credentials: "same-origin",
     });
@@ -130,6 +131,34 @@ export async function request<T>(
     throw error;
   }
   return data as T;
+}
+
+export function request<T>(
+  method: Method,
+  path: string,
+  options: { body?: unknown; signal?: AbortSignal } = {},
+): Promise<T> {
+  const hasBody = options.body !== undefined;
+  return send<T>(method, path, {
+    headers: hasBody ? { "Content-Type": "application/json" } : {},
+    body: hasBody ? JSON.stringify(options.body) : undefined,
+    signal: options.signal,
+  });
+}
+
+/**
+ * Sends a file as the raw request body. The server decides the type from the first bytes,
+ * so no Content-Type is trusted. The name travels percent-encoded in X-Filename.
+ */
+export function uploadFile<T>(path: string, file: File, signal?: AbortSignal): Promise<T> {
+  return send<T>("POST", path, {
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "X-Filename": encodeURIComponent(file.name),
+    },
+    body: file,
+    signal,
+  });
 }
 
 export function fetchStatus(signal?: AbortSignal): Promise<ApiStatus> {

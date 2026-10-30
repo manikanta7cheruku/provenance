@@ -9,6 +9,7 @@ dependencies = [
     "argon2-cffi>=23.1,<26",
     "pv-config",
     "pv-domain",
+    "pv-files",
     "pv-mail",
     "pv-persistence",
 ]
@@ -16,6 +17,7 @@ dependencies = [
 [tool.uv.sources]
 pv-config = { workspace = true }
 pv-domain = { workspace = true }
+pv-files = { workspace = true }
 pv-mail = { workspace = true }
 pv-persistence = { workspace = true }
 
