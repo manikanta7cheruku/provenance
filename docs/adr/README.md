@@ -31,5 +31,6 @@
 | [0027](0027-build-first-sequencing-and-paid-service-placeholders.md) | Build-first sequencing and paid-service placeholders | Accepted |
 | [0028](0028-design-system-implementation.md) | Design system implementation | Accepted |
 | [0029](0029-resume-storage-parsing-and-profile-entries.md) | Resume storage, parsing and profile entries | Accepted |
+| [0030](0030-evidence-chunks-and-hybrid-retrieval.md) | Evidence chunks and hybrid retrieval | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

@@ -44,6 +44,7 @@ Phase 0 planning pack, extended by later checkpoints (roadmap revision 2, 2026-1
 - [Checkpoint 1.4](checkpoints/checkpoint-1.4.md)
 - [Checkpoint 1.5](checkpoints/checkpoint-1.5.md)
 - [Checkpoint 1.6](checkpoints/checkpoint-1.6.md)
+- [Checkpoint 1.7](checkpoints/checkpoint-1.7.md)
 - [Git workflow](engineering/git-workflow.md)
 - [Master implementation plan](roadmap/implementation-plan.md)
 - [Development setup](development-setup.md)

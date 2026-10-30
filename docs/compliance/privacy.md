@@ -9,7 +9,7 @@ Status: Draft. This document does not claim legal compliance. Applicable law mus
 | Account email, password hash | Authentication | Database | Until account deletion |
 | Resume files | Parse into profile | Private object storage | Until user deletes or account deletion |
 | Profile entries and evidence | Matching and preparation | Database | Same |
-| Embeddings | Retrieval | Database | Same |
+| Evidence chunks (the text of each profile entry) and embeddings | Retrieval and search | Database | Deleted with the entry. Vectors are deleted with their chunk |
 | Preferences | Search and eligibility | Database | Same |
 | Imported jobs (private) | Analysis | Database | Same |
 | Materials | Tailoring output | Database | Same |
@@ -24,7 +24,7 @@ Data minimization, purpose limitation, no public file URLs, signed expiring link
 
 ## 3. LLM provider data flow
 
-Resume text and evidence snippets are sent to the LLM provider to perform analysis. The user is told this plainly during onboarding. Free-tier providers may use submitted data to improve products. Production must use a tier with documented no-training terms. Provider terms are recorded in `docs/providers/`.
+Resume text and evidence snippets are sent to the LLM provider to perform analysis. From checkpoint 1.7 the text of each profile entry is also sent to the embedding model, and a search query is sent when meaning search is used. The user is told this plainly during onboarding. Free-tier providers may use submitted data to improve products. Production must use a tier with documented no-training terms. Provider terms are recorded in `docs/providers/`.
 
 ## 4. User rights features
 

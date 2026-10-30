@@ -29,5 +29,6 @@ DEFAULT_POLICIES: dict[str, RatePolicy] = {
         RatePolicy("password_change_user", 5, 900),
         RatePolicy("resume_upload_user", 10, 3600),
         RatePolicy("resume_reparse_user", 10, 3600),
+        RatePolicy("evidence_search_user", 60, 3600),
     )
 }

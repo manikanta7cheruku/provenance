@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { PageHeader } from "../../ui";
 import { EntriesSection } from "./EntriesSection";
+import { EvidenceSection } from "./EvidenceSection";
 import { PreferencesSection } from "./PreferencesSection";
 import { ResumeSection } from "./ResumeSection";
 import "./profile.css";
@@ -20,6 +21,7 @@ export function ProfilePage() {
       />
       <ResumeSection onChanged={refreshEntries} />
       <EntriesSection version={version} onChanged={refreshEntries} />
+      <EvidenceSection version={version} />
       <PreferencesSection />
     </>
   );

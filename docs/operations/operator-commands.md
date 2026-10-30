@@ -28,6 +28,7 @@ If PowerShell refuses to run the script: `Set-ExecutionPolicy -Scope CurrentUser
 | `demo-task [seconds]` | Enqueue a harmless task (crash-recovery lab) |
 | `demo-run <email>` | Create a finished demo run so the Runs screen has something to show |
 | `ai-check` | List the Gemini models your key can use and test one generation and one embedding |
+| `embeddings` | Queue evidence embedding for every active user. Run after adding a key, changing `LLM_EMBEDDING_MODEL`, or enabling meaning search. Safe to repeat |
 | `test` | ruff, format check, mypy, import-linter, unit tests, web checks (boundaries, states, tokens, contrast, type check, unit tests, build) |
 | `itest` | Integration tests. Stops the worker first and starts it again afterwards |
 | `webtest` | Build the web app and run the browser and accessibility tests (axe, keyboard, themes). In PowerShell set `$env:PW_CHANNEL="msedge"` first to reuse Edge instead of downloading a browser |
@@ -82,3 +83,20 @@ Uploaded resumes live in the Docker volume `files`, mounted at `/data/files` in 
 | Back it up | Copy the volume contents with the database backup (checkpoint 3.7 adds the scheduled backup) |
 
 Never open or copy a user's file to debug a problem. Use the resume id, the run and the error code. See [the resume parsing runbook](runbooks/resume-parse-failed.md).
+
+## Try meaning search without a real key
+
+`scripts/fake_gemini.py` is a local stand-in for the embedding endpoint. It makes the whole path real (the worker, the Gemini REST client, pgvector, rank fusion) with vectors built from shared words, so it cannot find synonyms.
+
+```powershell
+python scripts/fake_gemini.py 8765
+```
+In a second window:
+```powershell
+$env:GEMINI_API_KEY = "fake-key"
+$env:LLM_EMBEDDING_MODEL = "fake-embed"
+$env:GEMINI_BASE_URL = "http://host.docker.internal:8765/v1beta"
+docker compose up -d api worker
+```
+Add entries on the Profile page and watch "Meaning search is ready". When done, close the fake server, remove the three variables (`Remove-Item Env:GEMINI_API_KEY, Env:LLM_EMBEDDING_MODEL, Env:GEMINI_BASE_URL`) and run `docker compose up -d api worker` again.
+

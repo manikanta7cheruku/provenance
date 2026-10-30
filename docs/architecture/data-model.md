@@ -145,5 +145,6 @@ Client-only transport states (idle, uploading) exist in the browser and are neve
 
 | 0003 | tasks, worker_heartbeats, workflow_runs, workflow_steps, llm_calls, user_stats | See ADR-0022 and queue-and-observability.md |
 | 0004 | resumes, profile_preferences. profile_entries gains source, source_resume_id, source_key, position | `resumes` holds metadata only (name, kind, size, sha256, a generated storage key, parse and review status, generation, counts, an error code). One row per user, enforced by a unique index. `profile_preferences` is one typed row per user. Both are under Row Level Security, enabled and forced, with the same policy as `profile_entries`. See ADR-0029 |
+| 0005 | evidence_chunks | One chunk per profile entry: rendered `text`, `content_hash`, a generated `tsvector` (GIN), a nullable `vector(768)` with its model name (HNSW, cosine), unique on (owner, source type, source record). Row Level Security enabled and forced. A trigger on `profile_entries` deletes the entry's chunk. See ADR-0030 |
 
 Identity tables (users, sessions, email_tokens, invites) are intentionally outside Row Level Security. See ADR-0021.

@@ -124,7 +124,12 @@ export function EntriesSection({ version, onChanged }: EntriesSectionProps) {
                 const flags = flagLabels(entry, spec);
                 const isEditing = editing === entry.id;
                 return (
-                  <li key={entry.id} className="entry" data-flagged={flags.length > 0 || undefined}>
+                  <li
+                    key={entry.id}
+                    id={`entry-${entry.id}`}
+                    className="entry"
+                    data-flagged={flags.length > 0 || undefined}
+                  >
                     <div className="entry__head">
                       <div className="entry__main">
                         <p className="entry__title">{info.title}</p>

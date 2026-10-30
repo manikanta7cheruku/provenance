@@ -56,7 +56,7 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 | FR-PRO-2 | Every profile entry becomes an evidence chunk with provenance | 1 |
 | FR-PRO-3 | User can add evidence by free-text answers | 1 |
 | FR-PRO-4 | Preferences: roles, locations, remote, work authorization, sponsorship, compensation, exclusions | 1 |
-| FR-EVI-1 | Hybrid retrieval (lexical plus semantic) over evidence | 1 |
+| FR-EVI-1 | Hybrid retrieval (lexical plus semantic) over evidence. Built in 1.7: keyword and meaning search fused by rank, degrading to keyword search when meaning search is unavailable | 1 |
 | FR-EVI-2 | GitHub connector via OAuth with minimal scopes, repo content as evidence | 3 |
 
 ### Jobs and sources

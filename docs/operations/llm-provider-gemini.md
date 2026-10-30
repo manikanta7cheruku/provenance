@@ -85,3 +85,14 @@ The REST shapes used (base `v1beta`, `x-goog-api-key` header, `models.list` with
 The worker task `parse_resume` makes one structured call per resume (and one guided retry if the answer does not match the schema). Each call is recorded in `llm_calls` with purpose `resume_parse`, the prompt version (`resume-parse-1`, in `pv_llm.resume_parse`) and a content hash, never text. It needs `GEMINI_API_KEY` and `LLM_MODEL`. Without them a parse ends as a visible, retryable failure with the message "The reading service is not set up yet", and nothing crashes or loops.
 
 The whole resume text is sent to the provider. On a free tier that text may be used to improve the provider's products, so use only your own test data until a paid tier with no-training terms is in place (see [ADR-0027](../adr/0027-build-first-sequencing-and-paid-service-placeholders.md)).
+
+## Embeddings and evidence search (checkpoint 1.7)
+
+The worker task `embed_evidence` embeds one short text per profile entry with `LLM_EMBEDDING_MODEL`, and the API embeds each search query. Calls are recorded in `llm_calls` with purposes `evidence_embedding` and `evidence_query`, a content hash and never text. Meaning search needs both `GEMINI_API_KEY` and `LLM_EMBEDDING_MODEL`. Without them keyword search still works and the screen says meaning search is off.
+
+The database stores vectors of exactly 768 numbers (migration 0005). `python -m pv_llm.check` tests one embedding with `LLM_EMBEDDING_DIMENSIONS` (default 768): choose a model that supports that size. A model that answers with another size makes the worker stop with a clear message and store nothing. Changing the model makes every stored vector stale. Run `.\scripts\pv.ps1 embeddings` to re-embed.
+
+`GEMINI_BASE_URL` (default the official endpoint) is operator configuration for a proxy or a local test double. `EVIDENCE_MIN_SIMILARITY` (default 0) drops weak meaning matches. Leave it at 0 until the evaluation set (checkpoint 3.6) shows where the line belongs.
+
+Entry text goes to the provider to be embedded. On a free tier it may be used for training, so use only your own data until a paid tier with no-training terms is in place (ADR-0027).
+

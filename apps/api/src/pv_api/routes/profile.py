@@ -26,6 +26,7 @@ from pv_api.schemas import (
 )
 from pv_domain.failures import FailureClass
 from pv_domain.profile import flagged_fields, specs_as_dicts, validate_entry
+from pv_persistence.evidence import sync_evidence
 from pv_persistence.models import ProfileEntry, ProfilePreferences
 from pv_persistence.resumes import list_entries
 from pv_persistence.tenancy import tenant_session
@@ -86,6 +87,7 @@ def create_entry(
         db.add(entry)
         db.flush()
         db.refresh(entry)
+        sync_evidence(db, auth.user_id)
         return _out(entry)
 
 
@@ -113,6 +115,7 @@ def update_entry(
         entry.updated_at = datetime.now(UTC)
         db.flush()
         db.refresh(entry)
+        sync_evidence(db, auth.user_id)
         return _out(entry)
 
 
@@ -120,6 +123,8 @@ def update_entry(
 def delete_entry(entry_id: uuid.UUID, auth: WriterUser, engine: EngineDep) -> None:
     with tenant_session(engine, auth.user_id) as db:
         db.delete(_load(list_entries(db, auth.user_id), entry_id))
+        db.flush()  # the database trigger removes the entry's chunk
+        sync_evidence(db, auth.user_id)
 
 
 @router.get("/preferences", response_model=PreferencesOut)

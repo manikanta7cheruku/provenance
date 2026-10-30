@@ -403,3 +403,47 @@ class RunDetail(BaseModel):
     error_summary: str | None
     steps: list[RunStepOut]
     llm_calls: list[LlmCallOut]
+
+
+# ---- evidence search (checkpoint 1.7)
+class EvidenceStatusOut(BaseModel):
+    indexed: int
+    embedded: int
+    pending: int
+    # True when an AI key and an embedding model are set. Keyword search never needs them.
+    meaning_search_configured: bool
+
+
+class EvidenceSearchIn(BaseModel):
+    query: str = Field(min_length=1, max_length=300)
+    limit: int = Field(default=10, ge=1, le=20)
+
+    @field_validator("query")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Enter something to search for.")
+        return value
+
+
+class EvidenceHitOut(BaseModel):
+    chunk_id: uuid.UUID
+    # The profile entry this text came from, so the screen can link to it. None for other sources.
+    entry_id: uuid.UUID | None
+    source_type: str
+    entry_type: str | None
+    text: str
+    score: float
+    # Which searches found it: keyword, meaning or both.
+    matched_by: list[str]
+    keyword_rank: int | None
+    meaning_rank: int | None
+    similarity: float | None
+
+
+class EvidenceSearchOut(BaseModel):
+    query: str
+    meaning_search_used: bool
+    # A plain sentence when meaning search was not used, such as "needs an AI key".
+    note: str | None
+    hits: list[EvidenceHitOut]
