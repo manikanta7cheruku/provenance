@@ -23,6 +23,7 @@ Status: Decided (Phase 0). Each control lists the checkpoint that delivers it.
 | Audit log | Append only audit_events for sensitive actions | 1.3 |
 | Logging | Structured, PII-safe, run_id | 1.4 |
 | File handling | Private storage behind an interface, server-generated keys, no public URL, owner-only download, type decided from the first bytes, size cap while streaming, zip bomb and XML entity guards, page and character caps, parse in the worker. Delivered in 1.6, see ADR-0029 | 1.6 |
+| Evidence search | Tenant-scoped chunks with forced Row Level Security, owner filters in every query, a delete trigger so removing an entry removes derived text, bounded and safely parsed queries (`websearch_to_tsquery`), rate limit and CSRF on search, no vectors or provider details in responses. Delivered in 1.7, see ADR-0030 | 1.7 |
 | Untrusted content | Isolation, schema validation, no tools in extraction | 1.8 |
 | SSRF | Hardened fetch layer | 2.7 |
 | Exports | Formula neutralization | 3.4 |

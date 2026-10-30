@@ -360,6 +360,8 @@ def test_parsing_fills_the_profile_with_grounded_entries_and_records_everything(
     assert [e["entry_type"] for e in entries] == ["education", "work", "project", "skill"]
     assert all(e["source"] == "resume" and e["user_edited"] is False for e in entries)
     assert not any("Globex" in json.dumps(e) for e in entries)
+    # the profile was indexed in the same transaction: one searchable chunk per stored entry
+    assert account.client.get("/api/v1/evidence/status").json()["indexed"] == 4
 
     run = account.client.get(f"/api/v1/runs/{resume['run_id']}").json()
     assert run["run"]["ui_state"] == "completed"

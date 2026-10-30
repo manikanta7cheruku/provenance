@@ -48,7 +48,7 @@ def _context(
 
 
 def test_registry_knows_the_task_types() -> None:
-    assert set(build_registry()) == {"send_email", "system.demo", "parse_resume"}
+    assert set(build_registry()) == {"send_email", "system.demo", "parse_resume", "embed_evidence"}
 
 
 def test_send_email_renders_the_link_and_sends(make_settings: Make) -> None:

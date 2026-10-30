@@ -167,6 +167,31 @@ class ProfilePreferences(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+# ---- checkpoint 1.7: evidence chunks (migration 0005)
+
+
+class EvidenceChunk(Base):
+    """Searchable text for one source record. Tenant data, protected by Row Level Security.
+
+    The embedding (vector) and the generated tsvector are deliberately not mapped: they are read
+    and written with SQL in pv_persistence.evidence, so the ORM never loads a 768-number vector.
+    """
+
+    __tablename__ = "evidence_chunks"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    source_type: Mapped[str] = mapped_column(Text)
+    source_record_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    entry_type: Mapped[str | None] = mapped_column(Text, default=None)
+    text: Mapped[str] = mapped_column(Text)
+    content_hash: Mapped[str] = mapped_column(Text)
+    embedding_model: Mapped[str | None] = mapped_column(Text, default=None)
+    embedded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 # ---- checkpoint 1.4: durable work and observability (migration 0003)
 
 

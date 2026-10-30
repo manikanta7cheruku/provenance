@@ -58,6 +58,7 @@ Provenance operator commands
   demo-task [seconds]    enqueue a harmless demo task (crash-recovery lab; default 20 seconds)
   demo-run <email>       create a finished demo run for a user, to try the Runs screen
   ai-check               list usable Gemini models and test one generation and one embedding
+  embeddings             queue evidence embedding for every user (after adding a key or changing the model)
   test                   quality gate: ruff, mypy, import-linter, unit tests, web checks
   itest                  integration tests (stops the worker first, restarts it afterwards)
   webtest                browser and accessibility tests (axe, keyboard, themes). Set PW_CHANNEL=msedge to reuse Edge
@@ -157,6 +158,8 @@ SELECT worker_id, last_seen_at, tasks_processed FROM worker_heartbeats ORDER BY 
     }
 
     "ai-check" { Run "uv" @("run", "python", "-m", "pv_llm.check") }
+
+    "embeddings" { Run "docker" @("compose", "exec", "worker", "python", "-m", "pv_worker.cli", "reindex-evidence") }
 
     "test" {
         Run "uv" @("run", "ruff", "check", ".")

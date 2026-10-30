@@ -30,6 +30,7 @@ from pv_llm import (
     parse_resume_text,
     record_result,
 )
+from pv_persistence.evidence import sync_evidence
 from pv_persistence.resumes import get_resume, replace_parsed_entries
 from pv_persistence.runs import add_step, set_run_state
 from pv_persistence.tenancy import tenant_session
@@ -233,6 +234,7 @@ def run_parse(ctx: TaskContext, *, storage: FileStorage, provider_factory: Provi
         stored = replace_parsed_entries(
             db, owner_id=owner, resume_id=resume_id, entries=outcome.entries
         )
+        sync_evidence(db, owner)  # chunks follow the new entries in the same transaction
         now = datetime.now(UTC)
         resume.parse_status = ParseStatus.PARSED.value
         resume.review_status = ReviewStatus.PENDING.value

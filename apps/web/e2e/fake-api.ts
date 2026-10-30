@@ -47,11 +47,13 @@ export function resumeBody(uiState: string, extra: Record<string, unknown> = {})
   };
 }
 
-export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: Entry[]; reads: number; prefs: Record<string, unknown>; nextId: number }
+export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: Entry[]; reads: number; prefs: Record<string, unknown>; nextId: number;
+  /** Whether the fake backend has an AI key and embedded entries. */
+  meaning: "off" | "ready" }
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
@@ -64,6 +66,29 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
     if (path === "/api/v1/status") return json({ service: "api", version: "0", environment: "test", ready: true, checks: { database: "ok", migrations: "ok" } });
     if (path === "/api/v1/auth/session") return json({ authenticated: true, user: USER, csrf_token: "t", config: { signup_mode: "invite", email_verification_required: false } });
     if (path === "/api/v1/profile/schema") return json(SPECS);
+    if (path === "/api/v1/evidence/status") {
+      const indexed = fake.entries.length;
+      const embedded = fake.meaning === "ready" ? indexed : 0;
+      return json({ indexed, embedded, pending: indexed - embedded, meaning_search_configured: fake.meaning === "ready" });
+    }
+    if (path === "/api/v1/evidence/search") {
+      const { query } = request.postDataJSON() as { query: string };
+      const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+      const hits = fake.entries
+        .map((entry) => ({ entry, text: Object.values(entry.data).flat().join(". ") }))
+        .filter(({ text }) => words.every((word) => text.toLowerCase().includes(word)))
+        .map(({ entry, text }, index) => ({
+          chunk_id: `c-${entry.id}`, entry_id: entry.id, source_type: "profile_entry", entry_type: entry.entry_type,
+          text, score: 0.03 - index * 0.001, matched_by: fake.meaning === "ready" ? ["keyword", "meaning"] : ["keyword"],
+          keyword_rank: index + 1, meaning_rank: fake.meaning === "ready" ? index + 1 : null,
+          similarity: fake.meaning === "ready" ? 0.82 : null,
+        }));
+      return json({
+        query, meaning_search_used: fake.meaning === "ready",
+        note: fake.meaning === "ready" ? null : "Meaning search needs an AI key. Showing keyword matches only.",
+        hits,
+      });
+    }
     if (path === "/api/v1/resume") {
       if (method === "POST") {
         fake.resume = resumeBody("uploaded");

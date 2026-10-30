@@ -76,6 +76,8 @@ class Settings(BaseSettings):
     # Model names and prices are configuration, never code.
     # See docs/operations/llm-provider-gemini.md.
     gemini_api_key: SecretStr = SecretStr("")
+    # Operator configuration, never user input. Change it for a proxy or a local test double.
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
     llm_model: str = ""
     llm_embedding_model: str = ""
     llm_embedding_dimensions: int = 768
@@ -83,6 +85,9 @@ class Settings(BaseSettings):
     llm_input_price_per_million: float = 0.0
     llm_output_price_per_million: float = 0.0
     llm_embedding_price_per_million: float = 0.0
+    # Meaning-search results below this cosine similarity are ignored. 0 keeps every neighbor.
+    # Tune it from labeled data (checkpoint 3.6), not by guessing.
+    evidence_min_similarity: float = 0.0
 
     @field_validator("database_url", "migration_database_url")
     @classmethod
@@ -131,6 +136,7 @@ class Settings(BaseSettings):
         "llm_input_price_per_million",
         "llm_output_price_per_million",
         "llm_embedding_price_per_million",
+        "evidence_min_similarity",
     )
     @classmethod
     def _check_not_negative(cls, value: float) -> float:
