@@ -28,8 +28,9 @@ If PowerShell refuses to run the script: `Set-ExecutionPolicy -Scope CurrentUser
 | `demo-task [seconds]` | Enqueue a harmless task (crash-recovery lab) |
 | `demo-run <email>` | Create a finished demo run so the Runs screen has something to show |
 | `ai-check` | List the Gemini models your key can use and test one generation and one embedding |
-| `test` | ruff, format check, mypy, import-linter, unit tests, web checks |
+| `test` | ruff, format check, mypy, import-linter, unit tests, web checks (boundaries, states, tokens, contrast, type check, unit tests, build) |
 | `itest` | Integration tests. Stops the worker first and starts it again afterwards |
+| `webtest` | Build the web app and run the browser and accessibility tests (axe, keyboard, themes). In PowerShell set `$env:PW_CHANNEL="msedge"` first to reuse Edge instead of downloading a browser |
 
 ## Raw commands (what the script runs)
 

@@ -174,7 +174,7 @@ Eligible
 
 ## 8. High-fidelity designs for critical screens
 
-Status: **not yet produced.** Phase 0 defines these screens in complete detail (sections 7 and 9 here, plus ai-ux-patterns.md) but contains no visual mockups. Interactive visual prototypes of the two critical screens (Opportunities workbench and Job detail) are the first task of checkpoint 1.5, produced from the real tokens before components are built, and reviewed before checkpoint 1.6 starts. The gap is recorded here deliberately.
+Status: **produced as interactive prototypes in checkpoint 1.5.** The Opportunities workbench is at `/design/workbench` and the Job detail (trust screen) at `/design/job`. They use the real tokens and primitives, sample data, every state, both themes and the keyboard flow. They are prototypes: below 900px the detail pane stacks under the table, whereas the real workbench (2.8) uses a drawer at medium width and structured rows on compact. The real screens are built in 1.9 (job detail) and 2.8 (workbench).
 
 ## 9. State catalog
 
@@ -280,7 +280,7 @@ The shortcut map is in [design-system.md](../architecture/design-system.md) sect
 - Plain and specific. Sentence case. No em dashes.
 - Say what the system did: "Analyzed", "Imported by you", "Found".
 - Predictions are hedged: "Likely", "Potential", "High-priority preparation area".
-- Never "AI-powered" as a headline.
+- Never "AI-powered" as a headline. <!-- copy-check: allow -->
 - Errors name the cause in user terms and the next step.
 - Numbers come from stored data and are rounded deliberately.
 - Buttons are verbs: "Save", "Prepare materials", "Mark as applied".

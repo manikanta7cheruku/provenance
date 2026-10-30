@@ -60,6 +60,7 @@ Provenance operator commands
   ai-check               list usable Gemini models and test one generation and one embedding
   test                   quality gate: ruff, mypy, import-linter, unit tests, web checks
   itest                  integration tests (stops the worker first, restarts it afterwards)
+  webtest                browser and accessibility tests (axe, keyboard, themes). Set PW_CHANNEL=msedge to reuse Edge
   help                   this text
 "@ | Write-Host
 }
@@ -167,10 +168,22 @@ SELECT worker_id, last_seen_at, tasks_processed FROM worker_heartbeats ORDER BY 
         try {
             Run "npm" @("run", "check:boundaries")
             Run "npm" @("run", "check:states")
+            Run "npm" @("run", "check:tokens")
+            Run "npm" @("run", "check:contrast")
+            Run "npm" @("run", "check:copy")
             Run "npm" @("run", "typecheck")
+            Run "npm" @("test")
             Run "npm" @("run", "build")
         } finally { Pop-Location }
         Write-Host "Quality gate passed."
+    }
+
+    "webtest" {
+        Push-Location "apps/web"
+        try {
+            Run "npm" @("run", "build")
+            Run "npm" @("run", "test:e2e")
+        } finally { Pop-Location }
     }
 
     "itest" {

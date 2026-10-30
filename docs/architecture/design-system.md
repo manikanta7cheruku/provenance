@@ -1,6 +1,6 @@
 # Design System
 
-Status: Decided (Phase 0 amendment, foundation implemented in checkpoint 1.1). Visual and interaction half of the **Product UX + Design System Specification**. The experience half is [ux-specification.md](../product/ux-specification.md) and [ai-ux-patterns.md](../product/ai-ux-patterns.md).
+Status: Decided (Phase 0 amendment). Foundation implemented in checkpoint 1.1. Tokens, themes, fonts, primitives and automated accessibility checks implemented in checkpoint 1.5 (see [ADR-0028](../adr/0028-design-system-implementation.md)). Visual and interaction half of the **Product UX + Design System Specification**. The experience half is [ux-specification.md](../product/ux-specification.md) and [ai-ux-patterns.md](../product/ai-ux-patterns.md).
 
 The single source of values is `apps/web/src/ui/tokens.css`. Components use token names and never raw values.
 
@@ -27,7 +27,7 @@ Excluded: gradients, glow, glassmorphism, oversized hero text, donut charts, flo
 
 Rules: one accent. Status colors carry meaning and are never decorative. Color is never the only signal. A component may not introduce a new color. A missing role is added to the token file and this document first.
 
-Dark theme follows the operating system and mirrors every role. It ships in 1.1 because every token pair used was checked in both themes (see checkpoint-1.1.md).
+Every color token is one `light-dark(light, dark)` declaration, so both themes mirror every role by construction. The user chooses System (default, follows the operating system), Light or Dark with the theme control. The choice is stored in localStorage under `pv-theme` and applied before first paint by `public/theme-init.js`. `npm run check:contrast` computes WCAG 2.2 ratios for every pair the interface uses, in both themes.
 
 ## 3. Typography hierarchy
 
@@ -40,7 +40,7 @@ Dark theme follows the operating system and mirrors every role. It ships in 1.1 
 | Small | text-small | 13px | UI sans | 400 | Dense secondary text, shell status |
 | Caption | text-caption | 12px | UI sans | 400 | Labels, uppercase with tracking |
 
-Line heights: 1.25 for headings, 1.5 for body. Digits are tabular so numbers align in tables. Measure for reading text is capped at 64 characters. Self-hosted brand fonts (Newsreader, IBM Plex Sans) are decided in 1.5 after the visual prototypes. Until then, system stacks apply, and the type roles above do not change when the fonts do.
+Line heights: 1.25 for headings, 1.5 for body. Digits are tabular so numbers align in tables. Measure for reading text is capped at 64 characters. Fonts are self-hosted through @fontsource (SIL Open Font License 1.1): IBM Plex Sans for the interface (400, 500, 600), Newsreader for display (500, 500 italic), IBM Plex Mono for data (400, 500). Latin subset only. System stacks are the fallback, so other scripts still render. Every page has one h1 and it is the display serif.
 
 ## 4. Spacing and sizing
 
@@ -99,7 +99,7 @@ Motion communicates a state change and nothing else. Durations come from tokens 
 
 ## 11. Components
 
-Built in 1.1: Button (secondary, primary, ghost), Status, Notice, Section, EmptyState, PageHeader. Planned by checkpoint: form controls and validation (1.2), table, tabs, dialog, drawer, evidence item, verdict row, run trace (1.5 and 1.6), toast and confirm (2.5).
+Built in 1.1: Button (secondary, primary, ghost), Status, Notice, Section, EmptyState, PageHeader. Built in 1.2 to 1.4: TextField, DataTable, ActionButton, ConfirmDialog. Built in 1.5: Dialog, Skeleton, SegmentedControl, TextArea, Select, Checkbox, FileDrop, themed table with selected row. The component gallery at `/design` shows each one in every state. The evidence item and verdict row are first drawn in the job prototype at `/design/job` and become product components in 1.9. Still planned: tabs, drawer (2.8), toast with undo (2.8), run trace.
 
 ## 12. Layout
 
@@ -133,11 +133,11 @@ Shortcuts never replace visible controls, are disabled inside text fields, and a
 
 ## 14. Accessibility
 
-Semantic HTML, labeled controls, visible focus, accessible dialogs and tables, polite live regions, 4.5:1 text contrast and 3:1 for control boundaries and focus, keyboard completeness, associated error text, reduced motion. Automated checks (axe) arrive in 1.5. Manual keyboard and screen reader passes happen at 3.7.
+Semantic HTML, labeled controls, visible focus, accessible dialogs and tables, polite live regions, 4.5:1 text contrast and 3:1 for control boundaries and focus, keyboard completeness, associated error text, reduced motion. Automated checks run in CI: axe-core in a real browser on the gallery, both prototypes and every existing screen in both themes, contrast computed from tokens, and a token check that rejects raw values. Manual keyboard and screen reader passes happen at 3.7.
 
 ## 15. Copy
 
-Plain, specific, honest. Sentence case. No em dashes. Empty states answer what, why, next. Errors answer what happened, is my data safe, will it retry, what can I do. Predictions use hedged language.
+Plain, specific, honest. Sentence case. No em dashes. `npm run check:copy` fails the build on em dashes, sparkle emoji and stock marketing or AI-template phrases anywhere in the repository. Empty states answer what, why, next. Errors answer what happened, is my data safe, will it retry, what can I do. Predictions use hedged language.
 
 ## 16. Contrast findings
 

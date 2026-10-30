@@ -5,6 +5,7 @@ import { visibleNavItems, SETTINGS_ITEM } from "./nav";
 import { useSession } from "../lib/session";
 import { NavAccount } from "./NavAccount";
 import { NavStatus } from "./NavStatus";
+import { ThemeToggle } from "./ThemeToggle";
 import { VerificationBanner } from "./VerificationBanner";
 
 export function Shell() {
@@ -56,6 +57,9 @@ export function Shell() {
         </ul>
         <div className="shell__footer">
           <NavAccount />
+          <div className="shell__theme">
+            <ThemeToggle />
+          </div>
           <div className="shell__status">
             <NavStatus />
           </div>

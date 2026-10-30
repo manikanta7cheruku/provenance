@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { forwardRef, useId } from "react";
 import type { InputHTMLAttributes } from "react";
 
 interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "id"> {
@@ -9,7 +9,10 @@ interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "id
   error?: string | undefined;
 }
 
-export function TextField({ label, hint, error, ...inputProps }: TextFieldProps) {
+export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
+  { label, hint, error, ...inputProps },
+  ref,
+) {
   const id = useId();
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
@@ -25,6 +28,7 @@ export function TextField({ label, hint, error, ...inputProps }: TextFieldProps)
         </p>
       ) : null}
       <input
+        ref={ref}
         className="field__input"
         id={id}
         aria-invalid={error ? true : undefined}
@@ -38,4 +42,4 @@ export function TextField({ label, hint, error, ...inputProps }: TextFieldProps)
       ) : null}
     </div>
   );
-}
+});

@@ -29,5 +29,6 @@
 | [0025](0025-resume-pdf-rendering.md) | Resume PDF rendering | Proposed, pending spike |
 | [0026](0026-deterministic-scoring-and-learned-ranker.md) | Deterministic scoring now, learned ranker later | Accepted |
 | [0027](0027-build-first-sequencing-and-paid-service-placeholders.md) | Build-first sequencing and paid-service placeholders | Accepted |
+| [0028](0028-design-system-implementation.md) | Design system implementation | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

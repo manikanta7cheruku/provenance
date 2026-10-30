@@ -231,20 +231,20 @@
   margin-top: var(--space-3);
 }
 
-/* Key-value table */
-.data-table {
+/* Key-value table (definition-style rows, used in settings) */
+.kv-table {
   width: 100%;
   max-width: 36rem;
   border-collapse: collapse;
 }
-.data-table th,
-.data-table td {
+.kv-table th,
+.kv-table td {
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-border-subtle);
   text-align: left;
   vertical-align: baseline;
 }
-.data-table th {
+.kv-table th {
   width: 10rem;
   padding-right: var(--space-4);
   color: var(--color-text-secondary);
