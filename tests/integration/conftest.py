@@ -1,6 +1,7 @@
 """Fixtures for tests that need a migrated PostgreSQL (run with: pytest -m integration)."""
 
 from collections.abc import Callable, Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -23,6 +24,18 @@ from pv_api.main import create_app
 from pv_config import Settings, get_settings
 from pv_domain.ratelimit import RatePolicy
 from pv_persistence.engine import create_db_engine
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Everything under tests/integration needs a migrated PostgreSQL, so mark it here once.
+
+    The default run (-m 'not integration') then really is the unit gate, and
+    `pytest -m integration` selects exactly these tests.
+    """
+    folder = Path(__file__).parent
+    for item in items:
+        if folder in Path(str(item.fspath)).parents:
+            item.add_marker(pytest.mark.integration)
 
 
 @pytest.fixture(scope="session")
@@ -59,12 +72,6 @@ def _clean_test_tasks(engine: Engine) -> None:
 
 
 @pytest.fixture(scope="module", autouse=True)
-def _task_cleanup(engine: Engine) -> Iterator[None]:
-    _clean_test_tasks(engine)
-    yield
-    _clean_test_tasks(engine)
-
-
 def _task_cleanup(engine: Engine) -> Iterator[None]:
     _clean_test_tasks(engine)
     yield
