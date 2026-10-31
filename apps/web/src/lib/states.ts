@@ -187,3 +187,82 @@ export function describeEligibility(state: EligibilityState): { label: string; t
   return ELIGIBILITY_INFO[state];
 }
 
+
+/** The evidence check of a job: what the person sees while and after it runs. */
+export const ANALYSIS_UI_STATES = [
+  "not_started",
+  "working",
+  "needs_answer",
+  "ready",
+  "failed",
+] as const;
+
+export type AnalysisUiState = (typeof ANALYSIS_UI_STATES)[number];
+
+const ANALYSIS_INFO: Record<AnalysisUiState, ResumeStateDescription> = {
+  not_started: {
+    label: "Not checked yet",
+    tone: "neutral",
+    explanation: "Check what you can prove for each requirement, using only your own profile.",
+  },
+  working: {
+    label: "Checking your evidence",
+    tone: "neutral",
+    explanation: "Results appear as they are found. You can leave this page; it keeps going.",
+  },
+  needs_answer: {
+    label: "A question for you",
+    tone: "warn",
+    explanation: "Some evidence cannot be found in your profile. A short answer can settle it.",
+  },
+  ready: {
+    label: "Checked",
+    tone: "ok",
+    explanation: "Every requirement now has a verdict and the evidence behind it.",
+  },
+  failed: {
+    label: "Stopped early",
+    tone: "danger",
+    explanation: "What was found so far is saved.",
+  },
+};
+
+export function describeAnalysisState(state: AnalysisUiState): ResumeStateDescription {
+  return ANALYSIS_INFO[state];
+}
+
+export function isAnalysisBusy(state: AnalysisUiState): boolean {
+  return state === "working";
+}
+
+/** The verdict on one requirement. Not verified means no proof was found, not that it is missing. */
+export const VERDICTS = ["met", "partial", "not_verified", "conflicting"] as const;
+
+export type Verdict = (typeof VERDICTS)[number];
+
+const VERDICT_INFO: Record<Verdict, { label: string; tone: StateTone }> = {
+  met: { label: "Met", tone: "ok" },
+  partial: { label: "Partly met", tone: "warn" },
+  not_verified: { label: "Not verified", tone: "neutral" },
+  conflicting: { label: "Conflicting", tone: "danger" },
+};
+
+export function describeVerdict(verdict: Verdict): { label: string; tone: StateTone } {
+  return VERDICT_INFO[verdict];
+}
+
+export const BANDS = ["strong", "good", "review", "not_recommended", "not_eligible"] as const;
+
+export type Band = (typeof BANDS)[number];
+
+const BAND_INFO: Record<Band, { label: string; tone: StateTone }> = {
+  strong: { label: "Strong match", tone: "ok" },
+  good: { label: "Good match", tone: "ok" },
+  review: { label: "Worth a review", tone: "warn" },
+  not_recommended: { label: "Not recommended", tone: "neutral" },
+  not_eligible: { label: "Not eligible", tone: "danger" },
+};
+
+export function describeBand(band: Band): { label: string; tone: StateTone } {
+  return BAND_INFO[band];
+}

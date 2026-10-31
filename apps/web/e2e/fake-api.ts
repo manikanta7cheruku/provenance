@@ -91,15 +91,80 @@ export function jobBody(job: FakeJob) {
   };
 }
 
+
+export interface FakeAnalysis {
+  state: "working" | "needs_answer" | "ready" | "failed";
+  reads: number;
+  /** What the check ends in once it has run: a finished result, a question, or a failure. */
+  ends: "ready" | "needs_answer" | "failed";
+  answered: boolean;
+  feedback: Record<string, "right" | "wrong">;
+  blocker: string | null;
+}
+
+const CITE_SQL = { chunk_id: "c1", quote: "Skill: SQL", source: "profile", entry_type: "skill", changed: false };
+const CITE_STATS = { chunk_id: "c2", quote: "ran hypothesis tests on churn", source: "profile", entry_type: "internship", changed: false };
+const CITE_ANSWER = { chunk_id: "c3", quote: "built three Power BI dashboards", source: "answer", entry_type: null, changed: false };
+
+function verdictRow(id: string, requirement: string, kind: "required" | "preferred", verdict: string | null, extra: Record<string, unknown>, fb: FakeAnalysis) {
+  return {
+    requirement_id: id, requirement, kind, category: "skill", posting_quote: requirement, verdict,
+    evidence_kind: null, confidence: verdict ? "none" : null, citations: [], reason: "", capped: false,
+    feedback: fb.feedback[id] ?? null, ...extra,
+  };
+}
+
+export function analysisBody(a: FakeAnalysis | undefined) {
+  if (!a) {
+    return {
+      ui_state: "not_started", can_start: true, blocker: null, error_message: null, checked: 0, total: 4, score: null,
+      verdicts: ["Write SQL to answer product questions", "Build dashboards in a BI tool", "Statistics including hypothesis testing"]
+        .map((t, i) => verdictRow(`r${i}`, t, "required", null, {}, { feedback: {} } as FakeAnalysis))
+        .concat([verdictRow("r3", "Experience with Tableau", "preferred", null, {}, { feedback: {} } as FakeAnalysis)]),
+      gate_requirements: [{ requirement_id: "g1", requirement: "Authorized to work in India", kind: "required" }],
+      questions: [], gaps: [], stale: false, recommendation_feedback: null, scoring_version: "scoring-1", prompt_version: null,
+    };
+  }
+  const done = a.state === "ready";
+  const asking = a.state === "needs_answer";
+  const dash = a.answered
+    ? verdictRow("r1", "Build dashboards in a BI tool", "required", "met", { evidence_kind: "direct", confidence: "high", citations: [CITE_ANSWER], reason: "You describe building dashboards." }, a)
+    : verdictRow("r1", "Build dashboards in a BI tool", "required", asking || a.state === "working" ? null : "not_verified", { reason: "Nothing in your profile supports this yet." }, a);
+  const verdicts = [
+    verdictRow("r0", "Write SQL to answer product questions", "required", "met", { evidence_kind: "direct", confidence: "high", citations: [CITE_SQL], reason: "Your skills list names SQL." }, a),
+    dash,
+    verdictRow("r2", "Statistics including hypothesis testing", "required", "partial", { evidence_kind: "direct", confidence: "medium", citations: [CITE_STATS], reason: "One internship task used hypothesis tests." }, a),
+    verdictRow("r3", "Experience with Tableau", "preferred", a.state === "working" ? null : "not_verified", { reason: "Nothing in your profile supports this yet." }, a),
+  ];
+  const met = a.answered ? 2 : 1;
+  const failed = a.state === "failed";
+  return {
+    ui_state: a.state === "needs_answer" ? "needs_answer" : a.state, can_start: !["working", "needs_answer"].includes(a.state),
+    blocker: a.blocker, error_message: failed ? "The checking service did not answer. Your results so far are saved. Check again in a few minutes and it continues where it stopped." : null,
+    checked: verdicts.filter((v) => v.verdict).length, total: 4,
+    score: done ? {
+      scoring_version: "scoring-1", band: a.answered ? "good" : "review", required_total: 3, met, partial: 1, conflicting: 0, not_verified: a.answered ? 0 : 1,
+      preferred_total: 1, preferred_supported: 0,
+      reasons: [`${met + 1} of 3 required requirements supported (${met} fully, 1 partly).`, "Nice to have: 0 of 1 supported. These never lower the band.", "Eligibility: it needs an answer from you. See the checks above."],
+    } : null,
+    verdicts,
+    gate_requirements: [{ requirement_id: "g1", requirement: "Authorized to work in India", kind: "required" }],
+    questions: asking || a.answered ? [{ id: "q1", requirement_id: "r1", requirement: "Build dashboards in a BI tool", question: "Have you built dashboards in a course or project?", status: a.answered ? "answered" : "pending", answer: a.answered ? "I built three Power BI dashboards." : null }] : [],
+    gaps: done && !a.answered ? [{ requirement_id: "r1", requirement: "Build dashboards in a BI tool", state: "not_verified", proof_needed: "An entry that shows you using it.", next_step: "Add a project or experience entry that says what you built with it." }] : [],
+    stale: false, recommendation_feedback: a.feedback["rec"] ?? null, scoring_version: "scoring-1", prompt_version: "evidence-agent-1",
+  };
+}
+
 export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: Entry[]; reads: number; prefs: Record<string, unknown>; nextId: number;
   /** Whether the fake backend has an AI key and embedded entries. */
   meaning: "off" | "ready";
   jobs: FakeJob[];
-  jobReads: Record<string, number> }
+  jobReads: Record<string, number>;
+  analyses: Record<string, FakeAnalysis> }
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
@@ -197,6 +262,29 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       fake.jobs.unshift(job);
       fake.jobReads[job.id] = 0;
       return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    const analysisMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)\/analysis(?:\/(.*))?$/);
+    if (analysisMatch) {
+      const jobId = analysisMatch[1] ?? "";
+      const rest = analysisMatch[2] ?? "";
+      if (!fake.jobs.find((j) => j.id === jobId)) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      const a = fake.analyses[jobId];
+      if (method === "POST" && rest === "") {
+        fake.analyses[jobId] = { state: "working", reads: 0, ends: a?.ends ?? "ready", answered: a?.answered ?? false, feedback: {}, blocker: null };
+        return json(analysisBody(fake.analyses[jobId]));
+      }
+      if (method === "POST" && rest.endsWith("/answer") && a) { a.answered = true; a.state = "working"; a.reads = 0; a.ends = "ready"; return json(analysisBody(a)); }
+      if (method === "POST" && rest.endsWith("/skip") && a) { a.state = "ready"; return json(analysisBody(a)); }
+      if (method === "POST" && rest === "feedback" && a) {
+        const body = request.postDataJSON() as { requirement_id: string | null; answer: "right" | "wrong" };
+        a.feedback[body.requirement_id ?? "rec"] = body.answer;
+        return json(analysisBody(a));
+      }
+      if (a && a.state === "working") {
+        a.reads += 1;
+        if (a.reads >= 3) a.state = a.ends;
+      }
+      return json(analysisBody(a));
     }
     const jobMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)(\/reanalyze)?$/);
     if (jobMatch) {

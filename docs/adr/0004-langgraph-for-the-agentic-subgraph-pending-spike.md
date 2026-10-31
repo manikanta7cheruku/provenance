@@ -1,6 +1,6 @@
 # ADR-0004: LangGraph for the agentic subgraph (pending spike)
 
-Status: Accepted (Phase 0)
+Status: Superseded in part by [ADR-0032](0032-evidence-agent-and-on-read-scoring.md) (checkpoint 1.9). The agent is a bounded loop in our own code. The comparison planned here was not run; ADR-0032 says so and gives the reasons.
 
 ## Context
 A durable graph runtime for the evidence resolution agent only.

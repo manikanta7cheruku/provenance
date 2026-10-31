@@ -98,6 +98,10 @@ Job text and repository content are Tier 2. They are passed as clearly delimited
 
 Each step writes to `workflow_steps`, each model call to `llm_calls`, each tool call to `tool_calls`. The Run Inspector shows an operational trace (what was done, with counts), not model reasoning text.
 
+## 9A. As built in checkpoint 1.9
+
+The agent is `pv_llm.evidence_agent`. Differences from the design above: the tools are `search` (keyword and meaning search fused by rank) and `list_entries`; the GitHub tool arrives with the GitHub connector (3.1); the first search is run by code from the requirement's key words joined with OR before the first model step; evidence is named by labels (E1, E2) assigned in the run; the limits are 4 model calls and 3 tool calls per requirement, 90 model calls, 3 questions and ten minutes per run; progress is stored as the verdicts and questions themselves, not as a separate checkpoint. Requirements decided by the eligibility gates (work authorization, location) are not sent to the agent. See ADR-0032.
+
 ## 10. Runtime decision (LangGraph)
 
-Phase 1 checkpoint 1.9 begins with a short spike comparing LangGraph's Postgres checkpointer and interrupt/resume against a hand-rolled loop with our own state table. Criteria: lines of code we would own, resume correctness under worker kill, debuggability, dependency weight. The result is written into ADR-0004. Either way the state schema above is ours and the domain does not import the framework.
+RESOLVED in 1.9 without the spike (see ADR-0032 for why and what that means): a loop in our own code. The original plan was that Phase 1 checkpoint 1.9 begins with a short spike comparing LangGraph's Postgres checkpointer and interrupt/resume against a hand-rolled loop with our own state table. Criteria: lines of code we would own, resume correctness under worker kill, debuggability, dependency weight. The result is written into ADR-0004. Either way the state schema above is ours and the domain does not import the framework.

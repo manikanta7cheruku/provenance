@@ -10,6 +10,8 @@ Status: Decided (Phase 0). Awareness starts in Phase 1. Full harness in checkpoi
 - Failures are recorded as data: schema failures, grounding failures (verdict cited missing evidence), unsupported verdicts. They are counted per prompt version.
 - A small runner can execute the seed set against a real model on demand and store results with versions.
 
+**State at the end of Phase 1 (checkpoint 1.9).** Built: version strings on every prompt and score; ten synthetic job postings with scripted model answers (`tests/job_fixtures.py`) covering a fresher role, US-only with no sponsorship, an internship, a contract, a lead role, an obeyed prompt injection, invented quotes, smart quotes, Hinglish; deterministic regression tests for extraction checks, eligibility, scoring bands and verdict acceptance (`tests/unit/test_analysis_eval_seed.py` holds 15 verdict cases and 10 band cases); a runner, `scripts/eval_seed.py`, that sends the ten postings to a real model and prints how many requirements and facts survived the checks. Not built: the 15 to 20 postings target (ten exist), written labeling guidelines, a stored results table, grounding failures counted per prompt version in the database, and any measurement of real model quality. The "was this right?" labels from 1.9 onward are the raw material for 3.6.
+
 ## 2. Phase 3 full harness (checkpoint 3.6)
 
 About 100 labeled jobs, versioned, with written labeling guidelines created before labeling.

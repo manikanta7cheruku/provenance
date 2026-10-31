@@ -54,6 +54,7 @@ def test_registry_knows_the_task_types() -> None:
         "parse_resume",
         "embed_evidence",
         "extract_job",
+        "analyze_job",
     }
 
 

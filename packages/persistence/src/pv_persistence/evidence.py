@@ -243,3 +243,20 @@ def search_meaning(
             {"v": vector_literal(vector), "o": owner_id, "m": model, "n": limit},
         )
     )
+
+
+def list_chunks_by_type(
+    db: Session, owner_id: uuid.UUID, entry_type: str, limit: int
+) -> list[ChunkRow]:
+    """This person's chunks for one kind of entry, newest first. No search, just a listing."""
+    return _rows(
+        db.execute(
+            text(
+                "SELECT id, source_type, source_record_id, entry_type, text, content_hash, "
+                "NULL::float AS score FROM evidence_chunks "
+                "WHERE owner_user_id = :o AND entry_type = :t "
+                "ORDER BY updated_at DESC, id LIMIT :n"
+            ),
+            {"o": owner_id, "t": entry_type, "n": limit},
+        )
+    )

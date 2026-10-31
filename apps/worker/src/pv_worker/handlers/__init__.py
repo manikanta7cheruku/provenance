@@ -1,6 +1,7 @@
 """Handler registry. A worker only claims task types that appear here."""
 
 from pv_domain.tasks import (
+    TASK_ANALYZE_JOB,
     TASK_DEMO,
     TASK_EMBED_EVIDENCE,
     TASK_EXTRACT_JOB,
@@ -8,6 +9,7 @@ from pv_domain.tasks import (
     TASK_SEND_EMAIL,
 )
 from pv_worker.contract import Handler
+from pv_worker.handlers.analyze_job import handle_analyze_job
 from pv_worker.handlers.demo import handle_demo
 from pv_worker.handlers.embed_evidence import handle_embed_evidence
 from pv_worker.handlers.extract_job import handle_extract_job
@@ -22,4 +24,5 @@ def build_registry() -> dict[str, Handler]:
         TASK_PARSE_RESUME: handle_parse_resume,
         TASK_EMBED_EVIDENCE: handle_embed_evidence,
         TASK_EXTRACT_JOB: handle_extract_job,
+        TASK_ANALYZE_JOB: handle_analyze_job,
     }
