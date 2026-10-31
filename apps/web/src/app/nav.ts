@@ -13,6 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: "/saved", label: "Saved" },
   { path: "/applications", label: "Applications" },
   { path: "/profile", label: "Profile" },
+  { path: "/studio", label: "Resume studio" },
   { path: "/runs", label: "Runs" },
   { path: "/admin", label: "Admin", adminOnly: true },
 ];

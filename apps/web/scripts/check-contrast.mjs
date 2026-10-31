@@ -57,6 +57,7 @@ const NON_TEXT = 3;
 const PAIRS = [
   ...SURFACES.map((s) => ["--color-text-primary", s, TEXT, "body text"]),
   ["--color-text-primary", "--color-selected", TEXT, "text on a selected row"],
+  ["--color-highlight-text", "--color-highlight-bg", TEXT, "highlighted text in the resume editor"],
   ...SURFACES.map((s) => ["--color-text-secondary", s, TEXT, "supporting text"]),
   ["--color-text-secondary", "--color-selected", TEXT, "supporting text on a selected row"],
   ...SURFACES.map((s) => ["--color-accent", s, TEXT, "links and accent text"]),

@@ -11,6 +11,7 @@ Each runbook is written in checkpoint 3.7 (earlier ones when their component is 
 | [Meaning search empty or stuck](runbooks/embeddings-stuck.md) | 1.7 (written) |
 | [A pasted job could not be read](runbooks/job-reading-failed.md) | 1.8 (written) |
 | [A job check stopped early](runbooks/job-analysis-failed.md) | 1.9 (written) |
+| [A resume PDF cannot be made](runbooks/resume-pdf-failed.md) | 2.1 (written) |
 | Database failure | 3.7 |
 | Database migration rollback | 3.7 |
 | Failed deployment | 3.7 |

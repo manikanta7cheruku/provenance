@@ -1,6 +1,6 @@
 # ADR-0024: Resume studio editor approach
 
-Status: Proposed (decided at checkpoint 2.1 after a short spike). Builds on [ADR-0019](0019-frontend-architecture-and-boundaries.md).
+Status: Accepted (checkpoint 2.1). TipTap, with the limits described under "Decision at 2.1". Builds on [ADR-0019](0019-frontend-architecture-and-boundaries.md).
 
 ## Context
 The product includes a resume studio (see [resume-studio-requirements.md](../product/resume-studio-requirements.md)). Users should have much more freedom than in typical resume builders: rich text, divider lines, spacing, fonts, colors and section order, with a live preview and suggestions. Canva-style tools offer freedom without intelligence. Typical builders offer templates without freedom.
@@ -36,6 +36,13 @@ Structure is what makes the product's differentiators possible: evidence groundi
 | 10 | Editing is client side. Saving is a small JSON document |
 | 100 | Same. Autosave with debounce |
 | 10,000 | Same. Document size is small. Load comes from PDF rendering, see ADR-0025 |
+
+## Decision at 2.1
+The editor library is **TipTap** (ProseMirror underneath), using only its open source packages: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-highlight` and `@tiptap/pm`. Their licence is MIT, read from the package metadata on 2026-10-31. The paid TipTap extensions are not used.
+
+The schema is cut down to what the resume model allows: paragraphs, bulleted and numbered lists, hard breaks, and the marks bold, italic, underline and highlight. Headings, links, images, code, quotes and rules are switched off, so pasted content cannot bring them in. The server validates the JSON again ([ADR-0033](0033-resume-studio-document-and-saving.md)).
+
+**What was and was not measured.** The planned side-by-side spike with Lexical was not run. TipTap was chosen because its document model is JSON that maps directly to the structured resume, its schema can be restricted, and its React binding allowed a toolbar that follows the ARIA toolbar pattern. Lexical may serve equally well. This is a judgment from reading and building, not a measured comparison, and it can be reversed because only `RichField.tsx` touches the library.
 
 ## Revisit when
 The spike shows the chosen library cannot support a required control, or users request free positioning in volume.

@@ -642,3 +642,87 @@ class FeedbackIn(BaseModel):
     requirement_id: uuid.UUID | None = None
     answer: Literal["right", "wrong"]
     note: str | None = Field(default=None, max_length=1000)
+
+
+# ---- checkpoint 2.1: the resume studio
+
+
+class ResumeCreate(BaseModel):
+    title: str | None = Field(default=None, max_length=120)
+    start: Literal["profile", "blank"] = "profile"
+    template: Literal["classic", "modern", "compact"] = "classic"
+
+    @field_validator("title")
+    @classmethod
+    def _clean_title(cls, value: str | None) -> str | None:
+        cleaned = " ".join(value.split()) if value else None
+        return cleaned or None
+
+
+class ResumeSave(BaseModel):
+    content: dict[str, Any]
+    # The revision this edit started from. A save from an older revision is refused.
+    revision: int = Field(ge=1)
+    title: str | None = Field(default=None, max_length=120)
+    # True for a deliberate "save a restore point" rather than an automatic save.
+    checkpoint: bool = False
+
+
+class ResumePreview(BaseModel):
+    content: dict[str, Any]
+
+
+class ResumeDocumentSummaryOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    revision: int
+    template: str
+    updated_at: datetime
+
+
+class ResumeDocumentOut(ResumeDocumentSummaryOut):
+    content: dict[str, Any]
+
+
+class PreviewOut(BaseModel):
+    html: str
+
+
+class VersionOut(BaseModel):
+    id: uuid.UUID
+    revision: int
+    created_at: datetime
+
+
+class RestoreIn(BaseModel):
+    # The revision the person is looking at, so a restore cannot overwrite a newer save.
+    revision: int = Field(ge=1)
+
+
+class ExportOut(BaseModel):
+    id: uuid.UUID
+    revision: int
+    ui_state: Literal["preparing", "ready", "failed"]
+    size_bytes: int | None
+    page_count: int | None
+    error_message: str | None
+    created_at: datetime
+
+
+class TemplateOut(BaseModel):
+    key: str
+    name: str
+    description: str
+    ats_safe: bool
+
+
+class StudioOptionsOut(BaseModel):
+    templates: list[TemplateOut]
+    font_pairs: list[dict[str, str]]
+    sizes: list[str]
+    spacings: list[str]
+    margins: list[str]
+    dividers: list[str]
+    papers: list[str]
+    section_kinds: list[str]
+    max_resumes: int

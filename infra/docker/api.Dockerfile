@@ -7,8 +7,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_LINK_MODE=copy \
+    XDG_CACHE_HOME=/tmp/cache \
     UV_PYTHON_DOWNLOADS=never \
     PATH="/opt/venv/bin:$PATH"
+
+# Native libraries for WeasyPrint, which makes the resume PDFs (ADR-0025).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 \
+ && rm -rf /var/lib/apt/lists/*
+
+# Fontconfig (used by the PDF engine) needs a cache folder it can write.
+RUN mkdir -p /tmp/cache && chmod 1777 /tmp/cache
 
 RUN pip install --no-cache-dir "uv>=0.5,<1" \
  && groupadd --system --gid 10001 app \

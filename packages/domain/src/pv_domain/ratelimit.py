@@ -35,5 +35,8 @@ DEFAULT_POLICIES: dict[str, RatePolicy] = {
         RatePolicy("analysis_start_user", 20, 3600),
         RatePolicy("analysis_answer_user", 60, 3600),
         RatePolicy("analysis_feedback_user", 120, 3600),
+        RatePolicy("studio_save_user", 600, 3600),
+        RatePolicy("studio_preview_user", 600, 3600),
+        RatePolicy("studio_export_user", 10, 3600),
     )
 }

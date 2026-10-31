@@ -31,6 +31,7 @@ If PowerShell refuses to run the script: `Set-ExecutionPolicy -Scope CurrentUser
 | `embeddings` | Queue evidence embedding for every active user. Run after adding a key, changing `LLM_EMBEDDING_MODEL`, or enabling meaning search. Safe to repeat |
 | `test` | ruff, format check, mypy, import-linter, unit tests, web checks (boundaries, states, tokens, contrast, type check, unit tests, build) |
 | `itest` | Integration tests. Stops the worker first and starts it again afterwards |
+| `pdftest` | Resume PDF engine tests, run inside the Docker image because WeasyPrint needs native libraries that a Windows checkout does not have. CI runs the same tests directly |
 | `webtest` | Build the web app and run the browser and accessibility tests (axe, keyboard, themes). In PowerShell set `$env:PW_CHANNEL="msedge"` first to reuse Edge instead of downloading a browser |
 
 ## Raw commands (what the script runs)

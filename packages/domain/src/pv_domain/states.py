@@ -114,6 +114,7 @@ WORKFLOW_LABELS = {
     "resume_parse": "Resume parsing",
     "job_analysis": "Job analysis",
     "job_extraction": "Reading a job posting",
+    "resume_export": "Making a resume PDF",
 }
 
 

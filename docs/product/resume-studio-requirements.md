@@ -19,16 +19,16 @@ Let a student create, customize and tailor a professional resume with much more 
 
 | ID | Requirement | Checkpoint |
 |---|---|---|
-| FR-RES-1 | Structured editor with live preview. Content is sections, blocks and rich text. Style is separate from content | 2.1 |
-| FR-RES-2 | Formatting: bold, italic, underline, highlight, bullet and numbered lists, divider lines, spacing scale, margins, section reorder | 2.1 |
-| FR-RES-3 | Professional fonts, self-hosted, with font pairs. Font licences checked before shipping | 2.1 |
-| FR-RES-4 | PDF export matching the preview, text selectable, reading order verified by test | 2.1 |
+| FR-RES-1 | Structured editor with live preview. Content is sections, blocks and rich text. Style is separate from content | 2.1, built |
+| FR-RES-2 | Formatting: bold, italic, underline, highlight, bullet and numbered lists, divider lines, spacing scale, margins, section reorder | 2.1, built |
+| FR-RES-3 | Professional fonts, self-hosted, with font pairs. Font licences checked before shipping | 2.1, built with three pairs from two open licence families |
+| FR-RES-4 | PDF export matching the preview, text selectable, reading order verified by test | 2.1, built. Page counts agreed on the five sample resumes |
 | FR-RES-5 | At least 20 templates. Each declares an ATS-safe flag. The editor warns when edits reduce ATS safety | 2.2 |
 | FR-RES-6 | Suggestions in the editor that never add facts the profile does not support. Each suggestion shows why and is accepted, rejected or edited by the user | 2.3 |
 | FR-RES-7 | Tailoring to a job with a grounding verifier (FR-TAI-1, FR-TAI-2) | 2.3 |
-| FR-RES-8 | Free plan: one resume and rate-limited exports. Enforced by entitlements at 3.3. Until then a single configurable limit exists | 2.1, 3.3 |
-| FR-RES-9 | Autosave, version history of the last N saves per resume, restore | 2.1 |
-| FR-RES-10 | Delete a resume removes the stored files and rows. Profile entries remain | 2.1 |
+| FR-RES-8 | Free plan: one resume and rate-limited exports. Enforced by entitlements at 3.3. Until then a single configurable limit exists | 2.1 built as `STUDIO_MAX_RESUMES`, 3.3 |
+| FR-RES-9 | Autosave, version history of the last N saves per resume, restore | 2.1, built (N is 20, a restore point at most every two minutes) |
+| FR-RES-10 | Delete a resume removes the stored files and rows. Profile entries remain | 2.1, built |
 
 ## 4. Rules
 
@@ -47,7 +47,7 @@ Accessibility: the editor toolbar is a labelled toolbar with arrow-key navigatio
 
 ## 6. Open decisions
 
-- Editor library (ADR-0024 spike).
-- PDF engine (ADR-0025 spike).
-- Number and style of the first three templates versus the full 20 or more.
+- Editor library: decided at 2.1 (TipTap), with a comparison that was not run. See ADR-0024.
+- PDF engine: decided at 2.1 (WeasyPrint) after a measured spike. See ADR-0025.
+- Number and style of the first three templates versus the full 20 or more: three built, the rest in 2.2.
 - Whether to add a free-form block later.

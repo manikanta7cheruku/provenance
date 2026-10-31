@@ -15,15 +15,16 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-25 checkpoints in total. Eight are done and merged (1.1 to 1.8). Checkpoint 1.9 is built and awaiting merge, which completes Phase 1. Sixteen remain after it.
+25 checkpoints in total. Nine are done and merged (1.1 to 1.9), which completes Phase 1. Checkpoint 2.1 is built and awaiting merge. Fifteen remain after it.
 
 | Checkpoint | State |
 |---|---|
 | 1.1, 1.2, 1.3, 1.4, 1.5, 1.6 | Done, merged, CI green |
 | 1.7 | Done and merged |
 | 1.8 | Done and merged |
-| 1.9 | Built on branch phase-1/checkpoint-1.9-evidence-agent-scoring, awaiting review and merge |
-| 2.1 to 2.9 | Not started |
+| 1.9 | Done and merged |
+| 2.1 | Built on branch phase-2/checkpoint-2.1-resume-studio-foundation, awaiting review and merge |
+| 2.2 to 2.9 | Not started |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
