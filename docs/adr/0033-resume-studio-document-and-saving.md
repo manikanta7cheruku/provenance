@@ -3,7 +3,7 @@
 Status: Accepted (checkpoint 2.1). Builds on [ADR-0024](0024-resume-studio-editor-approach.md), [ADR-0025](0025-resume-pdf-rendering.md), [ADR-0015](0015-postgres-rls-as-defense-in-depth.md) and [ADR-0022](0022-queue-semantics-and-system-tables.md).
 
 ## Context
-The studio lets a person build a resume with real formatting control and download a PDF that looks like the preview. Later checkpoints add more templates (2.2) and tailoring that changes sentences (2.3), so the resume must stay structured, must be safe to render from anything a browser sends, and must never be silently overwritten.
+The studio lets a person build a resume with real formatting control and download a PDF that looks like the preview. Later checkpoints add more templates (2.3) and tailoring that changes sentences (2.4), so the resume must stay structured, must be safe to render from anything a browser sends, and must never be silently overwritten.
 
 ## Problem
 What is stored, who renders it, how are two tabs kept from overwriting each other, how is an earlier version recovered, and how is a PDF made and handed back?

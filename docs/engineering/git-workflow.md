@@ -26,7 +26,7 @@ git push -u origin fix/migration-lint-findings
 # open a pull request, wait for CI, squash merge, delete the branch
 ```
 
-A change to code written in checkpoint 1.1 while you are working on 2.3 is a normal fix branch from `main`. It does not matter which checkpoint the code came from.
+A change to code written in checkpoint 1.1 while you are working on 2.4 is a normal fix branch from `main`. It does not matter which checkpoint the code came from.
 
 ## Daily loop
 

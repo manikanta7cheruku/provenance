@@ -48,7 +48,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 
 /**
  * Prototype of the opportunities workbench with sample data. It shows the density, the filters,
- * the selection model, the keyboard flow and the state set before the real screen is built (2.8).
+ * the selection model, the keyboard flow and the state set before the real screen is built (2.9).
  */
 export function WorkbenchPrototype() {
   useDocumentTitle("Workbench prototype");

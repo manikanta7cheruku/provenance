@@ -3,7 +3,7 @@
 Content is data, not markup. The editor sends this JSON, the server validates it against a small
 whitelist and stores it, and one renderer (pv_domain.resume_render) turns it into the HTML that both
 the live preview and the PDF use. Because no raw HTML is ever stored, a saved resume cannot carry
-script, a remote image or a link tag, and tailoring (2.3) can work on the structured text.
+script, a remote image or a link tag, and tailoring (2.4) can work on the structured text.
 
 Style is a handful of named choices, not free CSS: a template, a font pair, a size, a spacing scale,
 margins, an accent color that must be readable on white, a divider style and a paper size.

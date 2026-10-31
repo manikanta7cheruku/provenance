@@ -44,7 +44,10 @@ Both engines produced selectable, ordered text and the same page counts on all f
 
 **Decision: WeasyPrint.** The operational cost of shipping and running a browser in the worker is not justified when the measured output is equivalent for these resumes. Chromium stays the fallback if a template needs CSS that WeasyPrint cannot draw.
 
-**What the spike did not settle.** Memory of the Chromium process, behavior with many concurrent renders, and complex templates (the two-column ones planned for 2.2). The first Chromium run silently fell back to a system font because the fonts were not reachable from the page, which shows that every engine needs a test that the shipped fonts are really embedded. `tests/pdf/test_resume_pdf.py` asserts it. The same test found, in the real worker, a fetcher that made WeasyPrint fall back to DejaVu Sans, which no unit test of the HTML could have caught.
+**What the spike did not settle.** Memory of the Chromium process, behavior with many concurrent renders, and complex templates (the two-column ones planned for 2.3). The first Chromium run silently fell back to a system font because the fonts were not reachable from the page, which shows that every engine needs a test that the shipped fonts are really embedded. `tests/pdf/test_resume_pdf.py` asserts it. The same test found, in the real worker, a fetcher that made WeasyPrint fall back to DejaVu Sans, which no unit test of the HTML could have caught.
+
+## Reopened by the canvas editor
+The measured choice above was made for flowing documents. The free canvas of checkpoint 2.2 ([ADR-0034](0034-free-canvas-editor.md)) draws absolutely positioned boxes in the browser, where a mismatch with the PDF engine is easier to see. The first task of 2.2 is a fidelity spike on positioned layouts, and this decision stands only if WeasyPrint passes it. Otherwise the engine changes to headless Chromium, and this record will say so.
 
 ## Why
 A single source of layout (HTML and CSS) removes the "preview differs from PDF" class of bugs. Measuring before committing avoids choosing on reputation.

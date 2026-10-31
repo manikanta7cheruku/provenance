@@ -28,7 +28,7 @@ Status: Draft, unverified. Written on 2026-10-30 from secondary sources (compari
 
 ## 4. Open questions
 
-- Which job sources are actually usable for Indian early-career roles (decided at 2.4 after official terms are read).
+- Which job sources are actually usable for Indian early-career roles (decided at 2.5 after official terms are read).
 - Whether the target users will pay, and how much. Not measured. See ADR-0027.
 
 ## 5. Sources consulted (secondary)

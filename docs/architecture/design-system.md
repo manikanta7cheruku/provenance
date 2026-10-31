@@ -99,7 +99,7 @@ Motion communicates a state change and nothing else. Durations come from tokens 
 
 ## 11. Components
 
-Built in 1.1: Button (secondary, primary, ghost), Status, Notice, Section, EmptyState, PageHeader. Built in 1.2 to 1.4: TextField, DataTable, ActionButton, ConfirmDialog. Built in 1.5: Dialog, Skeleton, SegmentedControl, TextArea, Select, Checkbox, FileDrop, themed table with selected row. The component gallery at `/design` shows each one in every state. The evidence item and verdict row are first drawn in the job prototype at `/design/job` and become product components in 1.9. Still planned: tabs, drawer (2.8), toast with undo (2.8), run trace.
+Built in 1.1: Button (secondary, primary, ghost), Status, Notice, Section, EmptyState, PageHeader. Built in 1.2 to 1.4: TextField, DataTable, ActionButton, ConfirmDialog. Built in 1.5: Dialog, Skeleton, SegmentedControl, TextArea, Select, Checkbox, FileDrop, themed table with selected row. The component gallery at `/design` shows each one in every state. The evidence item and verdict row are first drawn in the job prototype at `/design/job` and become product components in 1.9. Still planned: tabs, drawer (2.9), toast with undo (2.9), run trace.
 
 ## 12. Layout
 

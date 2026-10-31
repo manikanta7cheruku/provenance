@@ -23,7 +23,7 @@ Roadmap revision 2 split the old 1.5 in two. This checkpoint is the design half.
 - A user can choose System, Light or Dark in the shell. The choice survives reload and never flashes the wrong theme.
 - Page titles are the display serif everywhere. Data is set in tabular figures. Status is a dot and text with a different shape per tone.
 - The two critical screens can be reviewed in a browser before the real ones are built. Review them at `/design/workbench` and `/design/job` in both themes and at a narrow width.
-- Prototype limit: below 900px the detail pane stacks under the table and the table scrolls inside its own region. The real workbench (2.8) uses a drawer at medium width and structured rows on compact, as the design system specifies.
+- Prototype limit: below 900px the detail pane stacks under the table and the table scrolls inside its own region. The real workbench (2.9) uses a drawer at medium width and structured rows on compact, as the design system specifies.
 
 ## 3. Technical acceptance criteria
 

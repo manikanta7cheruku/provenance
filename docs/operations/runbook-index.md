@@ -15,8 +15,8 @@ Each runbook is written in checkpoint 3.7 (earlier ones when their component is 
 | Database failure | 3.7 |
 | Database migration rollback | 3.7 |
 | Failed deployment | 3.7 |
-| Source API outage | 2.5 |
-| Source schema change | 2.5 |
+| Source API outage | 2.6 |
+| Source schema change | 2.6 |
 | LLM provider outage | 1.8 |
 | High LLM costs | 1.8 |
 | Suspicious prompt injection | 1.8 |
