@@ -80,8 +80,8 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 |---|---|---|
 | FR-EXT-1 | Structured requirement extraction with source spans, schema-validated, cached globally by content hash | 1 |
 | FR-ELG-1 | Deterministic four-state eligibility (eligible, not_eligible, uncertain, requires_user_input) | 1 |
-| FR-AGT-1 | Evidence Resolution Agent: bounded, checkpointed, interruptible | 1 |
-| FR-SCO-1 | Versioned deterministic scoring and recommendation bands, each with reasons | 1 |
+| FR-AGT-1 | Evidence Resolution Agent: bounded, checkpointed, interruptible. Built in 1.9 as a loop in our own code (ADR-0032) | 1 |
+| FR-SCO-1 | Versioned deterministic scoring and recommendation bands, each with reasons. Built in 1.9 as `scoring-1`, computed on read, counts not percentages | 1 |
 | FR-UI-1 | Opportunities workbench: table, filters (remote, hybrid, location, salary, seniority, employment type, company, source), detail pane, keyboard flow | 1 basic, 2 full |
 
 ### Decision and generation
@@ -98,7 +98,7 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 | FR-APP-1 | Application text drafts (cover note, answers to common questions) grounded in the user's evidence, labelled as drafts. The user edits and submits them. The product never submits | 2 |
 | FR-SHL-1 | Periodic shortlist email of the few opportunities worth the user's time, each with its reason. Selection is deterministic | 2 |
 | FR-GAP-1 | Gap-to-qualify plan for near-miss jobs: the missing evidence, what would count as proof, suggested learning or project work | 1 basic, 3 deeper |
-| FR-FBK-1 | Verdict feedback ("was this right?") stored as labels with version information, for evaluation (ADR-0026) | 1 |
+| FR-FBK-1 | Built in 1.9. Verdict feedback ("was this right?") stored as labels with version information, for evaluation (ADR-0026) | 1 |
 | FR-PRP-2 | Outreach and referral drafts. The user sends them | 3 |
 
 ### Experience

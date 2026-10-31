@@ -8,6 +8,7 @@ import { describeEligibility, describeJobState, isJobBusy } from "../../lib/stat
 import { useAsync } from "../../lib/useAsync";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { ActionButton, ConfirmDialog, Notice, PageHeader, Section, Skeleton, Status } from "../../ui";
+import { EvidenceCheck } from "./EvidenceCheck";
 import { acquisitionLabel, CATEGORY_LABELS, FACT_LABELS, factText, workLine } from "./labels";
 import "./opportunities.css";
 
@@ -116,10 +117,6 @@ function Ready({ job }: { job: JobDetail }) {
         ) : null}
         <RequirementGroup title="Required" items={required} />
         <RequirementGroup title="Nice to have" items={preferred} />
-        <p className="job__note">
-          Checking each requirement against your own evidence comes next. For now this page shows what
-          the posting asks for and whether anything stands in your way.
-        </p>
       </Section>
     </>
   );
@@ -229,6 +226,7 @@ export function JobDetailPage() {
         </Notice>
       ) : null}
       {data.ui_state === "ready" ? <Ready job={data} /> : null}
+      {data.ui_state === "ready" ? <EvidenceCheck jobId={data.id} /> : null}
 
       <Section title="The posting">
         <details className="posting">

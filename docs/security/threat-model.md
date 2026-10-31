@@ -25,6 +25,8 @@ LLM output is Tier 2 until validated by code.
 
 Since checkpoint 1.8 a pasted job description is Tier 2 text that reaches the model. It is wrapped in nonce delimiters, the model's answer is checked by code that keeps only items whose quote is found in the posting ([ADR-0031](../adr/0031-job-paste-extraction-and-eligibility.md)), and eligibility is decided by code from those verified facts. A sentence inside the posting that tells the model what to do can change what is proposed, not what is trusted. Nothing acts without the person's approval.
 
+From checkpoint 1.9 the evidence agent reads a person's own entries and their typed answers, and the requirement text, all treated as data between nonce markers. It has no write tool, no network tool and no way to name another person's rows: evidence is cited by labels that code assigned in the run, and a verdict is accepted only if its quoted words are found in the cited evidence ([ADR-0032](../adr/0032-evidence-agent-and-on-read-scoring.md)). A hostile posting could make the agent give a wrong verdict, but not one that cites something the person does not have.
+
 ## 3. Actors
 
 External attacker, malicious authenticated user, malicious job poster (controls Tier 2 text), compromised dependency, curious insider or admin, accidental misuse.

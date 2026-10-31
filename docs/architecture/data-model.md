@@ -72,8 +72,8 @@ Unique constraints: `(source_id, external_id)` for public postings. `(owner_user
 | import_batches | per-user import report: imported, skipped, invalid, duplicate counts |
 | job_matches | owner_user_id, posting_id, state, run_id |
 | eligibility_assessments | match_id, state, gate_results JSONB, rules_version |
-| requirement_verdicts | match_id, requirement_id, verdict, evidence_kind, evidence_chunk_ids[], agent_run_id |
-| scores | match_id, scoring_version, dimensions JSONB, weights JSONB, band, reasons JSONB |
+| requirement_verdicts | match_id, requirement_id, verdict, evidence_kind, evidence_chunk_ids[], agent_run_id. Built in 1.9 against private postings: see migration 0007 below |
+| scores | Not stored. The band, counts and reasons are computed on read from the verdicts and current eligibility (ADR-0032) |
 | materials | match_id, type, status |
 | material_claims | material_id, original_text, proposed_text, evidence_chunk_ids[], verifier_status, user_decision |
 | feedback | match_id, action, note |
@@ -147,5 +147,6 @@ Client-only transport states (idle, uploading) exist in the browser and are neve
 | 0004 | resumes, profile_preferences. profile_entries gains source, source_resume_id, source_key, position | `resumes` holds metadata only (name, kind, size, sha256, a generated storage key, parse and review status, generation, counts, an error code). One row per user, enforced by a unique index. `profile_preferences` is one typed row per user. Both are under Row Level Security, enabled and forced, with the same policy as `profile_entries`. See ADR-0029 |
 | 0005 | evidence_chunks | One chunk per profile entry: rendered `text`, `content_hash`, a generated `tsvector` (GIN), a nullable `vector(768)` with its model name (HNSW, cosine), unique on (owner, source type, source record). Row Level Security enabled and forced. A trigger on `profile_entries` deletes the entry's chunk. See ADR-0030 |
 | 0006 | job_postings, job_requirements | A pasted posting (private, `raw_text` 100 to 20,000 characters, `content_hash` unique per owner, `source_name` and `acquisition_method` separate, `facts` jsonb, parse status, analysis generation, error code, drop counts, prompt version) and its requirements (ordinal, kind, category, `years_min`, verbatim `quote` with offsets). Row Level Security enabled and forced on both. See ADR-0031 |
+| 0007 | job_analyses, requirement_verdicts, agent_questions, verdict_feedback | The evidence check of a pasted job: one analysis per posting with its status and a resume counter; one verdict per requirement with the evidence kind, a reason code, a short reason and citations (chunk id, quote, content hash, source) so later edits are noticed; the agent's questions and the person's answers (answers are also `user_answer` rows in `evidence_chunks`); "was this right?" labels with the scoring and prompt versions. Row Level Security enabled and forced on all four. See ADR-0032 |
 
 Identity tables (users, sessions, email_tokens, invites) are intentionally outside Row Level Security. See ADR-0021.

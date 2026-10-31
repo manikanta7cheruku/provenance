@@ -33,5 +33,6 @@
 | [0029](0029-resume-storage-parsing-and-profile-entries.md) | Resume storage, parsing and profile entries | Accepted |
 | [0030](0030-evidence-chunks-and-hybrid-retrieval.md) | Evidence chunks and hybrid retrieval | Accepted |
 | [0031](0031-job-paste-extraction-and-eligibility.md) | Job paste, grounded requirement extraction and deterministic eligibility | Accepted |
+| [0032](0032-evidence-agent-and-on-read-scoring.md) | The evidence agent as a bounded loop in our own code, and scoring computed on read | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

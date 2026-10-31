@@ -17,6 +17,7 @@ from pv_domain.job import JobErrorCode, JobParseStatus
 from pv_domain.job_facts import GroundedJob
 from pv_domain.states import RunState
 from pv_domain.tasks import TASK_EXTRACT_JOB
+from pv_persistence.analysis import delete_analysis
 from pv_persistence.models import JobPosting, JobRequirement, ProfilePreferences
 from pv_persistence.queue import enqueue
 from pv_persistence.resumes import list_entries
@@ -97,6 +98,8 @@ def save_extraction(
     db: Session, posting: JobPosting, grounded: GroundedJob, *, prompt_version: str
 ) -> None:
     """Replace the stored analysis. Running it twice for the same posting leaves the same result."""
+    # Verdicts point at the old requirements, so an evidence check of them is no longer valid.
+    delete_analysis(db, posting.owner_user_id, posting.id)
     db.execute(delete(JobRequirement).where(JobRequirement.posting_id == posting.id))
     db.flush()
     for ordinal, item in enumerate(grounded.requirements):

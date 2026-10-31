@@ -5,6 +5,7 @@ TASK_DEMO = "system.demo"
 TASK_PARSE_RESUME = "parse_resume"
 TASK_EMBED_EVIDENCE = "embed_evidence"
 TASK_EXTRACT_JOB = "extract_job"
+TASK_ANALYZE_JOB = "analyze_job"
 
 # These carry a one-time secret (a link token) that is erased when the task finishes
 # or dead-letters, so replaying them is impossible. The user must ask for a new link.

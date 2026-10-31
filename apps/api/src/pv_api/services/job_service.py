@@ -37,6 +37,7 @@ from pv_domain.job import (
     posting_content_hash,
 )
 from pv_domain.job_facts import posting_facts_from_record
+from pv_persistence.analysis import delete_analysis
 from pv_persistence.audit import record_audit
 from pv_persistence.jobs import (
     cancel_waiting_tasks,
@@ -236,6 +237,7 @@ def delete_job(engine: Engine, user_id: uuid.UUID, job_id: uuid.UUID, ip_hash: s
         if posting is None:
             raise not_found()
         cancel_waiting_tasks(db, posting.id)
+        delete_analysis(db, user_id, posting.id)
         db.delete(posting)
     record_audit(
         engine, category="audit", action="job.deleted", actor_user_id=user_id,

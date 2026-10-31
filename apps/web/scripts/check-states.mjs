@@ -13,6 +13,9 @@ const PAIRS = [
   { file: "states.py", pythonClass: "ResumeUiState", tsList: "RESUME_UI_STATES" },
   { file: "states.py", pythonClass: "JobUiState", tsList: "JOB_UI_STATES" },
   { file: "eligibility.py", pythonClass: "EligibilityState", tsList: "ELIGIBILITY_STATES" },
+  { file: "analysis.py", pythonClass: "AnalysisUiState", tsList: "ANALYSIS_UI_STATES" },
+  { file: "analysis.py", pythonClass: "Verdict", tsList: "VERDICTS" },
+  { file: "analysis.py", pythonClass: "Band", tsList: "BANDS" },
 ];
 
 function backendStates(text, pythonClass) {

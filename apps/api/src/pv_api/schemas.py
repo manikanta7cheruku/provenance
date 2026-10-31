@@ -544,3 +544,101 @@ class JobCreatedOut(BaseModel):
     job: JobDetailOut
     # True when this exact posting was pasted before. Nothing was read again.
     duplicate: bool
+
+
+# ---- checkpoint 1.9: the evidence check of a job
+
+
+class CitationOut(BaseModel):
+    chunk_id: uuid.UUID
+    quote: str
+    # Where the words came from: the profile or an answer the person gave for this job.
+    source: Literal["profile", "answer"]
+    entry_type: str | None
+    # True when the entry was edited or removed after the check, so the quote may be out of date.
+    changed: bool
+
+
+class VerdictOut(BaseModel):
+    requirement_id: uuid.UUID
+    requirement: str
+    kind: Literal["required", "preferred"]
+    category: str
+    posting_quote: str
+    # None while the agent has not reached this requirement or is waiting for the person.
+    verdict: Literal["met", "partial", "not_verified", "conflicting"] | None
+    evidence_kind: Literal["direct", "inferred"] | None
+    confidence: Literal["high", "medium", "none"] | None
+    citations: list[CitationOut]
+    # The reader's own note when there is evidence. A fixed sentence when there is none.
+    reason: str
+    capped: bool
+    feedback: Literal["right", "wrong"] | None
+
+
+class GateRequirementOut(BaseModel):
+    requirement_id: uuid.UUID
+    requirement: str
+    kind: Literal["required", "preferred"]
+
+
+class QuestionOut(BaseModel):
+    id: uuid.UUID
+    requirement_id: uuid.UUID
+    requirement: str
+    question: str
+    status: Literal["pending", "answered", "skipped"]
+    answer: str | None
+
+
+class GapOut(BaseModel):
+    requirement_id: uuid.UUID
+    requirement: str
+    state: str
+    proof_needed: str
+    next_step: str
+
+
+class ScoreOut(BaseModel):
+    scoring_version: str
+    band: Literal["strong", "good", "review", "not_recommended", "not_eligible"]
+    required_total: int
+    met: int
+    partial: int
+    conflicting: int
+    not_verified: int
+    preferred_total: int
+    preferred_supported: int
+    reasons: list[str]
+
+
+class AnalysisOut(BaseModel):
+    ui_state: Literal["not_started", "working", "needs_answer", "ready", "failed"]
+    can_start: bool
+    # Why the check cannot be started now, in a sentence, or None.
+    blocker: str | None
+    error_message: str | None
+    checked: int
+    total: int
+    # Only present when every requirement has a verdict. Never a partial score.
+    score: ScoreOut | None
+    verdicts: list[VerdictOut]
+    gate_requirements: list[GateRequirementOut]
+    questions: list[QuestionOut]
+    gaps: list[GapOut]
+    # True when any cited entry changed after the check.
+    stale: bool
+    recommendation_feedback: Literal["right", "wrong"] | None
+    scoring_version: str
+    prompt_version: str | None
+
+
+class AnswerIn(BaseModel):
+    answer: str = Field(min_length=1, max_length=4000)
+
+
+class FeedbackIn(BaseModel):
+    # None means the recommendation as a whole.
+    requirement_id: uuid.UUID | None = None
+    answer: Literal["right", "wrong"]
+    note: str | None = Field(default=None, max_length=1000)

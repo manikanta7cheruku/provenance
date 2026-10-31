@@ -368,3 +368,89 @@ class UserStats(Base):
     profile_entries_count: Mapped[int] = mapped_column(Integer, default=0)
     runs_count: Mapped[int] = mapped_column(Integer, default=0)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 1.9: evidence check of a job (migration 0007)
+
+
+class JobAnalysis(Base):
+    """Where the evidence check of one posting stands. The band is computed on read, not stored."""
+
+    __tablename__ = "job_analyses"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    resume_seq: Mapped[int] = mapped_column(Integer, default=1)
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    prompt_version: Mapped[str | None] = mapped_column(Text, default=None)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workflow_runs.id", ondelete="SET NULL"), default=None
+    )
+    model_calls: Mapped[int] = mapped_column(Integer, default=0)
+    tool_calls: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class RequirementVerdict(Base):
+    __tablename__ = "requirement_verdicts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    analysis_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("job_analyses.id", ondelete="CASCADE")
+    )
+    requirement_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("job_requirements.id", ondelete="CASCADE")
+    )
+    verdict: Mapped[str] = mapped_column(Text)
+    evidence_kind: Mapped[str | None] = mapped_column(Text, default=None)
+    reason_code: Mapped[str | None] = mapped_column(Text, default=None)
+    reason: Mapped[str] = mapped_column(Text, default="")
+    # [{"chunk_id": ..., "quote": ..., "content_hash": ..., "source_type": ..., "entry_type": ...}]
+    citations: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    capped: Mapped[bool] = mapped_column(Boolean, default=False)
+    steps: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AgentQuestion(Base):
+    __tablename__ = "agent_questions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    analysis_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("job_analyses.id", ondelete="CASCADE")
+    )
+    requirement_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("job_requirements.id", ondelete="CASCADE")
+    )
+    question: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, default="pending")
+    answer: Mapped[str | None] = mapped_column(Text, default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    answered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class VerdictFeedback(Base):
+    """A person's "was this right?" answer, kept with the versions that produced what they saw."""
+
+    __tablename__ = "verdict_feedback"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    requirement_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("job_requirements.id", ondelete="SET NULL"), default=None
+    )
+    subject: Mapped[str] = mapped_column(Text)
+    shown: Mapped[str] = mapped_column(Text)
+    answer: Mapped[str] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text, default=None)
+    scoring_version: Mapped[str] = mapped_column(Text)
+    prompt_version: Mapped[str | None] = mapped_column(Text, default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
