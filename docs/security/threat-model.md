@@ -23,6 +23,8 @@ Status: Decided (Phase 0). Maintained through every phase.
 
 LLM output is Tier 2 until validated by code.
 
+Since checkpoint 1.8 a pasted job description is Tier 2 text that reaches the model. It is wrapped in nonce delimiters, the model's answer is checked by code that keeps only items whose quote is found in the posting ([ADR-0031](../adr/0031-job-paste-extraction-and-eligibility.md)), and eligibility is decided by code from those verified facts. A sentence inside the posting that tells the model what to do can change what is proposed, not what is trusted. Nothing acts without the person's approval.
+
 ## 3. Actors
 
 External attacker, malicious authenticated user, malicious job poster (controls Tier 2 text), compromised dependency, curious insider or admin, accidental misuse.

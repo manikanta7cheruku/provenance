@@ -49,6 +49,13 @@ class ResumeUiState(StrEnum):
     FAILED = "failed"
 
 
+# What the user sees for a pasted job posting while and after it is read.
+class JobUiState(StrEnum):
+    READING = "reading"
+    READY = "ready"
+    FAILED = "failed"
+
+
 class UiState(StrEnum):
     QUEUED = "queued"
     PROCESSING = "processing"
@@ -106,6 +113,7 @@ WORKFLOW_LABELS = {
     "demo": "Demo run",
     "resume_parse": "Resume parsing",
     "job_analysis": "Job analysis",
+    "job_extraction": "Reading a job posting",
 }
 
 

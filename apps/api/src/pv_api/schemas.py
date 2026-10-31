@@ -447,3 +447,100 @@ class EvidenceSearchOut(BaseModel):
     # A plain sentence when meaning search was not used, such as "needs an AI key".
     note: str | None
     hits: list[EvidenceHitOut]
+
+
+# ---- job postings (checkpoint 1.8)
+class JobCreate(BaseModel):
+    source_name: str = Field(min_length=1, max_length=80)
+    source_url: str | None = Field(default=None, max_length=500)
+    text: str = Field(min_length=1, max_length=40_000)
+
+    @field_validator("source_name")
+    @classmethod
+    def _clean_source(cls, value: str) -> str:
+        cleaned = " ".join(value.split())
+        if not cleaned:
+            raise ValueError("Say where this posting came from.")
+        return cleaned
+
+    @field_validator("source_url")
+    @classmethod
+    def _clean_url(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        cleaned = value.strip()
+        if not cleaned.lower().startswith(("https://", "http://")) or " " in cleaned:
+            raise ValueError("Enter a full address that starts with https:// or http://.")
+        return cleaned
+
+
+class FactOut(BaseModel):
+    value: str | int | list[str]
+    # The posting's own words behind the fact.
+    quote: str
+
+
+class GateOut(BaseModel):
+    gate: str
+    label: str
+    state: Literal["eligible", "not_eligible", "uncertain", "requires_user_input"]
+    reason: str
+    posting_quote: str | None
+
+
+class EligibilityOut(BaseModel):
+    state: Literal["eligible", "not_eligible", "uncertain", "requires_user_input"]
+    rules_version: str
+    # Worst first, so a blocker is never buried.
+    gates: list[GateOut]
+
+
+class RequirementOut(BaseModel):
+    id: uuid.UUID
+    ordinal: int
+    text: str
+    kind: Literal["required", "preferred"]
+    category: str
+    years_min: int | None
+    quote: str
+    quote_start: int
+    quote_end: int
+
+
+class JobSummaryOut(BaseModel):
+    id: uuid.UUID
+    title: str | None
+    company: str | None
+    source_name: str
+    # How the text reached us, said honestly: "user_paste" means the person pasted it.
+    acquisition_method: str
+    ui_state: Literal["reading", "ready", "failed"]
+    can_retry: bool
+    error_message: str | None
+    eligibility: Literal["eligible", "not_eligible", "uncertain", "requires_user_input"] | None
+    work_mode: str | None
+    location: str | None
+    requirement_count: int
+    created_at: datetime
+
+
+class JobDetailOut(JobSummaryOut):
+    source_url: str | None
+    visibility: str
+    facts: dict[str, FactOut]
+    requirements: list[RequirementOut]
+    eligibility_detail: EligibilityOut | None
+    # How many things the reader suggested that were not in the posting, so were left out.
+    facts_dropped: int
+    requirements_dropped: int
+    prompt_version: str | None
+    run_id: uuid.UUID | None
+    extracted_at: datetime | None
+    # The person's own pasted text, so the screen can show each quote in place.
+    text: str
+
+
+class JobCreatedOut(BaseModel):
+    job: JobDetailOut
+    # True when this exact posting was pasted before. Nothing was read again.
+    duplicate: bool

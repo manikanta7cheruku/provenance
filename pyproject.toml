@@ -48,6 +48,8 @@ known-first-party = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106", "E501"]
+# User-facing sentences stay whole on one line so a person can search the code for the text on screen.
+"packages/domain/src/pv_domain/eligibility.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"

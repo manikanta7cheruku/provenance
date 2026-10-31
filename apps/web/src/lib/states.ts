@@ -135,3 +135,55 @@ export function describeResumeState(state: ResumeUiState): ResumeStateDescriptio
 export function isResumeBusy(state: ResumeUiState): boolean {
   return state === "uploaded" || state === "parsing";
 }
+
+/** What the user sees for a pasted job posting. */
+export const JOB_UI_STATES = ["reading", "ready", "failed"] as const;
+
+export type JobUiState = (typeof JOB_UI_STATES)[number];
+
+const JOB_INFO: Record<JobUiState, ResumeStateDescription> = {
+  reading: {
+    label: "Reading the posting",
+    tone: "neutral",
+    explanation: "We are finding what it asks for. You can leave this page; it keeps going.",
+  },
+  ready: {
+    label: "Ready",
+    tone: "ok",
+    explanation: "Here is what the posting asks for, and whether anything stands in your way.",
+  },
+  failed: {
+    label: "Could not read it",
+    tone: "danger",
+    explanation: "Your posting is saved. See below for what to do next.",
+  },
+};
+
+export function describeJobState(state: JobUiState): ResumeStateDescription {
+  return JOB_INFO[state];
+}
+
+export function isJobBusy(state: JobUiState): boolean {
+  return state === "reading";
+}
+
+export const ELIGIBILITY_STATES = [
+  "eligible",
+  "not_eligible",
+  "uncertain",
+  "requires_user_input",
+] as const;
+
+export type EligibilityState = (typeof ELIGIBILITY_STATES)[number];
+
+const ELIGIBILITY_INFO: Record<EligibilityState, { label: string; tone: StateTone }> = {
+  eligible: { label: "Nothing in the way", tone: "ok" },
+  not_eligible: { label: "Blocked", tone: "danger" },
+  uncertain: { label: "Worth a closer look", tone: "warn" },
+  requires_user_input: { label: "Needs your answer", tone: "warn" },
+};
+
+export function describeEligibility(state: EligibilityState): { label: string; tone: StateTone } {
+  return ELIGIBILITY_INFO[state];
+}
+
