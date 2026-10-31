@@ -31,7 +31,7 @@ Provenance
   Opportunities          work queue, filters, saved views
     Job detail           overview, eligibility, requirements, evidence, score, risks, action
       Prepare            career preparation (3.2)
-      Tailor resume      review of proposed changes (2.6)
+      Tailor resume      review of proposed changes (2.7)
   Saved
   Applications           the user's own record of what they applied to
   Profile                entries, evidence, connectors, preferences
@@ -59,8 +59,8 @@ The end-to-end flow is in [user-journey.md](user-journey.md). Each journey is ch
 | Sign up, sign in, recover access | 1.2 and 1.3 |
 | Upload resume, correct profile | 1.5 |
 | Paste a job, understand the analysis | 1.6 |
-| Discover or import jobs, rank, decide | 2.1 to 2.5 |
-| Tailor resume with review | 2.6 |
+| Discover or import jobs, rank, decide | 2.1 to 2.6 |
+| Tailor resume with review | 2.7 |
 | Connect GitHub, enrich evidence | 3.1 |
 | Prepare for interviews | 3.2 |
 
@@ -74,11 +74,12 @@ The end-to-end flow is in [user-journey.md](user-journey.md). Each journey is ch
 | `/forgot-password` `/reset-password` `/verify-email` | Recovery flows | 1.3 | Built. Verification is enforced only when EMAIL_VERIFICATION_REQUIRED is true |
 | `/runs` | Minimal run list | 1.4 | Full inspector 3.5 |
 | `/profile` | Resume upload, parse status, editable profile, evidence | 1.5 | |
-| `/opportunities` | Basic list and paste-a-job (built in 1.8) | 1.8 | Full workbench at 2.8 |
-| `/opportunities/:id` | Job detail, eligibility gates and requirements (1.8), the evidence check with verdicts, band, questions and gap plan (1.9) | 1.9 | Core trust screen. Tabs and the detail pane arrive with the workbench at 2.8 |
-| `/opportunities` (add jobs) | Import flow | 2.4 | |
-| `/saved` `/applications` | Lists and tracking | 2.5 | |
-| `/opportunities/:id/tailor` | Tailoring review | 2.6 | |
+| `/studio` | Resume studio: start from the profile or a blank page, edit with rich text, design panel, live preview, versions, PDF | 2.1 | Template gallery at 2.3, tailoring review at 2.4 |
+| `/opportunities` | Basic list and paste-a-job (built in 1.8) | 1.8 | Full workbench at 2.9 |
+| `/opportunities/:id` | Job detail, eligibility gates and requirements (1.8), the evidence check with verdicts, band, questions and gap plan (1.9) | 1.9 | Core trust screen. Tabs and the detail pane arrive with the workbench at 2.9 |
+| `/opportunities` (add jobs) | Import flow | 2.5 | |
+| `/saved` `/applications` | Lists and tracking | 2.6 | |
+| `/opportunities/:id/tailor` | Tailoring review | 2.7 | |
 | `/settings/connections` | GitHub connection | 3.1 | |
 | `/opportunities/:id/prepare` | Career preparation | 3.2 | |
 | `/settings/usage` | Plan and usage | 3.3 | |
@@ -174,7 +175,7 @@ Eligible
 
 ## 8. High-fidelity designs for critical screens
 
-Status: **produced as interactive prototypes in checkpoint 1.5.** The Opportunities workbench is at `/design/workbench` and the Job detail (trust screen) at `/design/job`. They use the real tokens and primitives, sample data, every state, both themes and the keyboard flow. They are prototypes: below 900px the detail pane stacks under the table, whereas the real workbench (2.8) uses a drawer at medium width and structured rows on compact. The real screens are built in 1.9 (job detail) and 2.8 (workbench).
+Status: **produced as interactive prototypes in checkpoint 1.5.** The Opportunities workbench is at `/design/workbench` and the Job detail (trust screen) at `/design/job`. They use the real tokens and primitives, sample data, every state, both themes and the keyboard flow. They are prototypes: below 900px the detail pane stacks under the table, whereas the real workbench (2.9) uses a drawer at medium width and structured rows on compact. The real screens are built in 1.9 (job detail) and 2.9 (workbench).
 
 ## 9. State catalog
 

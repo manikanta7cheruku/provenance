@@ -78,7 +78,8 @@ async def security_headers(request: Request, call_next: CallNext) -> Response:
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    if request.url.path.startswith("/api/"):
+    if request.url.path.startswith("/api/") and "cache-control" not in response.headers:
+        # Private by default. A route that sends public, immutable files (the fonts) says so itself.
         response.headers["Cache-Control"] = "no-store"
     if settings.environment == "production":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"

@@ -38,7 +38,7 @@ How do we accept an untrusted document, turn it into structured entries with a m
 Each check sits where it is cheapest and hardest to bypass: the bytes decide the type, limits stop bombs before parsing, the schema and the grounding check stand between the model and the database, and the person has the last word through editing. Making parse failures into results gives users a message and a next step instead of a task that dead-letters.
 
 ## Consequences
-- Grounding proves a name appears in the text, not that a claim is true. A hostile resume can make the model emit an entry whose words do appear in the resume (a unit test documents this limit). The person reviews every entry, and claim-level checks arrive with tailoring (2.3).
+- Grounding proves a name appears in the text, not that a claim is true. A hostile resume can make the model emit an entry whose words do appear in the resume (a unit test documents this limit). The person reviews every entry, and claim-level checks arrive with tailoring (2.4).
 - Resume text is sent to the model provider. On a free tier that may be used for training, so only the owner's own data is allowed until a paid tier with no-training terms is in place.
 - Scanned image resumes are not read (no OCR). The error says so.
 - Orphaned files are possible if storage deletion fails after the row is gone. The key is logged and a sweep is a 3.7 task.

@@ -1,6 +1,6 @@
 # ADR-0025: Resume PDF rendering
 
-Status: Proposed (decided at checkpoint 2.1 after a spike with sample resumes). Related to [ADR-0024](0024-resume-studio-editor-approach.md).
+Status: Accepted (checkpoint 2.1). **WeasyPrint**, chosen after a measured comparison with headless Chromium. Related to [ADR-0024](0024-resume-studio-editor-approach.md) and [ADR-0033](0033-resume-studio-document-and-saving.md).
 
 ## Context
 PDF quality is a core promise of the resume studio. The owner wants the best and most professional output. Recruiters and applicant tracking systems read these files, so the text must stay selectable and in a sensible reading order.
@@ -26,6 +26,28 @@ Independent of the engine:
 - Rendering runs as a queue task so it cannot block the API and respects the retry rules of ADR-0022.
 - The file is stored through the `FileStorage` interface and downloadable only by its owner.
 - Text extraction from the generated PDF is tested to confirm the reading order.
+
+## Spike result (checkpoint 2.1)
+Five sample resumes (a fresher with one page, a six-job experienced resume, a compact dense one, a Letter-size large-type relaxed one, and one with highlights and dotted rules) were rendered from the same HTML and CSS by both engines in clean `python:3.12-slim-bookworm` containers on 2026-10-31. Fonts were the shipped IBM Plex Sans and Newsreader.
+
+| Measure | WeasyPrint 70 | Chromium (Playwright, headless) |
+|---|---|---|
+| Time per resume (warm) | 0.24 to 0.42 s | 0.07 to 0.13 s |
+| PDF size | 16 to 60 KB | 18 to 25 KB |
+| Pages (five samples) | 2, 2, 1, 1, 2 | 2, 2, 1, 1, 2 (identical) |
+| Text in reading order | yes, all five | yes, all five |
+| Title in the file | yes | yes |
+| Install time and size | 33 s, 86 MB of Python packages plus two small system libraries | 305 s, 681 MB browser plus system dependencies |
+| Python process memory | 73 MB peak | 42 MB, but the browser process was not measured |
+
+Both engines produced selectable, ordered text and the same page counts on all five samples. Chromium is about three times faster per document and matches a browser preview most closely. WeasyPrint needs a fraction of the install and fits a Python worker without a second runtime. Both are well under a second.
+
+**Decision: WeasyPrint.** The operational cost of shipping and running a browser in the worker is not justified when the measured output is equivalent for these resumes. Chromium stays the fallback if a template needs CSS that WeasyPrint cannot draw.
+
+**What the spike did not settle.** Memory of the Chromium process, behavior with many concurrent renders, and complex templates (the two-column ones planned for 2.3). The first Chromium run silently fell back to a system font because the fonts were not reachable from the page, which shows that every engine needs a test that the shipped fonts are really embedded. `tests/pdf/test_resume_pdf.py` asserts it. The same test found, in the real worker, a fetcher that made WeasyPrint fall back to DejaVu Sans, which no unit test of the HTML could have caught.
+
+## Reopened by the canvas editor
+The measured choice above was made for flowing documents. The free canvas of checkpoint 2.2 ([ADR-0034](0034-free-canvas-editor.md)) draws absolutely positioned boxes in the browser, where a mismatch with the PDF engine is easier to see. The first task of 2.2 is a fidelity spike on positioned layouts, and this decision stands only if WeasyPrint passes it. Otherwise the engine changes to headless Chromium, and this record will say so.
 
 ## Why
 A single source of layout (HTML and CSS) removes the "preview differs from PDF" class of bugs. Measuring before committing avoids choosing on reputation.

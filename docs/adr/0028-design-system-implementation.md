@@ -26,7 +26,7 @@ How do we implement tokens, themes, fonts, primitives and accessibility checks s
 3. Fonts: IBM Plex Sans (interface), Newsreader (display), IBM Plex Mono (data), imported from `@fontsource/*` in `ui/fonts.css` with only the weights used.
 4. Primitives added or reworked: Dialog (native `<dialog>`, ConfirmDialog is built on it), Skeleton, SegmentedControl, TextArea, Select, Checkbox, FileDrop, a themed table, themed action buttons. They hold no data fetching, routing or product vocabulary.
 5. Checks in CI (job `web`): `check:tokens`, `check:contrast`, unit tests (Vitest, jsdom), and browser tests (Playwright) that run axe against the component gallery, both prototypes and every existing screen (with a mocked API) in both themes. A negative control proved that axe flags a deliberate contrast failure.
-6. The two critical screens exist first as interactive prototypes at `/design/workbench` and `/design/job`, built from the real tokens and primitives, with sample data and every state. They need no sign-in and no API. The real screens are built in 1.9 and 2.8.
+6. The two critical screens exist first as interactive prototypes at `/design/workbench` and `/design/job`, built from the real tokens and primitives, with sample data and every state. They need no sign-in and no API. The real screens are built in 1.9 and 2.9.
 
 ## Why
 The decision moves correctness from convention to machines: a wrong color, a missing theme value, a contrast regression or an inaccessible new screen fails CI. Native elements keep the dependency list short and the behavior standard.

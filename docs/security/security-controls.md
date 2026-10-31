@@ -4,7 +4,7 @@
 
 Passwords (Argon2id), opaque sessions with rotation and revocation, cookie flags, CSRF token and Origin check, repository scoping plus Row Level Security with FORCE, isolation tests including raw SQL, policy-driven rate limits, security headers, request size limit, append-only audit log, uniform authentication errors, invite-only signup, email verification and reset flows (verification enforced by flag), per-field input limits. See ADR-0020 and ADR-0021.
 
-Not yet delivered: untrusted content handling of job text (1.8), SSRF (2.7), export hardening (3.4), connector tokens (3.1), quotas (3.3), backups and incident drills (3.7), dependency vulnerability audit in CI (deferred).
+Not yet delivered: untrusted content handling of job text (1.8), SSRF (2.8), export hardening (3.4), connector tokens (3.1), quotas (3.3), backups and incident drills (3.7), dependency vulnerability audit in CI (deferred).
 
 Status: Decided (Phase 0). Each control lists the checkpoint that delivers it.
 
@@ -25,7 +25,7 @@ Status: Decided (Phase 0). Each control lists the checkpoint that delivers it.
 | File handling | Private storage behind an interface, server-generated keys, no public URL, owner-only download, type decided from the first bytes, size cap while streaming, zip bomb and XML entity guards, page and character caps, parse in the worker. Delivered in 1.6, see ADR-0029 | 1.6 |
 | Evidence search | Tenant-scoped chunks with forced Row Level Security, owner filters in every query, a delete trigger so removing an entry removes derived text, bounded and safely parsed queries (`websearch_to_tsquery`), rate limit and CSRF on search, no vectors or provider details in responses. Delivered in 1.7, see ADR-0030 | 1.7 |
 | Untrusted content | Isolation, schema validation, no tools in extraction | 1.8 |
-| SSRF | Hardened fetch layer | 2.7 |
+| SSRF | Hardened fetch layer | 2.8 |
 | Exports | Formula neutralization | 3.4 |
 | Connector tokens | Encryption at rest, least scope | 3.1 |
 | Quotas and spend limits | Ledger plus caps | 3.3 |

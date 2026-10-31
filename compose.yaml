@@ -36,6 +36,9 @@ x-api-env: &api-env
   LLM_OUTPUT_PRICE_PER_MILLION: ${LLM_OUTPUT_PRICE_PER_MILLION:-0}
   LLM_EMBEDDING_PRICE_PER_MILLION: ${LLM_EMBEDDING_PRICE_PER_MILLION:-0}
   EVIDENCE_MIN_SIMILARITY: ${EVIDENCE_MIN_SIMILARITY:-0}
+  # Resume studio limits. One resume and five stored PDFs stand in for plan entitlements until 3.3.
+  STUDIO_MAX_RESUMES: ${STUDIO_MAX_RESUMES:-1}
+  STUDIO_MAX_EXPORTS: ${STUDIO_MAX_EXPORTS:-5}
 
 x-worker-env: &worker-env
   <<: *api-env

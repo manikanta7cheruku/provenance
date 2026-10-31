@@ -6,6 +6,7 @@ from pv_domain.tasks import (
     TASK_EMBED_EVIDENCE,
     TASK_EXTRACT_JOB,
     TASK_PARSE_RESUME,
+    TASK_RENDER_RESUME,
     TASK_SEND_EMAIL,
 )
 from pv_worker.contract import Handler
@@ -14,6 +15,7 @@ from pv_worker.handlers.demo import handle_demo
 from pv_worker.handlers.embed_evidence import handle_embed_evidence
 from pv_worker.handlers.extract_job import handle_extract_job
 from pv_worker.handlers.parse_resume import handle_parse_resume
+from pv_worker.handlers.render_resume import handle_render_resume
 from pv_worker.handlers.send_email import handle_send_email
 
 
@@ -25,4 +27,5 @@ def build_registry() -> dict[str, Handler]:
         TASK_EMBED_EVIDENCE: handle_embed_evidence,
         TASK_EXTRACT_JOB: handle_extract_job,
         TASK_ANALYZE_JOB: handle_analyze_job,
+        TASK_RENDER_RESUME: handle_render_resume,
     }

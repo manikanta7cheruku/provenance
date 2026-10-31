@@ -15,15 +15,17 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-25 checkpoints in total. Eight are done and merged (1.1 to 1.8). Checkpoint 1.9 is built and awaiting merge, which completes Phase 1. Sixteen remain after it.
+26 checkpoints in total. Nine are done and merged (1.1 to 1.9), which completes Phase 1. Checkpoint 2.1 is built and awaiting merge. Sixteen remain after it. Revision 3 added checkpoint 2.2, the free canvas editor, and moved the later Phase 2 checkpoints up by one.
 
 | Checkpoint | State |
 |---|---|
 | 1.1, 1.2, 1.3, 1.4, 1.5, 1.6 | Done, merged, CI green |
 | 1.7 | Done and merged |
 | 1.8 | Done and merged |
-| 1.9 | Built on branch phase-1/checkpoint-1.9-evidence-agent-scoring, awaiting review and merge |
-| 2.1 to 2.9 | Not started |
+| 1.9 | Done and merged |
+| 2.1 | Built on branch phase-2/checkpoint-2.1-resume-studio-foundation, awaiting review and merge |
+| 2.2 | Planned next. A measured spike comes first (ADR-0034) |
+| 2.3 to 2.10 | Not started |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
@@ -65,14 +67,15 @@ Exit: critical test passes (start analysis, interrupt, kill worker, restart, ans
 | CP | Build | You learn |
 |---|---|---|
 | 2.1 | **Resume studio core.** Structured editor with live preview, rich text, lines, spacing, fonts, section order. Professional PDF export (spike and ADR-0025 first). First three templates. Free-plan shape: one resume, rate limited | Rich text editing models, print CSS, PDF rendering |
-| 2.2 | **Template library to 20 or more.** Full customization, ATS-safe flag per template and a warning when edits reduce it, template previews | Design systems for documents, ATS parsing behavior |
-| 2.3 | **Resume tailoring** (W) with grounding verifier, side by side diff, accept, reject, edit. In-editor suggestions that never add unsupported facts | Claim-level verification, why LLM judges are not enough |
-| 2.4 | **Source verification first.** Source registry as a first-class component with all fields in search-requirements.md, company registry, search intent parsing (L), deterministic resolver. Official terms of every candidate source read and recorded before any adapter work | Capability modeling, resolver design, compliance as data |
-| 2.5 | Adapters for the sources that pass verification, fetch layer with rate limits, polling intervals, circuit breakers, source health. Provider docs and compliance records completed per source first | Adapter pattern, API compliance, circuit breakers |
-| 2.6 | Deduplication with reversible links, private versus public visibility, sightings | Layered matching, data integrity |
-| 2.7 | CSV and XLSX import, URL import, SSRF-hardened fetch layer, paste, manual entry, import reports | SSRF, DNS rebinding, untrusted file parsing |
-| 2.8 | Opportunities workbench: table, filters (remote, hybrid, location, salary, seniority, employment type, company, source), saved views, keyboard flow, actions (save, dismiss, approve for prep, open original, mark applied), applications tracking, match state machine | Split state machines, TanStack Table, accessibility |
-| 2.9 | **Periodic shortlist email** (deterministic selection, templates, per-user schedule), **application text drafts** (cover note, answers to common questions, grounded in evidence, labelled as drafts), tracker polish | Scheduled workflows, grounded generation, notification design |
+| 2.2 | **Free canvas editor.** Canva-level freedom, kept professional: every element (name, headline, contacts, sections, items, lines, shapes) is a box on the page that can be dragged, resized, nudged with the arrow keys, snapped to guides, aligned, distributed, layered, multi-selected, locked and grouped, with undo and redo, zoom and a margin grid. Text is edited directly on the page, and the side panel edits the same data, with both updating instantly because the page is drawn in the browser from local state. First step is a **fidelity spike** (browser canvas against the PDF engine) that may reverse the WeasyPrint choice of ADR-0025. Reading order for the PDF and ATS (top to bottom, then left to right), an ATS-safety warning when elements sit in columns or overlap, autosave and versions as in 2.1, structured mode kept for ATS-safe resumes. Images are out of the first version (ADR-0034) | Canvas editors, hit testing, snapping, command history for undo and redo, layout fidelity between a browser and a PDF engine |
+| 2.3 | **Template library to 20 or more, built on the canvas.** Full customization, ATS-safe flag per template and a warning when edits reduce it, template previews | Design systems for documents, ATS parsing behavior |
+| 2.4 | **Resume tailoring** (W) with grounding verifier, side by side diff, accept, reject, edit. In-editor suggestions that never add unsupported facts | Claim-level verification, why LLM judges are not enough |
+| 2.5 | **Source verification first.** Source registry as a first-class component with all fields in search-requirements.md, company registry, search intent parsing (L), deterministic resolver. Official terms of every candidate source read and recorded before any adapter work | Capability modeling, resolver design, compliance as data |
+| 2.6 | Adapters for the sources that pass verification, fetch layer with rate limits, polling intervals, circuit breakers, source health. Provider docs and compliance records completed per source first | Adapter pattern, API compliance, circuit breakers |
+| 2.7 | Deduplication with reversible links, private versus public visibility, sightings | Layered matching, data integrity |
+| 2.8 | CSV and XLSX import, URL import, SSRF-hardened fetch layer, paste, manual entry, import reports | SSRF, DNS rebinding, untrusted file parsing |
+| 2.9 | Opportunities workbench: table, filters (remote, hybrid, location, salary, seniority, employment type, company, source), saved views, keyboard flow, actions (save, dismiss, approve for prep, open original, mark applied), applications tracking, match state machine | Split state machines, TanStack Table, accessibility |
+| 2.10 | **Periodic shortlist email** (deterministic selection, templates, per-user schedule), **application text drafts** (cover note, answers to common questions, grounded in evidence, labelled as drafts), tracker polish | Scheduled workflows, grounded generation, notification design |
 
 Exit: the resume studio produces professional PDFs. Search by role, company, source, location returns real postings from verified sources with honest labeling. Import from unsupported platforms works. Full decision loop to "marked applied". A user receives a shortlist email and can draft application text.
 
@@ -100,7 +103,7 @@ Exit: the Definition of Done in the product brief is true, and the go-live gates
 | Migrations, rollback | 1.1, 3.7 |
 | Health, readiness, liveness | 1.1, 3.7 |
 | Worker recovery, retries, dead letters | 1.4 |
-| Source circuit breakers | 2.5 |
+| Source circuit breakers | 2.6 |
 | Rate limiting, quotas, abuse prevention | 1.3, 3.3 |
 | Structured logging, tracing, token and cost accounting | 1.4, 3.5 |
 | Monitoring, alerting | 3.5, 3.7 |
@@ -147,14 +150,15 @@ Every checkpoint is written and reviewed in this structure:
 | 1.8 | Paste a job, extraction progress, grounding warnings, eligibility gates shown in words |
 | 1.9 | **Core UX milestone.** Job analysis experience: overview, requirement-by-requirement analysis, evidence, missing evidence, confidence, score explanation, detail pane, fact versus inference versus suggestion, gap-to-qualify plan, "was this right?" feedback, loading, partial and error states |
 | 2.1 | Resume studio: editor ergonomics, live preview, rich text, lines and spacing, fonts, PDF export, save states |
-| 2.2 | Template gallery, preview, ATS-safe indicators, customization panel |
-| 2.3 | Tailoring designed around human review: proposed changes, reasons, editing, claim verification, unsupported claims, approve and reject, error recovery |
-| 2.4 | Discovery and source attribution |
-| 2.5 | Source health and fetch status as users see them |
-| 2.6 | Duplicate opportunities, reversible links, private and public postings, source provenance |
-| 2.7 | Import workflow: URL, CSV and XLSX, validation, preview, errors, security rejection messages, retry and correction |
-| 2.8 | Opportunities workbench as a major feature: table, filters, sorting, search, keyboard navigation, save, dismiss, approve, applied tracking, bulk actions, state transitions, empty, loading and error states |
-| 2.9 | Shortlist email design and preferences, application draft editor with clear draft labelling |
+| 2.2 | Canvas editing: selection, handles, snapping guides, keyboard moves, on-page text editing, layers, undo and redo, zoom, the ATS warning, touch and small-screen behavior |
+| 2.3 | Template gallery, preview, ATS-safe indicators, customization panel |
+| 2.4 | Tailoring designed around human review: proposed changes, reasons, editing, claim verification, unsupported claims, approve and reject, error recovery |
+| 2.5 | Discovery and source attribution |
+| 2.6 | Source health and fetch status as users see them |
+| 2.7 | Duplicate opportunities, reversible links, private and public postings, source provenance |
+| 2.8 | Import workflow: URL, CSV and XLSX, validation, preview, errors, security rejection messages, retry and correction |
+| 2.9 | Opportunities workbench as a major feature: table, filters, sorting, search, keyboard navigation, save, dismiss, approve, applied tracking, bulk actions, state transitions, empty, loading and error states |
+| 2.10 | Shortlist email design and preferences, application draft editor with clear draft labelling |
 | 3.1 | GitHub connection: permission explanation, authorization, connected state, disconnect, scope transparency, failure and retry |
 | 3.2 | Career preparation reuses the existing interaction language and pipeline patterns |
 | 3.3 | Plan, usage, remaining quota, limits, upgrade state if applicable |
@@ -178,5 +182,6 @@ Checkpoint 1.4 is merged. Checkpoint 1.5 is next. Its plan, with questions, is p
 | Revision | Date | Change | Reason |
 |---|---|---|---|
 | 1 | Phase 0 | Original 19-checkpoint roadmap | Phase 0 planning |
-| 2 | 2026-10-30 | 25 checkpoints. Phase 1 gains 1.7 to 1.9 (the old 1.5 and 1.6 are split). Phase 2 is renamed and gains a resume studio (2.1 to 2.3), periodic shortlist email and application drafts (2.9). Source verification is an explicit first step (2.4). Gap-to-qualify plan, feedback labels and outreach drafts added. Paid services are placeholders until later | Competitor review and owner decisions: build the full product in sequence, resume builder with free single resume, better help for finding and applying. See ADR-0027 |
+| 2 | 2026-10-30 | 25 checkpoints. Phase 1 gains 1.7 to 1.9 (the old 1.5 and 1.6 are split). Phase 2 is renamed and gains a resume studio (2.1 to 2.4), periodic shortlist email and application drafts (2.10). Source verification is an explicit first step (2.5). Gap-to-qualify plan, feedback labels and outreach drafts added. Paid services are placeholders until later | Competitor review and owner decisions: build the full product in sequence, resume builder with free single resume, better help for finding and applying. See ADR-0027 |
+| 3 | 2026-11-01 | 26 checkpoints. New checkpoint 2.2 (free canvas editor). Old 2.2 to 2.9 become 2.3 to 2.10 | Owner decision after testing against Canva-style tools: users must be able to move, resize and edit anything on the page, with instant updates. This is the product gap against other resume builders. See ADR-0034 |
 

@@ -26,6 +26,8 @@ Data minimization, purpose limitation, no public file URLs, signed expiring link
 
 Resume text and evidence snippets are sent to the LLM provider to perform analysis. From checkpoint 1.7 the text of each profile entry is also sent to the embedding model, and a search query is sent when meaning search is used. From checkpoint 1.9 the evidence agent also sends the requirement being checked, the evidence entries it found for it and any answer the person typed to the model. An answer is kept as evidence and is deleted with the job it was given for. The user is told this plainly during onboarding. Free-tier providers may use submitted data to improve products. Production must use a tier with documented no-training terms. Provider terms are recorded in `docs/providers/`.
 
+Resume studio content (checkpoint 2.1) is stored as the person wrote it and is not sent to a model. PDFs made from it are kept privately for the person, at most five per resume, and are deleted with the resume. Deleting a resume deletes its saved versions, its PDFs and the files. Profile entries are not affected.
+
 ## 4. User rights features
 
 View and correct profile, export data, delete account (see identity-and-data-lifecycle-requirements.md), disconnect connectors, delete individual resumes and evidence.

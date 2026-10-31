@@ -20,7 +20,7 @@ from pv_api import __version__
 from pv_api.errors import ApiError, api_error_handler, validation_error_handler
 from pv_api.logging_config import configure_logging
 from pv_api.ratelimiter import RateLimiter
-from pv_api.routes import admin, auth, evidence, jobs, ops, profile, resume, runs, v1
+from pv_api.routes import admin, auth, evidence, jobs, ops, profile, resume, runs, studio, v1
 from pv_api.security.middleware import body_limit, origin_guard, security_headers
 from pv_config import Settings, get_settings
 from pv_domain.failures import FailureClass
@@ -135,6 +135,7 @@ def create_app(
     app.include_router(resume.router, prefix="/api/v1")
     app.include_router(evidence.router, prefix="/api/v1")
     app.include_router(jobs.router, prefix="/api/v1")
+    app.include_router(studio.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")
     app.include_router(admin.router, prefix="/api/v1")
     return app

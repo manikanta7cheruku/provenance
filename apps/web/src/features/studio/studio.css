@@ -1,0 +1,281 @@
+/* Resume studio: the editor, the design panel and the preview. Tokens only. */
+
+.studio__lead {
+  max-width: var(--measure);
+  margin-bottom: var(--space-4);
+  color: var(--color-text-secondary);
+}
+.studio__start > * + * {
+  margin-top: var(--space-4);
+}
+
+.studio__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+.studio__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.studio__panes {
+  margin-bottom: var(--space-3);
+}
+
+/* Wide screens show both columns. Narrow ones show the pane chosen above. */
+.studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+.studio--edit .studio__view,
+.studio--preview .studio__edit {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .studio {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .studio--edit .studio__view,
+  .studio--preview .studio__edit {
+    display: block;
+  }
+  .studio__panes {
+    display: none;
+  }
+  .studio__view {
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+.studio__edit > * + * {
+  margin-top: var(--space-4);
+}
+
+.content > * + * {
+  margin-top: var(--space-4);
+}
+.group,
+.templates {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+.group > * + * {
+  margin-top: var(--space-3);
+}
+.group__title {
+  padding: 0 var(--space-2);
+  font-weight: var(--weight-semibold);
+}
+.group__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.item {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+.item > * + * {
+  margin-top: var(--space-3);
+}
+.item__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+@media (min-width: 600px) {
+  .item__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.addsection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+/* Templates are native radios dressed as cards, so the arrow keys and the labels come from the browser */
+.templates__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.template {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+.template input {
+  position: absolute;
+  opacity: 0;
+}
+.template__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+.template input:checked + .template__card {
+  border-width: 2px;
+  padding: calc(var(--space-3) - 1px);
+  background: var(--color-surface-sunken);
+}
+.template input:focus-visible + .template__card {
+  outline: 2px solid var(--color-focus-ring, var(--color-accent));
+  outline-offset: 2px;
+}
+.template__name {
+  font-weight: var(--weight-semibold);
+}
+.template__text {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+.template__ats {
+  margin-top: auto;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.swatch {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 2px solid var(--color-surface-raised);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--color-border-strong);
+  cursor: pointer;
+}
+.swatch[aria-pressed="true"] {
+  box-shadow: 0 0 0 3px var(--color-text-primary);
+}
+
+/* The rich text field */
+.rich__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--color-border-strong);
+  border-bottom: 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--color-surface-sunken);
+}
+.rich__btn {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.rich__btn[aria-pressed="true"] {
+  border-color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+  font-weight: var(--weight-semibold);
+}
+.rich__btn:disabled {
+  opacity: 0.5;
+}
+.rich__g--bold {
+  font-weight: var(--weight-bold, 700);
+}
+.rich__g--italic {
+  font-style: italic;
+}
+.rich__g--underline {
+  text-decoration: underline;
+}
+.rich__g--highlight {
+  padding: 0 0.2em;
+  background: var(--color-highlight-bg);
+  color: var(--color-highlight-text);
+}
+.rich__editor {
+  min-height: 6rem;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+}
+.rich__editor:focus-visible {
+  outline: 2px solid var(--color-focus-ring, var(--color-accent));
+  outline-offset: 1px;
+}
+.rich__editor > * + * {
+  margin-top: var(--space-1);
+}
+.rich__editor ul,
+.rich__editor ol {
+  padding-left: var(--space-5);
+}
+.rich__editor mark {
+  background: var(--color-highlight-bg);
+  color: var(--color-highlight-text);
+}
+
+.versions {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.versions li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.export {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+.export__status {
+  flex: 1 1 14rem;
+}
+
+/* The page shown at its real width, scaled to fit the column */
+.preview__note {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+.preview__box {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-sunken);
+}
+.preview__frame {
+  display: block;
+  border: 0;
+  background: transparent;
+}

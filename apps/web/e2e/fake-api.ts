@@ -155,16 +155,78 @@ export function analysisBody(a: FakeAnalysis | undefined) {
   };
 }
 
+
+export interface FakeStudio {
+  doc: Record<string, any> | null;
+  versions: { id: string; revision: number; created_at: string }[];
+  exportReads: number;
+  exportState: "none" | "preparing" | "ready" | "failed";
+  /** Set to make the next save fail the way a stale tab does. */
+  conflict: boolean;
+  saves: Record<string, any>[];
+}
+
+export function newStudio(): FakeStudio {
+  return { doc: null, versions: [], exportReads: 0, exportState: "none", conflict: false, saves: [] };
+}
+
+export const STUDIO_OPTIONS = {
+  templates: [
+    { key: "classic", name: "Classic", description: "A serif name and headings over plain body text.", ats_safe: true },
+    { key: "modern", name: "Modern", description: "Sans serif with an accent color.", ats_safe: true },
+    { key: "compact", name: "Compact", description: "Tighter type and spacing.", ats_safe: true },
+  ],
+  font_pairs: [
+    { key: "plex-newsreader", label: "Serif headings, sans body" },
+    { key: "plex", label: "Sans serif throughout" },
+    { key: "newsreader", label: "Serif throughout" },
+  ],
+  sizes: ["small", "medium", "large"],
+  spacings: ["tight", "normal", "relaxed"],
+  margins: ["narrow", "normal", "wide"],
+  dividers: ["none", "thin", "bold", "dotted"],
+  papers: ["a4", "letter"],
+  section_kinds: ["summary", "experience", "education", "projects", "skills", "certifications", "achievements", "custom"],
+  max_resumes: 1,
+};
+
+export function studioContent(template = "classic", name = "") {
+  return {
+    version: 1,
+    style: { template, font_pair: "plex-newsreader", size: "medium", spacing: "normal", margins: "normal", accent: "#222222", divider: "thin", paper: "a4" },
+    header: { name, headline: "", contacts: [] },
+    sections: [
+      { id: "s1", kind: "experience", title: "Experience", blocks: [
+        { id: "b1", heading: "Data Intern", subheading: "Kestrel Analytics", dates: "2025-06 to 2025-08", location: "",
+          body: { type: "doc", content: [{ type: "bulletList", content: [{ type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "Cleaned six CSV sources with pandas" }] }] }] }] } },
+      ] },
+      { id: "s2", kind: "education", title: "Education", blocks: [
+        { id: "b2", heading: "B.E. Computer Science", subheading: "BMS College of Engineering", dates: "2026", location: "", body: null },
+      ] },
+    ],
+  };
+}
+
+export function studioDoc(name = "Asha Rao", template = "classic", revision = 1) {
+  return { id: "doc-1", title: "My resume", revision, template, updated_at: NOW, content: studioContent(template, name) };
+}
+
+export function previewHtml(content: any): string {
+  const sections = (content.sections ?? []).map((s: any) => `<h2>${s.title}</h2>`).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Resume</title><style>body{margin:0;background:#e9e9e6;font-family:sans-serif}.sheet{width:794px;min-height:1123px;margin:0 auto;padding:60px;box-sizing:border-box;background:#fff}</style></head><body><main class="sheet"><h1>${content.header?.name ?? ""}</h1>${sections}</main></body></html>`;
+}
+
 export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: Entry[]; reads: number; prefs: Record<string, unknown>; nextId: number;
   /** Whether the fake backend has an AI key and embedded entries. */
   meaning: "off" | "ready";
   jobs: FakeJob[];
   jobReads: Record<string, number>;
-  analyses: Record<string, FakeAnalysis> }
+  analyses: Record<string, FakeAnalysis>;
+  studio: FakeStudio }
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
@@ -262,6 +324,49 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       fake.jobs.unshift(job);
       fake.jobReads[job.id] = 0;
       return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    if (path === "/api/v1/studio/options") return json(STUDIO_OPTIONS);
+    const studioMatch = path.match(/^\/api\/v1\/studio\/(resumes|exports)(?:\/([^/]+))?(?:\/(.*))?$/);
+    if (studioMatch) {
+      const [, kind, id, rest = ""] = studioMatch;
+      const s = fake.studio;
+      if (kind === "resumes" && !id) {
+        if (method === "GET") return json(s.doc ? [{ id: s.doc.id, title: s.doc.title, revision: s.doc.revision, template: s.doc.template, updated_at: NOW }] : []);
+        if (method === "POST") {
+          if (s.doc) return json({ code: "RESUME_LIMIT", message: "The free plan keeps one resume. Delete it first to start another." }, 409);
+          const body = request.postDataJSON() as { start: string; template: string };
+          s.doc = body.start === "profile" ? studioDoc("", body.template) : { ...studioDoc("", body.template), content: { ...studioContent(body.template), sections: [] } };
+          s.versions = [];
+          s.exportState = "none";
+          return json(s.doc, 201);
+        }
+      }
+      if (kind === "resumes" && id && s.doc && id === s.doc.id) {
+        if (!rest && method === "GET") return json(s.doc);
+        if (!rest && method === "DELETE") { s.doc = null; return route.fulfill({ status: 204 }); }
+        if (!rest && method === "PUT") {
+          const body = request.postDataJSON() as { content: any; revision: number };
+          s.saves.push(body);
+          if (s.conflict || body.revision !== s.doc.revision) { s.conflict = false; return json({ code: "REVISION_CONFLICT", message: "This resume was changed somewhere else. Reload to see the latest version." }, 409); }
+          if (body.content.style.accent === "#ffee88") return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { "style.accent": "This color is too light to read on white paper. Choose a darker one." } }, 422);
+          s.doc = { ...s.doc, content: body.content, revision: s.doc.revision + 1, template: body.content.style.template };
+          return json({ id: s.doc.id, title: s.doc.title, revision: s.doc.revision, template: s.doc.template, updated_at: NOW });
+        }
+        if (rest === "preview" && method === "POST") return json({ html: previewHtml((request.postDataJSON() as { content: any }).content) });
+        if (rest === "versions" && method === "GET") return json(s.versions);
+        if (rest.startsWith("versions/") && rest.endsWith("/restore") && method === "POST") {
+          s.doc = { ...studioDoc("Restored Name", s.doc.template, s.doc.revision + 1) };
+          return json(s.doc);
+        }
+        if (rest === "exports" && method === "GET") {
+          if (s.exportState === "preparing") { s.exportReads += 1; if (s.exportReads >= 2) s.exportState = "ready"; }
+          if (s.exportState === "none") return json([]);
+          return json([{ id: "exp-1", revision: s.doc.revision, ui_state: s.exportState, size_bytes: s.exportState === "ready" ? 41000 : null, page_count: s.exportState === "ready" ? 2 : null, error_message: s.exportState === "failed" ? "The PDF could not be made. Your resume is safe. Try again." : null, created_at: NOW }]);
+        }
+        if (rest === "exports" && method === "POST") { s.exportState = "preparing"; s.exportReads = 0; return json({ id: "exp-1", revision: s.doc.revision, ui_state: "preparing", size_bytes: null, page_count: null, error_message: null, created_at: NOW }, 202); }
+      }
+      if (kind === "exports" && rest === "download") return route.fulfill({ status: 200, contentType: "application/pdf", body: "%PDF-1.7 fake" });
+      return json({ code: "NOT_FOUND", message: "Not found." }, 404);
     }
     const analysisMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)\/analysis(?:\/(.*))?$/);
     if (analysisMatch) {

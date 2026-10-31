@@ -51,6 +51,8 @@ known-first-party = [
 # User-facing sentences stay whole on one line so a person can search the code for the text on screen.
 "packages/domain/src/pv_domain/eligibility.py" = ["E501"]
 "packages/domain/src/pv_domain/analysis.py" = ["E501"]
+"packages/domain/src/pv_domain/resume_doc.py" = ["E501"]
+"packages/domain/src/pv_domain/resume_render.py" = ["E501"]
 "packages/llm/src/pv_llm/evidence_agent.py" = ["E501"]
 
 [tool.mypy]
@@ -77,3 +79,8 @@ packages = [
     "pv_persistence",
     "pv_worker",
 ]
+
+# WeasyPrint ships no type information.
+[[tool.mypy.overrides]]
+module = ["weasyprint", "weasyprint.*"]
+ignore_missing_imports = true

@@ -66,6 +66,9 @@
   --color-surface-base: light-dark(#faf9f6, #131412);
   --color-surface-raised: light-dark(#ffffff, #1b1c1a);
   --color-surface-sunken: light-dark(#f2f0eb, #0f100f);
+  /* The highlighter mark in resume text. Text on it must stay readable in both themes. */
+  --color-highlight-bg: light-dark(#fff1a8, #5e5200);
+  --color-highlight-text: light-dark(#1b1b1b, #fff8d0);
   /* Color roles: border */
   --color-border-subtle: light-dark(#e6e3dc, #2a2c28);
   --color-border-strong: light-dark(#cfcbc1, #3c3e39); /* decorative only: below 3:1 */

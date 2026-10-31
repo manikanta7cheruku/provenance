@@ -1,6 +1,6 @@
 # Resume Studio Requirements
 
-Status: Draft (revision 2 roadmap, 2026-10-30). Delivered in checkpoints 2.1 to 2.3. Decisions pending spikes are in [ADR-0024](../adr/0024-resume-studio-editor-approach.md) and [ADR-0025](../adr/0025-resume-pdf-rendering.md).
+Status: Draft (revision 2 roadmap, 2026-10-30). Delivered in checkpoints 2.1 to 2.4 (2.2 is the free canvas editor, see section 7). Decisions pending spikes are in [ADR-0024](../adr/0024-resume-studio-editor-approach.md) and [ADR-0025](../adr/0025-resume-pdf-rendering.md).
 
 ## 1. Purpose
 
@@ -19,16 +19,16 @@ Let a student create, customize and tailor a professional resume with much more 
 
 | ID | Requirement | Checkpoint |
 |---|---|---|
-| FR-RES-1 | Structured editor with live preview. Content is sections, blocks and rich text. Style is separate from content | 2.1 |
-| FR-RES-2 | Formatting: bold, italic, underline, highlight, bullet and numbered lists, divider lines, spacing scale, margins, section reorder | 2.1 |
-| FR-RES-3 | Professional fonts, self-hosted, with font pairs. Font licences checked before shipping | 2.1 |
-| FR-RES-4 | PDF export matching the preview, text selectable, reading order verified by test | 2.1 |
-| FR-RES-5 | At least 20 templates. Each declares an ATS-safe flag. The editor warns when edits reduce ATS safety | 2.2 |
-| FR-RES-6 | Suggestions in the editor that never add facts the profile does not support. Each suggestion shows why and is accepted, rejected or edited by the user | 2.3 |
-| FR-RES-7 | Tailoring to a job with a grounding verifier (FR-TAI-1, FR-TAI-2) | 2.3 |
-| FR-RES-8 | Free plan: one resume and rate-limited exports. Enforced by entitlements at 3.3. Until then a single configurable limit exists | 2.1, 3.3 |
-| FR-RES-9 | Autosave, version history of the last N saves per resume, restore | 2.1 |
-| FR-RES-10 | Delete a resume removes the stored files and rows. Profile entries remain | 2.1 |
+| FR-RES-1 | Structured editor with live preview. Content is sections, blocks and rich text. Style is separate from content | 2.1, built |
+| FR-RES-2 | Formatting: bold, italic, underline, highlight, bullet and numbered lists, divider lines, spacing scale, margins, section reorder | 2.1, built |
+| FR-RES-3 | Professional fonts, self-hosted, with font pairs. Font licences checked before shipping | 2.1, built with three pairs from two open licence families |
+| FR-RES-4 | PDF export matching the preview, text selectable, reading order verified by test | 2.1, built. Page counts agreed on the five sample resumes |
+| FR-RES-5 | At least 20 templates. Each declares an ATS-safe flag. The editor warns when edits reduce ATS safety | 2.3 |
+| FR-RES-6 | Suggestions in the editor that never add facts the profile does not support. Each suggestion shows why and is accepted, rejected or edited by the user | 2.4 |
+| FR-RES-7 | Tailoring to a job with a grounding verifier (FR-TAI-1, FR-TAI-2) | 2.4 |
+| FR-RES-8 | Free plan: one resume and rate-limited exports. Enforced by entitlements at 3.3. Until then a single configurable limit exists | 2.1 built as `STUDIO_MAX_RESUMES`, 3.3 |
+| FR-RES-9 | Autosave, version history of the last N saves per resume, restore | 2.1, built (N is 20, a restore point at most every two minutes) |
+| FR-RES-10 | Delete a resume removes the stored files and rows. Profile entries remain | 2.1, built |
 
 ## 4. Rules
 
@@ -45,9 +45,27 @@ UX: a new user can produce and download a resume in under ten minutes from a par
 
 Accessibility: the editor toolbar is a labelled toolbar with arrow-key navigation. Color choices show contrast results. The template gallery is navigable by keyboard. The PDF has a document title and language.
 
+## 6A. Free canvas mode (checkpoint 2.2, added in roadmap revision 3)
+
+Other resume builders either give templates with little freedom or give Canva-style freedom with no sense of what a resume is. The studio offers both ways of working on the same resume: the structured editor of 2.1, and a free canvas.
+
+| ID | Requirement | Checkpoint |
+|---|---|---|
+| FR-RES-11 | Every element on the page is a box that can be selected, dragged, resized and moved with the arrow keys (with larger steps while a modifier key is held), with snapping guides to the margins, the page centre and other elements | 2.2 |
+| FR-RES-12 | Text is edited in place on the page. The side panel edits the same content. A change in either shows in the other at once, with no network wait | 2.2 |
+| FR-RES-13 | Multi-select, align, distribute, layers (bring forward, send back), lock, group, duplicate, delete, undo and redo that cover every edit, zoom, a margin grid and rulers | 2.2 |
+| FR-RES-14 | Lines and simple shapes as elements. Images are not in the first release | 2.2 |
+| FR-RES-15 | PDF output matches the canvas, with selectable text in reading order (top to bottom, then left to right) | 2.2 |
+| FR-RES-16 | A visible ATS-safety indicator that says when the layout uses columns, overlaps or text over shapes, with the reason | 2.2 |
+| FR-RES-17 | Every canvas action works from the keyboard, with announcements for screen readers. A person who cannot use a pointer can do everything | 2.2 |
+| FR-RES-18 | Templates (2.3) are canvas layouts. Switching a template re-flows content and keeps the person's edits where possible | 2.3 |
+
+Rules: the canvas never invents content. Suggestions and tailoring (2.4) change text and never layout. The structured mode stays for people who want an ATS-safe resume with no layout work.
+
 ## 6. Open decisions
 
-- Editor library (ADR-0024 spike).
-- PDF engine (ADR-0025 spike).
-- Number and style of the first three templates versus the full 20 or more.
-- Whether to add a free-form block later.
+- Editor library: decided at 2.1 (TipTap), with a comparison that was not run. See ADR-0024.
+- PDF engine: decided at 2.1 (WeasyPrint) after a measured spike. See ADR-0025.
+- Number and style of the first three templates versus the full 20 or more: three built, the rest in 2.3 on top of the canvas.
+- Canvas fidelity and the PDF engine: decided by a spike at the start of 2.2 (ADR-0034).
+- Whether to add a free-form block later. Decided: yes, as the free canvas mode of checkpoint 2.2 (ADR-0034).

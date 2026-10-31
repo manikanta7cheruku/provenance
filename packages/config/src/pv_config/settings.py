@@ -89,6 +89,10 @@ class Settings(BaseSettings):
     # Tune it from labeled data (checkpoint 3.6), not by guessing.
     evidence_min_similarity: float = 0.0
 
+    # Resume studio. A single configurable limit stands in for plan entitlements until 3.3.
+    studio_max_resumes: int = 1
+    studio_max_exports: int = 5
+
     @field_validator("database_url", "migration_database_url")
     @classmethod
     def _check_scheme(cls, value: SecretStr) -> SecretStr:

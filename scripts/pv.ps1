@@ -61,6 +61,7 @@ Provenance operator commands
   embeddings             queue evidence embedding for every user (after adding a key or changing the model)
   test                   quality gate: ruff, mypy, import-linter, unit tests, web checks
   itest                  integration tests (stops the worker first, restarts it afterwards)
+  pdftest                resume PDF engine tests, run inside the Docker image (needs its native libraries)
   webtest                browser and accessibility tests (axe, keyboard, themes). Set PW_CHANNEL=msedge to reuse Edge
   help                   this text
 "@ | Write-Host
@@ -187,6 +188,13 @@ SELECT worker_id, last_seen_at, tasks_processed FROM worker_heartbeats ORDER BY 
             Run "npm" @("run", "build")
             Run "npm" @("run", "test:e2e")
         } finally { Pop-Location }
+    }
+
+    "pdftest" {
+        # WeasyPrint needs native libraries that are in the image, not on a Windows checkout.
+        Run "docker" @("compose", "run", "--rm", "--no-deps", "--user", "root", "-e", "PYTHONPATH=/app/tests",
+            "-v", "$((Get-Location).Path)/tests:/app/tests:ro", "worker", "sh", "-c",
+            "uv pip install --quiet --python /opt/venv/bin/python pytest && cd /app && python -m pytest tests/pdf -q -p no:cacheprovider --rootdir /app -c /dev/null")
     }
 
     "itest" {
