@@ -74,8 +74,8 @@ The end-to-end flow is in [user-journey.md](user-journey.md). Each journey is ch
 | `/forgot-password` `/reset-password` `/verify-email` | Recovery flows | 1.3 | Built. Verification is enforced only when EMAIL_VERIFICATION_REQUIRED is true |
 | `/runs` | Minimal run list | 1.4 | Full inspector 3.5 |
 | `/profile` | Resume upload, parse status, editable profile, evidence | 1.5 | |
-| `/opportunities` | Basic list and paste-a-job | 1.8 | Full workbench at 2.8 |
-| `/opportunities/:id` | Job detail and analysis | 1.6 | Core trust screen |
+| `/opportunities` | Basic list and paste-a-job (built in 1.8) | 1.8 | Full workbench at 2.8 |
+| `/opportunities/:id` | Job detail, eligibility gates and requirements (built in 1.8) | 1.8 | Core trust screen, scoring added at 1.9 |
 | `/opportunities` (add jobs) | Import flow | 2.4 | |
 | `/saved` `/applications` | Lists and tracking | 2.5 | |
 | `/opportunities/:id/tailor` | Tailoring review | 2.6 | |

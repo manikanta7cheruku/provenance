@@ -30,5 +30,7 @@ DEFAULT_POLICIES: dict[str, RatePolicy] = {
         RatePolicy("resume_upload_user", 10, 3600),
         RatePolicy("resume_reparse_user", 10, 3600),
         RatePolicy("evidence_search_user", 60, 3600),
+        RatePolicy("job_paste_user", 30, 3600),
+        RatePolicy("job_reanalyze_user", 20, 3600),
     )
 }

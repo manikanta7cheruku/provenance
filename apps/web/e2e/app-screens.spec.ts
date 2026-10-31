@@ -50,7 +50,7 @@ async function mockApi(page: Page, authenticated: boolean) {
 }
 
 const SIGNED_OUT = ["/signin", "/signup", "/forgot-password"];
-const SIGNED_IN = ["/opportunities", "/runs", "/settings", "/admin/users"];
+const SIGNED_IN = ["/runs", "/settings", "/admin/users"];
 
 for (const theme of ["light", "dark"] as const) {
   for (const path of SIGNED_OUT) {

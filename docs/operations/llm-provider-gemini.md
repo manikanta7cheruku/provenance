@@ -88,7 +88,7 @@ The whole resume text is sent to the provider. On a free tier that text may be u
 
 ## Embeddings and evidence search (checkpoint 1.7)
 
-The worker task `embed_evidence` embeds one short text per profile entry with `LLM_EMBEDDING_MODEL`, and the API embeds each search query. Calls are recorded in `llm_calls` with purposes `evidence_embedding` and `evidence_query`, a content hash and never text. Meaning search needs both `GEMINI_API_KEY` and `LLM_EMBEDDING_MODEL`. Without them keyword search still works and the screen says meaning search is off.
+The worker task `embed_evidence` embeds one short text per profile entry with `LLM_EMBEDDING_MODEL`, and the API embeds each search query. Calls are recorded in `llm_calls` with purposes `evidence_embedding` and `evidence_query`, a content hash and never text. Job reading (checkpoint 1.8) uses purpose `job_extraction` with prompt version `job-extract-1`: the pasted posting is sent to the model, so on a free tier only the owner's own jobs should be pasted. Meaning search needs both `GEMINI_API_KEY` and `LLM_EMBEDDING_MODEL`. Without them keyword search still works and the screen says meaning search is off.
 
 The database stores vectors of exactly 768 numbers (migration 0005). `python -m pv_llm.check` tests one embedding with `LLM_EMBEDDING_DIMENSIONS` (default 768): choose a model that supports that size. A model that answers with another size makes the worker stop with a clear message and store nothing. Changing the model makes every stored vector stale. Run `.\scripts\pv.ps1 embeddings` to re-embed.
 

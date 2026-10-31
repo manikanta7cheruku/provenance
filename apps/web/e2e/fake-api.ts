@@ -47,13 +47,59 @@ export function resumeBody(uiState: string, extra: Record<string, unknown> = {})
   };
 }
 
+
+export interface FakeJob { id: string; text: string; source: string; url: string | null; state: "reading" | "ready" | "failed" }
+
+const POSTING_TEXT = [
+  "Data Analyst, Early Careers",
+  "Fernlight Systems | Bengaluru, India (Hybrid) | Full time",
+  "",
+  "You will write SQL to answer questions from product teams. Strong SQL and Python (pandas).",
+  "0-2 years of experience. Must be authorized to work in India.",
+].join("\n");
+
+export function jobBody(job: FakeJob) {
+  const ready = job.state === "ready";
+  return {
+    id: job.id, title: ready ? "Data Analyst, Early Careers" : null, company: ready ? "Fernlight Systems" : null,
+    source_name: job.source, acquisition_method: "user_paste", ui_state: job.state, can_retry: job.state !== "reading",
+    error_message: job.state === "failed" ? "The reading service did not answer. Your posting is saved. Try again in a few minutes." : null,
+    eligibility: ready ? "requires_user_input" : null, work_mode: ready ? "hybrid" : null, location: ready ? "Bengaluru, India" : null,
+    requirement_count: ready ? 2 : 0, created_at: NOW, source_url: job.url, visibility: "private",
+    facts: ready ? {
+      work_mode: { value: "hybrid", quote: "Bengaluru, India (Hybrid)" },
+      location: { value: "Bengaluru, India", quote: "Bengaluru, India (Hybrid)" },
+      min_years_experience: { value: 2, quote: "0-2 years of experience" },
+      work_authorization_countries: { value: ["India"], quote: "Must be authorized to work in India." },
+    } : {},
+    requirements: ready ? [
+      { id: "q1", ordinal: 0, text: "Write SQL to answer product questions", kind: "required", category: "skill", years_min: null, quote: "write SQL to answer questions from product teams", quote_start: 100, quote_end: 150 },
+      { id: "q2", ordinal: 1, text: "Experience with Tableau", kind: "preferred", category: "skill", years_min: null, quote: "experience with Tableau", quote_start: 160, quote_end: 183 },
+    ] : [],
+    eligibility_detail: ready ? {
+      state: "requires_user_input", rules_version: "eligibility-1",
+      gates: [
+        { gate: "authorization", label: "Work authorization and sponsorship", state: "requires_user_input", reason: "The posting requires permission to work in india. Add the countries where you can work without a visa in your preferences.", posting_quote: "Must be authorized to work in India." },
+        { gate: "location", label: "Location and work mode", state: "uncertain", reason: "The role is hybrid in Bengaluru, India, a place you listed. You said you prefer remote work, so review it.", posting_quote: "Bengaluru, India (Hybrid)" },
+        { gate: "seniority", label: "Experience asked for", state: "eligible", reason: "The posting asks for 2 years. Your profile shows about 1.", posting_quote: "0-2 years of experience" },
+        { gate: "employment", label: "Kind of work", state: "eligible", reason: "You have not limited the kind of work.", posting_quote: null },
+        { gate: "exclusions", label: "Things you chose to avoid", state: "eligible", reason: "You have not listed anything to avoid.", posting_quote: null },
+      ],
+    } : null,
+    facts_dropped: ready ? 1 : 0, requirements_dropped: ready ? 1 : 0, prompt_version: "job-extract-1", run_id: "run-job", extracted_at: ready ? NOW : null,
+    text: job.text,
+  };
+}
+
 export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: Entry[]; reads: number; prefs: Record<string, unknown>; nextId: number;
   /** Whether the fake backend has an AI key and embedded entries. */
-  meaning: "off" | "ready" }
+  meaning: "off" | "ready";
+  jobs: FakeJob[];
+  jobReads: Record<string, number> }
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
@@ -135,8 +181,41 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       if (method === "PUT") { fake.prefs = request.postDataJSON() as Record<string, unknown>; }
       return json(fake.prefs);
     }
+    if (path === "/api/v1/jobs" && method === "GET") {
+      return json(fake.jobs.map((job) => {
+        const { text, facts, requirements, eligibility_detail, ...summary } = jobBody(job);
+        void text; void facts; void requirements; void eligibility_detail;
+        return summary;
+      }));
+    }
+    if (path === "/api/v1/jobs" && method === "POST") {
+      const body = request.postDataJSON() as { source_name: string; source_url: string | null; text: string };
+      if (body.text.trim().length < 100) return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { text: "This looks too short to be a job posting. Paste the whole description." } }, 422);
+      const existing = fake.jobs.find((j) => j.text.trim().toLowerCase() === body.text.trim().toLowerCase());
+      if (existing) return json({ job: jobBody(existing), duplicate: true }, 200);
+      const job: FakeJob = { id: `job-${fake.nextId++}`, text: body.text, source: body.source_name, url: body.source_url, state: "reading" };
+      fake.jobs.unshift(job);
+      fake.jobReads[job.id] = 0;
+      return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    const jobMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)(\/reanalyze)?$/);
+    if (jobMatch) {
+      const job = fake.jobs.find((j) => j.id === jobMatch[1]);
+      if (!job) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      if (method === "DELETE") { fake.jobs = fake.jobs.filter((j) => j.id !== job.id); return route.fulfill({ status: 204 }); }
+      if (jobMatch[2] && method === "POST") { job.state = "reading"; fake.jobReads[job.id] = 0; return json(jobBody(job)); }
+      if (job.state === "reading") {
+        fake.jobReads[job.id] = (fake.jobReads[job.id] ?? 0) + 1;
+        if ((fake.jobReads[job.id] ?? 0) >= 3) job.state = "ready";
+      }
+      return json(jobBody(job));
+    }
     return json({ code: "NOT_FOUND", message: "not mocked" }, 404);
   });
   return fake;
 }
 
+
+export function makeJob(state: FakeJob["state"], overrides: Partial<FakeJob> = {}): FakeJob {
+  return { id: "job-1", text: POSTING_TEXT, source: "Wellfound", url: null, state, ...overrides };
+}

@@ -192,6 +192,58 @@ class EvidenceChunk(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+# ---- checkpoint 1.8: job postings (migration 0006)
+
+
+class JobPosting(Base):
+    """A posting the person pasted. Tenant data, protected by Row Level Security."""
+
+    __tablename__ = "job_postings"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    visibility: Mapped[str] = mapped_column(Text, default="private")
+    source_name: Mapped[str] = mapped_column(Text)
+    acquisition_method: Mapped[str] = mapped_column(Text, default="user_paste")
+    source_url: Mapped[str | None] = mapped_column(Text, default=None)
+    raw_text: Mapped[str] = mapped_column(Text)
+    content_hash: Mapped[str] = mapped_column(Text)
+    title: Mapped[str | None] = mapped_column(Text, default=None)
+    company: Mapped[str | None] = mapped_column(Text, default=None)
+    facts: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    parse_status: Mapped[str] = mapped_column(Text, default="queued")
+    analysis_generation: Mapped[int] = mapped_column(Integer, default=1)
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    facts_dropped: Mapped[int] = mapped_column(Integer, default=0)
+    requirements_dropped: Mapped[int] = mapped_column(Integer, default=0)
+    prompt_version: Mapped[str | None] = mapped_column(Text, default=None)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workflow_runs.id", ondelete="SET NULL"), default=None
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    extracted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class JobRequirement(Base):
+    """One thing a posting asks for, with the posting's own words. Protected by RLS."""
+
+    __tablename__ = "job_requirements"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    ordinal: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    kind: Mapped[str] = mapped_column(Text)
+    category: Mapped[str] = mapped_column(Text)
+    years_min: Mapped[int | None] = mapped_column(Integer, default=None)
+    quote: Mapped[str] = mapped_column(Text)
+    quote_start: Mapped[int] = mapped_column(Integer)
+    quote_end: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 # ---- checkpoint 1.4: durable work and observability (migration 0003)
 
 

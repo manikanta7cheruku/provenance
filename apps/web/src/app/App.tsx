@@ -16,6 +16,7 @@ import {
   VerifyEmailPage,
 } from "../features/auth";
 import { NotFoundPage } from "../features/notfound";
+import { JobDetailPage, OpportunitiesPage } from "../features/opportunities";
 import { PlannedPage } from "../features/planned";
 import { ProfilePage } from "../features/profile";
 import { RunDetailPage, RunsPage } from "../features/runs";
@@ -28,7 +29,7 @@ import { RequireAuth } from "./RequireAuth";
 import { Shell } from "./Shell";
 
 /** Screens that are built. Everything else in the navigation still shows a "planned" page. */
-const BUILT_PATHS = new Set(["/runs", "/admin", "/profile"]);
+const BUILT_PATHS = new Set(["/runs", "/admin", "/profile", "/opportunities"]);
 
 /**
  * Composition only: providers, routes and the shell. Screens live in features/.
@@ -63,6 +64,8 @@ function ProductApp() {
               {NAV_ITEMS.filter((item) => !BUILT_PATHS.has(item.path)).map((item) => (
                 <Route key={item.path} path={item.path} element={<PlannedPage path={item.path} />} />
               ))}
+              <Route path="/opportunities" element={<OpportunitiesPage />} />
+              <Route path="/opportunities/:jobId" element={<JobDetailPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/runs" element={<RunsPage />} />
               <Route path="/runs/:runId" element={<RunDetailPage />} />

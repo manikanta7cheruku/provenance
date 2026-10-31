@@ -1,0 +1,187 @@
+/* Opportunities: paste a job, the list, and the job detail. Tokens only. */
+
+.jobs__lead,
+.job__note {
+  max-width: var(--measure);
+  margin-bottom: var(--space-4);
+  color: var(--color-text-secondary);
+}
+.jobs__form {
+  max-width: 40rem;
+}
+.jobs__form > * + * {
+  margin-top: var(--space-4);
+}
+.jobs__link {
+  color: var(--color-text-primary);
+  font-weight: var(--weight-semibold);
+}
+.row-sub {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+}
+
+.job__back {
+  margin-bottom: var(--space-4);
+}
+.job__source {
+  margin-bottom: var(--space-4);
+  color: var(--color-text-secondary);
+}
+.job__state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  margin-bottom: var(--space-4);
+}
+.job__explanation {
+  color: var(--color-text-secondary);
+}
+.job__overall {
+  font-weight: var(--weight-semibold);
+}
+.job__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+/* Eligibility gates, worst first */
+.gates {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.gate {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.gate__head {
+  font-weight: var(--weight-semibold);
+}
+.gate__reason {
+  max-width: var(--measure);
+  margin-top: var(--space-1);
+}
+.gate__action {
+  margin-top: var(--space-2);
+}
+.gate .voice-posting {
+  margin-top: var(--space-2);
+}
+
+/* The posting's own words: set apart, with a label, a rule and a serif, never by color alone */
+.voice-posting {
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-border-strong);
+}
+.voice-posting__label {
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+.voice-posting__quote {
+  max-width: var(--measure);
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--text-body-lg);
+}
+
+.facts {
+  margin: 0;
+  max-width: 52rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.facts__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.facts__row dt {
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+.facts__row dd {
+  margin: 0;
+  font-weight: var(--weight-medium);
+}
+.facts__quote {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-weight: var(--weight-regular);
+}
+@media (min-width: 600px) {
+  .facts__row {
+    grid-template-columns: 14rem 1fr;
+    gap: var(--space-4);
+  }
+}
+
+.reqs-group + .reqs-group {
+  margin-top: var(--space-5);
+}
+.reqs-group__title {
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-semibold);
+}
+.reqs-group__count {
+  margin-left: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+}
+.reqs {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.req-item {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.req-item__text {
+  font-weight: var(--weight-medium);
+}
+.req-item__kind {
+  margin-left: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+.req-item .voice-posting {
+  margin-top: var(--space-2);
+}
+
+.posting summary {
+  color: var(--color-accent);
+  cursor: pointer;
+}
+.posting__text {
+  max-width: 60rem;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
