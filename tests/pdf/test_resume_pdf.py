@@ -176,5 +176,7 @@ class TestTheEngineCannotFetch:
 
 def test_fonts_are_present_with_their_licences() -> None:
     names = {p.name for p in Path(fonts_dir()).iterdir()}
-    assert {"LICENSE-ibm-plex-sans.txt", "LICENSE-newsreader.txt"} <= names
-    assert len([n for n in names if n.endswith(".woff")]) == 8
+    licences = {n for n in names if n.startswith("LICENSE-")}
+    assert {"LICENSE-ibm-plex-sans.txt", "LICENSE-newsreader.txt", "LICENSE-inter.txt"} <= licences
+    assert len(licences) == 9  # one per family
+    assert len([n for n in names if n.endswith(".woff")]) == 36  # four files per family

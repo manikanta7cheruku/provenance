@@ -5,30 +5,69 @@ Layout lives in a single place, so "the preview differs from the PDF" cannot com
 checked by a test on sample resumes and the PDF is the authority.)
 
 Safety: the document model holds no markup. Every string is escaped here, every tag below is written
-by this module, and there are no links, images or scripts. Reading order is the order of the HTML,
+by this module. The only link is a validated web, mail or phone address, and there are no images or scripts. Reading order is the order of the HTML,
 with no positioning tricks, so the PDF text comes out in the order a person reads it.
 """
 
 from html import escape
 from typing import Any
 
+# CSS family name -> the file prefix of the shipped fonts. Each family has four files: 400 and 600,
+# upright and italic. (Lato ships its bold as the 600 file.)
+FAMILIES = {
+    "PV Plex": "ibm-plex-sans",
+    "PV Serif": "newsreader",
+    "PV Inter": "inter",
+    "PV Lato": "lato",
+    "PV Source": "source-sans-3",
+    "PV Montserrat": "montserrat",
+    "PV Lora": "lora",
+    "PV Merriweather": "merriweather",
+    "PV Playfair": "playfair-display",
+}
 FONT_FILES = {
-    ("PV Plex", 400, "normal"): "ibm-plex-sans-latin-400-normal.woff",
-    ("PV Plex", 400, "italic"): "ibm-plex-sans-latin-400-italic.woff",
-    ("PV Plex", 600, "normal"): "ibm-plex-sans-latin-600-normal.woff",
-    ("PV Plex", 600, "italic"): "ibm-plex-sans-latin-600-italic.woff",
-    ("PV Serif", 400, "normal"): "newsreader-latin-400-normal.woff",
-    ("PV Serif", 400, "italic"): "newsreader-latin-400-italic.woff",
-    ("PV Serif", 600, "normal"): "newsreader-latin-600-normal.woff",
-    ("PV Serif", 600, "italic"): "newsreader-latin-600-italic.woff",
+    (family, weight, style): f"{prefix}-latin-{weight}-{style}.woff"
+    for family, prefix in FAMILIES.items()
+    for weight in (400, 600)
+    for style in ("normal", "italic")
 }
 
-# (heading family, body family)
-FONT_PAIRS = {
-    "plex-newsreader": ('"PV Serif", Georgia, serif', '"PV Plex", Arial, sans-serif'),
-    "plex": ('"PV Plex", Arial, sans-serif', '"PV Plex", Arial, sans-serif'),
-    "newsreader": ('"PV Serif", Georgia, serif', '"PV Serif", Georgia, serif'),
+_SERIF = "Georgia, serif"
+_SANS = "Arial, sans-serif"
+_STACKS = {
+    "PV Plex": _SANS,
+    "PV Serif": _SERIF,
+    "PV Inter": _SANS,
+    "PV Lato": _SANS,
+    "PV Source": _SANS,
+    "PV Montserrat": _SANS,
+    "PV Lora": _SERIF,
+    "PV Merriweather": _SERIF,
+    "PV Playfair": _SERIF,
 }
+
+
+def _stack(family: str) -> str:
+    return f'"{family}", {_STACKS[family]}'
+
+
+# key -> (heading family, body family)
+_PAIR_FAMILIES = {
+    "plex-newsreader": ("PV Serif", "PV Plex"),
+    "plex": ("PV Plex", "PV Plex"),
+    "newsreader": ("PV Serif", "PV Serif"),
+    "inter": ("PV Inter", "PV Inter"),
+    "inter-lora": ("PV Lora", "PV Inter"),
+    "lato": ("PV Lato", "PV Lato"),
+    "montserrat-lato": ("PV Montserrat", "PV Lato"),
+    "source": ("PV Source", "PV Source"),
+    "source-merriweather": ("PV Merriweather", "PV Source"),
+    "playfair-source": ("PV Playfair", "PV Source"),
+    "lora": ("PV Lora", "PV Lora"),
+    "merriweather": ("PV Merriweather", "PV Merriweather"),
+}
+# (heading font stack, body font stack)
+FONT_PAIRS = {key: (_stack(h), _stack(b)) for key, (h, b) in _PAIR_FAMILIES.items()}
 BASE_PT = {"small": 9.5, "medium": 10.5, "large": 11.5}
 BLOCK_GAP_MM = {"tight": 1.8, "normal": 3.0, "relaxed": 4.6}
 SECTION_GAP_MM = {"tight": 3.8, "normal": 5.5, "relaxed": 7.5}
@@ -105,6 +144,7 @@ h1,h2,h3,p,ul,ol{{margin:0;padding:0}}
 strong{{font-weight:600}}
 mark{{background:#fff1a8;color:inherit;padding:0 .4mm}}
 u{{text-decoration:underline;text-underline-offset:1pt}}
+a{{color:inherit;text-decoration:underline;text-underline-offset:1pt}}
 """
 
 
@@ -113,6 +153,10 @@ def _inline(node: dict[str, Any]) -> str:
         return "<br>"
     out: str = escape(node.get("text", ""))
     for mark in node.get("marks", []):
+        if mark["type"] == "link":
+            href = escape(mark["attrs"]["href"], quote=True)
+            out = f'<a href="{href}" rel="noopener noreferrer">{out}</a>'
+            continue
         tag = {"bold": "strong", "italic": "em", "underline": "u", "highlight": "mark"}[
             mark["type"]
         ]

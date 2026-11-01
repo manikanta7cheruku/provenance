@@ -108,7 +108,7 @@ export function duplicateElements(doc: CanvasDoc, ids: readonly string[]): { doc
         if (!groupMap.has(group)) groupMap.set(group, newId());
         group = groupMap.get(group) ?? null;
       }
-      return { ...el, id, group, locked: false, x: round1(el.x + shift.dx), y: round1(el.y + shift.dy), name: uniqueName(next, el.name) };
+      return { ...el, id, group, meta: undefined, locked: false, x: round1(el.x + shift.dx), y: round1(el.y + shift.dy), name: uniqueName(next, el.name) };
     });
     for (const copy of copies) next = addElement(next, pi, copy as CanvasElement);
   }

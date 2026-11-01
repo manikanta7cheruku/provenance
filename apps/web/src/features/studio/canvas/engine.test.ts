@@ -31,7 +31,7 @@ import { History } from "./history";
 import { allElements, findElement } from "./types";
 import type { CanvasDoc, CanvasElement, CanvasStyle, TextElement } from "./types";
 
-const STYLE: CanvasStyle = { template: "free", font_pair: "plex-newsreader", accent: "#1f3d7a", paper: "a4", margin_mm: 16 };
+const STYLE: CanvasStyle = { template: "free", font_pair: "plex-newsreader", accent: "#1f3d7a", ink: "#1b1b1b", muted: "#4a4a4a", tint: "#eef1f6", paper: "a4", margin_mm: 16 };
 
 function text(id: string, x: number, y: number, w: number, h: number, extra: Partial<TextElement> = {}): TextElement {
   return {

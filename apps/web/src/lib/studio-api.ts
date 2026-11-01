@@ -1,11 +1,11 @@
 import { request } from "./api";
 
-export type Mark = "bold" | "italic" | "underline" | "highlight";
+export type Mark = "bold" | "italic" | "underline" | "highlight" | "link";
 
 export interface RichNode {
   type: string;
   text?: string;
-  marks?: { type: Mark }[];
+  marks?: { type: Mark; attrs?: { href: string } }[];
   content?: RichNode[];
 }
 

@@ -13,6 +13,7 @@ import re
 import uuid
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlsplit
 
 SCHEMA_VERSION = 1
 
@@ -36,9 +37,22 @@ SECTION_KINDS = (
     "achievements",
     "custom",
 )
-MARKS = ("bold", "italic", "underline", "highlight")
+MARKS = ("bold", "italic", "underline", "highlight", "link")
 TEMPLATES = ("classic", "modern", "compact")
-FONT_PAIRS = ("plex-newsreader", "plex", "newsreader")
+FONT_PAIRS = (
+    "plex-newsreader",
+    "plex",
+    "newsreader",
+    "inter",
+    "inter-lora",
+    "lato",
+    "montserrat-lato",
+    "source",
+    "source-merriweather",
+    "playfair-source",
+    "lora",
+    "merriweather",
+)
 SIZES = ("small", "medium", "large")
 SPACINGS = ("tight", "normal", "relaxed")
 MARGINS = ("narrow", "normal", "wide")
@@ -104,6 +118,12 @@ def contrast_on_white(hex_color: str) -> float:
     return 1.05 / (_luminance(hex_color) + 0.05)
 
 
+def contrast_ratio(a: str, b: str) -> float:
+    """The WCAG contrast ratio of two #rrggbb colors, from 1 (the same) to 21."""
+    hi, lo = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
 def new_id() -> str:
     return uuid.uuid4().hex[:12]
 
@@ -131,6 +151,31 @@ def blank_document(template: str = "classic", name: str = "") -> dict[str, Any]:
 
 
 # ---- rich text
+
+LINK_SCHEMES = ("https://", "http://", "mailto:", "tel:")
+MAX_HREF = 2048
+
+
+def clean_href(value: Any) -> str | None:
+    """A web address, mail address or phone link that is safe to put in a PDF or a page, or None.
+
+    Only four schemes are allowed. Whitespace, control characters, quotes and angle brackets are
+    refused, so the value cannot break out of the attribute it is written into. A web address must
+    name a host."""
+    if not isinstance(value, str):
+        return None
+    href = value.strip()
+    if not href or len(href) > MAX_HREF:
+        return None
+    if any(ch <= " " or ch == "" or ch in '<>"`' for ch in href):
+        return None
+    lower = href.lower()
+    scheme = next((s for s in LINK_SCHEMES if lower.startswith(s)), None)
+    if scheme is None or len(href) == len(scheme):
+        return None
+    if scheme.startswith("http") and not urlsplit(href).hostname:
+        return None
+    return href
 
 
 def _clean_str(value: Any, limit: int, path: str, problems: dict[str, str]) -> str:
@@ -163,13 +208,24 @@ def _clean_inline(
     text = node.get("text")
     if not isinstance(text, str) or text == "":
         return None
-    marks: list[dict[str, str]] = []
+    marks: list[dict[str, Any]] = []
     for mark in node.get("marks") or []:
         mark_type = mark.get("type") if isinstance(mark, dict) else None
         if mark_type not in MARKS:
             problems[path] = "That formatting is not available."
             continue
-        if mark_type not in [m["type"] for m in marks]:
+        if mark_type in [m["type"] for m in marks]:
+            continue
+        if mark_type == "link":
+            attrs = mark.get("attrs")
+            href = clean_href(attrs.get("href") if isinstance(attrs, dict) else None)
+            if href is None:
+                problems[path] = (
+                    "That link is not valid. Use an address that starts with https://, mailto: or tel:."
+                )
+                continue
+            marks.append({"type": "link", "attrs": {"href": href}})
+        else:
             marks.append({"type": mark_type})
     cleaned = "".join(ch for ch in text if ch >= " " and ch != "\x7f")
     out: dict[str, Any] = {"type": "text", "text": cleaned}

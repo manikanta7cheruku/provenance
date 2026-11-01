@@ -1,15 +1,21 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ApiError } from "../../lib/api";
 import { createResume, deleteResume, fetchOptions, fetchResume, fetchResumes, saveResume } from "../../lib/studio-api";
 import type { ResumeContent, ResumeDocument, StudioContent, StudioOptions } from "../../lib/studio-api";
 import { useAsync } from "../../lib/useAsync";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
-import { ActionButton, ConfirmDialog, Notice, PageHeader, Section, SegmentedControl, Skeleton, Status } from "../../ui";
+import { ActionButton, Checkbox, ConfirmDialog, Dialog, Notice, PageHeader, Section, SegmentedControl, Skeleton, Status } from "../../ui";
 import { browserMeasure, CanvasEditor, structuredToCanvas } from "./canvas";
 import type { CanvasDoc } from "./canvas";
-import { fontFaceCss, FONT_FILES } from "./canvas/css";
+import { fontFaceCss } from "./canvas/css";
+import { loadFonts } from "./canvas/fonts";
 import { allElements, isCanvas } from "./canvas/types";
 import { richText } from "./canvas/rich";
+import { fromCanvas, fromStructured, SAMPLE_CONTENT } from "./canvas/templates/content";
+import { layoutTemplate } from "./canvas/templates/layout";
+import { TemplateGallery } from "./canvas/templates/TemplateGallery";
+import type { TemplateSpec } from "./canvas/templates/specs";
+import { templateById } from "./canvas/templates/specs";
 import { ContentEditor } from "./ContentEditor";
 import { ExportPanel } from "./ExportPanel";
 import { saveText } from "./labels";
@@ -19,29 +25,25 @@ import { useStudioDocument, usePreview } from "./useStudioDocument";
 import { VersionsDialog } from "./VersionsDialog";
 import "./studio.css";
 import "./canvas/canvas.css";
+import "./canvas/gallery.css";
 
 type StartKind = "profile" | "blank";
 type Layout = "canvas" | "guided";
 
 const isGuided = (content: StudioContent): content is ResumeContent => !isCanvas(content);
 
-/** Wait until the shipped fonts are ready, so text is measured with the fonts that will print. */
-async function loadFonts(): Promise<void> {
-  if (typeof document === "undefined" || !document.fonts) return;
-  try {
-    await Promise.all(FONT_FILES.map(([family, weight, style]) => document.fonts.load(`${style} ${weight} 12px "${family}"`)));
-    await document.fonts.ready;
-  } catch {
-    // A font that cannot load falls back to a system font. The resume is still laid out.
-  }
-}
-
-/** Lay a guided resume out on canvas pages, measured in the browser, and keep the old version as a restore point. */
-async function convertToCanvas(doc: ResumeDocument): Promise<ResumeDocument> {
+/**
+ * Lay a guided resume out on canvas pages, measured in the browser, and keep the old version as a
+ * restore point. With a template the words are set in that template, otherwise the guided look is kept.
+ */
+async function convertToCanvas(doc: ResumeDocument, spec?: TemplateSpec): Promise<ResumeDocument> {
   await loadFonts();
   const { measure, dispose } = browserMeasure();
   try {
-    const canvas: CanvasDoc = structuredToCanvas(doc.content as ResumeContent, measure);
+    const guided = doc.content as ResumeContent;
+    const canvas: CanvasDoc = spec
+      ? layoutTemplate(fromStructured(guided), spec, measure, { paper: guided.style.paper })
+      : structuredToCanvas(guided, measure);
     const saved = await saveResume(doc.id, { content: canvas, revision: doc.revision, checkpoint: true });
     return { ...doc, revision: saved.revision, template: saved.template, content: canvas as unknown as StudioContent };
   } finally {
@@ -55,12 +57,67 @@ function resumeName(content: StudioContent): string {
   return first && first.kind === "text" ? richText(first.body).split("\n")[0]!.slice(0, 80) : "";
 }
 
+/** Pick another template for a canvas resume. Every word is carried over; only the layout changes. */
+function TemplateSwitcher({
+  doc,
+  busy,
+  onCancel,
+  onApply,
+}: {
+  doc: CanvasDoc;
+  busy: boolean;
+  onCancel: () => void;
+  onApply: (spec: TemplateSpec, keepStyle: boolean) => void;
+}) {
+  const extracted = useMemo(() => fromCanvas(doc), [doc]);
+  const [spec, setSpec] = useState<TemplateSpec>(() => templateById(doc.style.template) ?? templateById("ledger")!);
+  const [keepStyle, setKeepStyle] = useState(true);
+  const unlabelled = !extracted.labelled;
+  return (
+    <Dialog
+      open
+      title="Change template"
+      onClose={() => {
+        if (!busy) onCancel();
+      }}
+      actions={
+        <>
+          <ActionButton onClick={onCancel} disabled={busy} autoFocus>
+            Cancel
+          </ActionButton>
+          <ActionButton variant="primary" onClick={() => onApply(spec, keepStyle)} disabled={busy || unlabelled}>
+            {busy ? "Applying" : "Apply template"}
+          </ActionButton>
+        </>
+      }
+    >
+      {unlabelled ? (
+        <Notice tone="warn" title="This layout cannot be swapped">
+          <p>
+            This resume was laid out before templates existed, or every label was removed, so its words cannot be found again. Start a new resume from a template, or keep editing this one on the page.
+          </p>
+        </Notice>
+      ) : (
+        <>
+          <p>
+            Your words are laid out again in the template you pick. Moves you made by hand are not kept
+            {extracted.dropped > 0 ? `, and ${extracted.dropped} ${extracted.dropped === 1 ? "text box" : "text boxes"} you added yourself will not carry over` : ""}. The current layout is saved in Earlier versions.
+          </p>
+          <Checkbox label="Keep my fonts and colors" hint="Turn this off to use the template's own fonts and colors." checked={keepStyle} onChange={(event) => setKeepStyle(event.target.checked)} />
+          <TemplateGallery content={extracted.content} paper={doc.style.paper} value={spec.id} onChange={setSpec} />
+        </>
+      )}
+    </Dialog>
+  );
+}
+
 function StudioFonts() {
   return <style>{fontFaceCss()}</style>;
 }
 
 function StartScreen({ options, onCreated }: { options: StudioOptions; onCreated: (doc: ResumeDocument) => void }) {
   const [template, setTemplate] = useState("classic");
+  const [spec, setSpec] = useState<TemplateSpec>(() => templateById("ledger")!);
   const [start, setStart] = useState<StartKind>("profile");
   const [layout, setLayout] = useState<Layout>("canvas");
   const [busy, setBusy] = useState(false);
@@ -70,8 +127,8 @@ function StartScreen({ options, onCreated }: { options: StudioOptions; onCreated
     setBusy(true);
     setProblem(null);
     try {
-      let doc = await createResume({ start, template });
-      if (layout === "canvas") doc = await convertToCanvas(doc);
+      let doc = await createResume({ start, template: layout === "canvas" ? "classic" : template });
+      if (layout === "canvas") doc = await convertToCanvas(doc, spec);
       onCreated(doc);
     } catch (caught) {
       setProblem(caught instanceof ApiError ? caught.message : "The resume could not be started. Try again.");
@@ -118,7 +175,16 @@ function StartScreen({ options, onCreated }: { options: StudioOptions; onCreated
               ? "Place anything anywhere: drag, resize and edit text right on the page. A layout check tells you if a tracking system may misread it."
               : "A single column that flows by itself, easiest for applicant tracking systems. You choose the content and the design."}
           </p>
-          <TemplateChoice options={options} value={template} onChange={setTemplate} name="start-template" />
+          {layout === "canvas" ? (
+            <>
+              <p className="field__hint">
+                The previews use sample words. Yours are filled in when you start, and you can change the template later without losing them.
+              </p>
+              <TemplateGallery content={SAMPLE_CONTENT} paper="a4" value={spec.id} onChange={setSpec} legend="Choose a template" />
+            </>
+          ) : (
+            <TemplateChoice options={options} value={template} onChange={setTemplate} name="start-template" />
+          )}
           {problem ? (
             <Notice tone="danger">
               <p>{problem}</p>
@@ -209,6 +275,7 @@ function Editor({
   const [history, setHistory] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   useDocumentTitle("Resume studio");
@@ -250,6 +317,37 @@ function Editor({
     }
   }
 
+  async function applyTemplate(spec: TemplateSpec, useOwnStyle: boolean) {
+    setBusy(true);
+    setProblem(null);
+    try {
+      await doc.flush();
+      await loadFonts();
+      const current = content as unknown as CanvasDoc;
+      const { content: words } = fromCanvas(current);
+      const { measure, dispose } = browserMeasure();
+      try {
+        const next = layoutTemplate(words, spec, measure, {
+          paper: current.style.paper,
+          ...(useOwnStyle
+            ? { fontPair: current.style.font_pair, colors: { accent: current.style.accent, ink: current.style.ink, muted: current.style.muted, tint: current.style.tint } }
+            : {}),
+        });
+        const saved = await saveResume(initial.id, { content: next, revision: doc.getRevision(), checkpoint: true });
+        doc.replace({ revision: saved.revision, content: next as unknown as StudioContent });
+        setEpoch((n) => n + 1);
+        setSwitching(false);
+        announce(`The ${spec.name} template is applied. The earlier layout is kept in Earlier versions.`);
+      } finally {
+        dispose();
+      }
+    } catch (caught) {
+      setProblem(caught instanceof ApiError ? caught.message : "The template could not be applied. Nothing was changed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const problems = Object.entries(doc.problems);
   return (
     <>
@@ -272,6 +370,7 @@ function Editor({
         </p>
         <div className="studio__actions">
           {isGuided(content) ? <ActionButton onClick={() => setConverting(true)}>Move to the free canvas</ActionButton> : null}
+          {!isGuided(content) ? <ActionButton onClick={() => setSwitching(true)}>Change template</ActionButton> : null}
           <ActionButton onClick={() => setHistory(true)}>Earlier versions</ActionButton>
           <ActionButton onClick={() => setDeleting(true)}>Delete this resume</ActionButton>
         </div>
@@ -353,6 +452,14 @@ function Editor({
           Every section becomes boxes you can move anywhere. The guided version is kept as an earlier version, so you can go back from Earlier versions.
         </p>
       </ConfirmDialog>
+      {switching && !isGuided(content) ? (
+        <TemplateSwitcher
+          doc={content as unknown as CanvasDoc}
+          busy={busy}
+          onCancel={() => setSwitching(false)}
+          onApply={(spec, own) => void applyTemplate(spec, own)}
+        />
+      ) : null}
       <ConfirmDialog
         open={deleting}
         title="Delete this resume?"

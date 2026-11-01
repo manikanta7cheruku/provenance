@@ -181,6 +181,15 @@ export const STUDIO_OPTIONS = {
     { key: "plex-newsreader", label: "Serif headings, sans body" },
     { key: "plex", label: "Sans serif throughout" },
     { key: "newsreader", label: "Serif throughout" },
+    { key: "inter", label: "Inter throughout" },
+    { key: "inter-lora", label: "Lora headings, Inter body" },
+    { key: "lato", label: "Lato throughout" },
+    { key: "montserrat-lato", label: "Montserrat headings, Lato body" },
+    { key: "source", label: "Source Sans throughout" },
+    { key: "source-merriweather", label: "Merriweather headings, Source Sans body" },
+    { key: "playfair-source", label: "Playfair headings, Source Sans body" },
+    { key: "lora", label: "Lora throughout" },
+    { key: "merriweather", label: "Merriweather throughout" },
   ],
   sizes: ["small", "medium", "large"],
   spacings: ["tight", "normal", "relaxed"],
@@ -226,7 +235,7 @@ export function canvasContent(name = "Asha Rao") {
   const bullets = { type: "doc", content: [{ type: "bulletList", content: ["Cleaned six CSV sources with pandas", "Wrote SQL joins over 1.2 million rows"].map((line) => ({ type: "listItem", content: [para(line)] })) }] };
   return {
     version: 2,
-    style: { template: "classic", font_pair: "plex-newsreader", accent: "#1f3d7a", paper: "a4", margin_mm: 16 },
+    style: { template: "classic", font_pair: "plex-newsreader", accent: "#1f3d7a", ink: "#1b1b1b", muted: "#4a4a4a", tint: "#eef1f6", paper: "a4", margin_mm: 16 },
     pages: [{
       id: "pg1",
       elements: [

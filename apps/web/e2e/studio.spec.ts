@@ -89,7 +89,7 @@ test("the formatting toolbar works with the keyboard and saves marks", async ({ 
   await page.keyboard.press("ArrowRight");
   await expect(toolbar.getByRole("button", { name: "Italic" })).toBeFocused();
   await page.keyboard.press("End");
-  await expect(toolbar.getByRole("button", { name: "Numbered list" })).toBeFocused();
+  await expect(toolbar.getByRole("button", { name: "Link" })).toBeFocused();
   await page.keyboard.press("Home");
   await expect(bold).toBeFocused();
 

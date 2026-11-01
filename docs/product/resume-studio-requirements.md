@@ -23,7 +23,7 @@ Let a student create, customize and tailor a professional resume with much more 
 | FR-RES-2 | Formatting: bold, italic, underline, highlight, bullet and numbered lists, divider lines, spacing scale, margins, section reorder | 2.1, built |
 | FR-RES-3 | Professional fonts, self-hosted, with font pairs. Font licences checked before shipping | 2.1, built with three pairs from two open licence families |
 | FR-RES-4 | PDF export matching the preview, text selectable, reading order verified by test | 2.1, built. Page counts agreed on the five sample resumes |
-| FR-RES-5 | At least 20 templates. Each declares an ATS-safe flag. The editor warns when edits reduce ATS safety | 2.3 |
+| FR-RES-5 | At least 20 templates. Each declares an ATS-safe flag. The editor warns when edits reduce ATS safety | 2.3, built |
 | FR-RES-6 | Suggestions in the editor that never add facts the profile does not support. Each suggestion shows why and is accepted, rejected or edited by the user | 2.4 |
 | FR-RES-7 | Tailoring to a job with a grounding verifier (FR-TAI-1, FR-TAI-2) | 2.4 |
 | FR-RES-8 | Free plan: one resume and rate-limited exports. Enforced by entitlements at 3.3. Until then a single configurable limit exists | 2.1 built as `STUDIO_MAX_RESUMES`, 3.3 |
@@ -58,7 +58,13 @@ Other resume builders either give templates with little freedom or give Canva-st
 | FR-RES-15 | PDF output matches the canvas, with selectable text in reading order (top to bottom, then left to right) | 2.2, built |
 | FR-RES-16 | A visible ATS-safety indicator that says when the layout uses columns, overlaps or text over shapes, with the reason | 2.2, built |
 | FR-RES-17 | Every canvas action works from the keyboard, with announcements for screen readers. A person who cannot use a pointer can do everything | 2.2, built |
-| FR-RES-18 | Templates (2.3) are canvas layouts. Switching a template re-flows content and keeps the person's edits where possible | 2.3 |
+| FR-RES-18 | Templates (2.3) are canvas layouts. Switching a template re-flows content and keeps the person's edits where possible | 2.3, built |
+| FR-RES-19 | A person can add a link (web, mail or phone) to any text, and contacts are linked automatically. Only https, http, mailto and tel are accepted, on the server and in the browser. In the PDF a link is a real link | 2.3, built |
+| FR-RES-20 | At least 9 font families and 12 font pairs, all shipped with the product so a PDF never depends on the network | 2.3, built |
+| FR-RES-21 | Color themes: ready-made sets of accent, text, grey and tint, each checked for readability, with custom colors that are refused when unreadable | 2.3, built |
+| FR-RES-22 | Images, photos and icons on the canvas | 2.11 |
+| FR-RES-23 | Editing on touch screens and phones | 2.12 |
+| FR-RES-24 | Saved themes and a brand kit reused across resumes | 2.13 |
 
 Rules: the canvas never invents content. Suggestions and tailoring (2.4) change text and never layout. The structured mode stays for people who want an ATS-safe resume with no layout work.
 
