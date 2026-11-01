@@ -82,6 +82,8 @@ class Settings(BaseSettings):
     llm_embedding_model: str = ""
     llm_embedding_dimensions: int = 768
     llm_min_interval_seconds: float = 0.0
+    # How long a source terms review stays valid. After that the source cannot be used.
+    source_review_window_days: int = 180
     llm_input_price_per_million: float = 0.0
     llm_output_price_per_million: float = 0.0
     llm_embedding_price_per_million: float = 0.0

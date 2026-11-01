@@ -21,6 +21,7 @@ import { PlannedPage } from "../features/planned";
 import { ProfilePage } from "../features/profile";
 import { RunDetailPage, RunsPage } from "../features/runs";
 import { SettingsPage } from "../features/settings";
+import { FindJobsPage } from "../features/search";
 import { StudioPage } from "../features/studio";
 import { SessionProvider } from "../lib/session";
 import { SystemStatusProvider } from "../lib/system-status";
@@ -30,7 +31,7 @@ import { RequireAuth } from "./RequireAuth";
 import { Shell } from "./Shell";
 
 /** Screens that are built. Everything else in the navigation still shows a "planned" page. */
-const BUILT_PATHS = new Set(["/runs", "/admin", "/profile", "/opportunities", "/studio"]);
+const BUILT_PATHS = new Set(["/runs", "/admin", "/profile", "/opportunities", "/find", "/studio"]);
 
 /**
  * Composition only: providers, routes and the shell. Screens live in features/.
@@ -67,6 +68,7 @@ function ProductApp() {
               ))}
               <Route path="/opportunities" element={<OpportunitiesPage />} />
               <Route path="/opportunities/:jobId" element={<JobDetailPage />} />
+              <Route path="/find" element={<FindJobsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/studio" element={<StudioPage />} />
               <Route path="/runs" element={<RunsPage />} />

@@ -10,11 +10,12 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 
-from pv_api.deps import AdminUser, AdminWriter, EngineDep
+from pv_api.deps import AdminUser, AdminWriter, EngineDep, SettingsDep, ip_hash_of
 from pv_api.schemas import (
     AdminOverview,
+    AdminSourceOut,
     AdminUserDetail,
     AdminUserList,
     AuditList,
@@ -22,9 +23,10 @@ from pv_api.schemas import (
     InviteCreated,
     InviteOut,
     MessageResponse,
+    SourceUpdateIn,
     SystemOverview,
 )
-from pv_api.services import admin_service
+from pv_api.services import admin_service, search_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -143,4 +145,23 @@ def audit(
 ) -> AuditList:
     return admin_service.list_audit(
         engine, category=category, action=action, before=before, limit=limit
+    )
+
+
+@router.get("/sources", response_model=list[AdminSourceOut])
+def list_sources(_: AdminUser, engine: EngineDep, settings: SettingsDep) -> list[AdminSourceOut]:
+    return search_service.admin_sources(engine, settings)
+
+
+@router.patch("/sources/{key}", response_model=AdminSourceOut)
+def update_source(
+    key: str,
+    payload: SourceUpdateIn,
+    request: Request,
+    actor: AdminWriter,
+    engine: EngineDep,
+    settings: SettingsDep,
+) -> AdminSourceOut:
+    return search_service.admin_update(
+        engine, settings, actor.user_id, key, payload, ip_hash_of(request, settings)
     )

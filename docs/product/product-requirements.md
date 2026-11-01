@@ -67,9 +67,9 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 |---|---|---|
 | FR-JOB-1 | Canonical JobPosting independent of source | 1 |
 | FR-JOB-2 | Paste job description | 1 |
-| FR-SRC-1 | Source registry with capabilities, compliance status, verification date | 2 |
+| FR-SRC-1 | Source registry with capabilities, compliance status, verification date | 2, built at 2.5 |
 | FR-SRC-2 | Adapters for permitted sources (see source-compliance.md) | 2 |
-| FR-SRC-3 | Resolver returns search, import_required, or unavailable. Never silently substitutes | 2 |
+| FR-SRC-3 | Resolver returns search, import_required, or unavailable. Never silently substitutes | 2, built at 2.5 |
 | FR-DUP-1 | Layered deduplication with reversible links | 2 |
 | FR-IMP-1 | CSV and XLSX import with column detection and per-row validation report | 2 |
 | FR-IMP-2 | URL import with SSRF protection | 2 |

@@ -56,7 +56,13 @@ known-first-party = [
 "packages/domain/src/pv_domain/resume_canvas.py" = ["E501"]
 "packages/llm/src/pv_llm/evidence_agent.py" = ["E501"]
 "packages/llm/src/pv_llm/tailor.py" = ["E501"]
+"packages/llm/src/pv_llm/search_intent.py" = ["E501"]
 "packages/domain/src/pv_domain/tailoring.py" = ["E501"]
+"packages/domain/src/pv_domain/sources.py" = ["E501"]
+"packages/domain/src/pv_domain/company.py" = ["E501"]
+"packages/domain/src/pv_domain/resolver.py" = ["E501"]
+"packages/domain/src/pv_domain/search_intent.py" = ["E501"]
+"packages/persistence/src/pv_persistence/migrations/versions/0010_source_registry.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
