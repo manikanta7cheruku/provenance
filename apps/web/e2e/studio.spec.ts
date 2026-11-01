@@ -66,6 +66,7 @@ test("start from the profile, edit, and see it saved and previewed", async ({ pa
   const fake = await fakeApi(page);
   await page.goto("/studio");
   await expect(page.getByRole("heading", { name: "Start your resume" })).toBeVisible();
+  await page.getByRole("radio", { name: "Guided and ATS-safe" }).check({ force: true });
   await page.getByRole("radio", { name: /Modern/ }).check({ force: true });
   await page.getByRole("button", { name: "Start my resume" }).click();
   await expect(page.getByLabel("Full name")).toBeVisible();

@@ -66,6 +66,12 @@
   --color-surface-base: light-dark(#faf9f6, #131412);
   --color-surface-raised: light-dark(#ffffff, #1b1c1a);
   --color-surface-sunken: light-dark(#f2f0eb, #0f100f);
+  /* Paper in the resume canvas is white in every theme, so its inks are fixed too. */
+  --color-paper: #ffffff;
+  --color-paper-ink: #1b1b1b;
+  --color-paper-placeholder: #6a6a6a;
+  --color-paper-guide: #8a8a8a;
+  --color-paper-highlight: #fff1a8;
   /* The highlighter mark in resume text. Text on it must stay readable in both themes. */
   --color-highlight-bg: light-dark(#fff1a8, #5e5200);
   --color-highlight-text: light-dark(#1b1b1b, #fff8d0);

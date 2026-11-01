@@ -135,4 +135,8 @@
     max-width: var(--size-content-max);
     padding: var(--space-5) var(--space-7) var(--space-7);
   }
+  /* The resume studio needs the width: a page is 210 mm across and the tools sit beside it. */
+  .shell__main--wide {
+    max-width: none;
+  }
 }

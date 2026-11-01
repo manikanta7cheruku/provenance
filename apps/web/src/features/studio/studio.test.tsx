@@ -238,7 +238,7 @@ describe("the design panel", () => {
 });
 
 describe("autosave", () => {
-  const initial: ResumeDocument = {
+  const initial = {
     id: "r1",
     title: "My resume",
     revision: 3,

@@ -53,6 +53,7 @@ known-first-party = [
 "packages/domain/src/pv_domain/analysis.py" = ["E501"]
 "packages/domain/src/pv_domain/resume_doc.py" = ["E501"]
 "packages/domain/src/pv_domain/resume_render.py" = ["E501"]
+"packages/domain/src/pv_domain/resume_canvas.py" = ["E501"]
 "packages/llm/src/pv_llm/evidence_agent.py" = ["E501"]
 
 [tool.mypy]

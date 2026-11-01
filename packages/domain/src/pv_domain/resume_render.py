@@ -132,6 +132,11 @@ def _block(node: dict[str, Any]) -> str:
     return f"<{tag}>{items}</{tag}>"
 
 
+def render_rich_nodes(body: dict[str, Any] | None) -> str:
+    """The inner HTML of a rich body, without a wrapper."""
+    return "".join(_block(n) for n in (body or {}).get("content", []))
+
+
 def render_body(body: dict[str, Any] | None) -> str:
     if not body:
         return ""
@@ -141,6 +146,10 @@ def render_body(body: dict[str, Any] | None) -> str:
 def render_html(doc: dict[str, Any], *, font_base: str, preview: bool = False) -> str:
     """The whole page. `font_base` ends with a slash: a web path for the preview, a file path for
     the PDF. The document must already have passed validate_document."""
+    if doc.get("version") == 2:
+        from pv_domain.resume_canvas import render_canvas_html
+
+        return render_canvas_html(doc, font_base=font_base, preview=preview)
     header = doc["header"]
     style = doc["style"]
     parts = ['<main class="resume">']

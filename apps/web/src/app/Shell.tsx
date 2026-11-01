@@ -65,7 +65,7 @@ export function Shell() {
           </div>
         </div>
       </nav>
-      <main id="main" className="shell__main">
+      <main id="main" className={`shell__main${location.pathname.startsWith("/studio") ? " shell__main--wide" : ""}`}>
         <VerificationBanner />
         <Outlet />
       </main>

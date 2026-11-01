@@ -56,8 +56,17 @@ export interface ResumeSummary {
   updated_at: string;
 }
 
+/** The free canvas document (version 2). Its full shape lives with the canvas editor. */
+export interface CanvasWire {
+  version: 2;
+  style: Record<string, unknown>;
+  pages: unknown[];
+}
+
+export type StudioContent = ResumeContent | CanvasWire;
+
 export interface ResumeDocument extends ResumeSummary {
-  content: ResumeContent;
+  content: StudioContent;
 }
 
 export interface TemplateInfo {
@@ -116,12 +125,12 @@ export function createResume(input: { start: "profile" | "blank"; template: stri
 
 export function saveResume(
   id: string,
-  input: { content: ResumeContent; revision: number; title?: string; checkpoint?: boolean },
+  input: { content: object; revision: number; title?: string; checkpoint?: boolean },
 ): Promise<ResumeSummary> {
   return request<ResumeSummary>("PUT", `${BASE}/resumes/${enc(id)}`, { body: input });
 }
 
-export function previewResume(id: string, content: ResumeContent, signal?: AbortSignal): Promise<{ html: string }> {
+export function previewResume(id: string, content: object, signal?: AbortSignal): Promise<{ html: string }> {
   return request<{ html: string }>("POST", `${BASE}/resumes/${enc(id)}/preview`, {
     body: { content },
     signal,

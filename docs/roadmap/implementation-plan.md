@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-26 checkpoints in total. Nine are done and merged (1.1 to 1.9), which completes Phase 1. Checkpoint 2.1 is built and awaiting merge. Sixteen remain after it. Revision 3 added checkpoint 2.2, the free canvas editor, and moved the later Phase 2 checkpoints up by one.
+26 checkpoints in total. Ten are done and merged (1.1 to 1.9 and 2.1). Checkpoint 2.2 is built and awaiting merge. Fifteen remain after it. Revision 3 added checkpoint 2.2, the free canvas editor, and moved the later Phase 2 checkpoints up by one.
 
 | Checkpoint | State |
 |---|---|
@@ -23,8 +23,8 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 1.7 | Done and merged |
 | 1.8 | Done and merged |
 | 1.9 | Done and merged |
-| 2.1 | Built on branch phase-2/checkpoint-2.1-resume-studio-foundation, awaiting review and merge |
-| 2.2 | Planned next. A measured spike comes first (ADR-0034) |
+| 2.1 | Done and merged |
+| 2.2 | Built on branch phase-2/checkpoint-2.2-free-canvas-editor, awaiting review and merge |
 | 2.3 to 2.10 | Not started |
 | 3.1 to 3.7 | Not started |
 
