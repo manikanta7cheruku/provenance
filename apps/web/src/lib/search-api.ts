@@ -50,6 +50,26 @@ export interface SourceInfo {
   terms_checked_at: string | null;
   terms_url: string | null;
   attribution_text: string;
+  health_status: "unknown" | "healthy" | "degraded" | "down";
+  last_success_at: string | null;
+  jobs_open: number;
+}
+
+export interface FetchedJob {
+  id: string;
+  title: string;
+  company_name: string | null;
+  location: string;
+  workplace: string | null;
+  employment_type: string | null;
+  department: string;
+  url: string;
+  excerpt: string;
+  source_key: string;
+  source_name: string;
+  attribution_text: string;
+  posted_at: string | null;
+  first_seen_at: string;
 }
 
 export interface IntentFields {
@@ -67,4 +87,17 @@ export function fetchSources(signal?: AbortSignal): Promise<SourceInfo[]> {
 
 export function planSearch(input: { query: string } | { intent: IntentFields }): Promise<SearchPlan> {
   return request<SearchPlan>("POST", "/api/v1/search/plan", { body: input });
+}
+
+export function fetchJobs(
+  filters: { roles?: string[]; companies?: string[]; locations?: string[]; sources?: string[]; work_mode?: string },
+  signal?: AbortSignal,
+): Promise<FetchedJob[]> {
+  const params = new URLSearchParams();
+  for (const [name, values] of Object.entries(filters)) {
+    for (const value of Array.isArray(values) ? values : values ? [values] : []) {
+      if (value && !(name === "work_mode" && value === "any")) params.append(name, value);
+    }
+  }
+  return request<FetchedJob[]>("GET", `/api/v1/search/jobs?${params.toString()}`, { signal });
 }

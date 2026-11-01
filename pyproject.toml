@@ -62,6 +62,10 @@ known-first-party = [
 "packages/domain/src/pv_domain/company.py" = ["E501"]
 "packages/domain/src/pv_domain/resolver.py" = ["E501"]
 "packages/domain/src/pv_domain/search_intent.py" = ["E501"]
+"packages/domain/src/pv_domain/job_feed.py" = ["E501"]
+"apps/worker/src/pv_worker/fetcher.py" = ["E501"]
+"apps/worker/src/pv_worker/handlers/poll_source.py" = ["E501"]
+"packages/persistence/src/pv_persistence/migrations/versions/0011_source_jobs_and_fetch_log.py" = ["E501"]
 "packages/persistence/src/pv_persistence/migrations/versions/0010_source_registry.py" = ["E501"]
 
 [tool.mypy]

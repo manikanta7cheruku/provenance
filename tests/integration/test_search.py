@@ -2,7 +2,7 @@
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from datetime import date
 from typing import Any
 
@@ -49,14 +49,21 @@ class IntentStub:
         return GenerationResult(text=body, input_tokens=30, output_tokens=20, latency_ms=2)
 
 
-@pytest.fixture(autouse=True)
-def seeded(engine: Engine) -> None:
+def _reset(engine: Engine) -> None:
+    """Back to the seed, with no poll left queued: a worker must never poll because of a test."""
     seed_registry(engine)
     with Session(engine) as db, db.begin():
-        # Other tests may have edited a source. Start each test from the seed again.
         db.execute(text("UPDATE job_sources SET edited_at = NULL"))
         db.execute(text("UPDATE companies SET edited_at = NULL"))
+        db.execute(text("DELETE FROM tasks WHERE task_type = 'poll_source'"))
     seed_registry(engine)
+
+
+@pytest.fixture(autouse=True)
+def seeded(engine: Engine) -> Iterator[None]:
+    _reset(engine)
+    yield
+    _reset(engine)
 
 
 def use(monkeypatch: pytest.MonkeyPatch, stub: IntentStub) -> IntentStub:
@@ -368,8 +375,8 @@ def test_an_administrator_can_record_a_review_and_then_enable_and_it_is_audited(
         ).all()
     assert events and "enabled" in json.dumps(events[-1][0])
     plan_body = plan(admin, intent={"sources": ["ashby"]}).json()
-    assert plan_body["sources"][0]["outcome"] == "import_required"  # still no adapter
-    assert "has not been built yet" in plan_body["sources"][0]["reason"]
+    assert plan_body["sources"][0]["outcome"] == "search"  # verified, enabled and an adapter exists
+    assert plan_body["sources"][0]["message"] == "Searching Ashby job boards"
 
 
 def test_an_expired_review_switches_a_source_off_in_the_plan(

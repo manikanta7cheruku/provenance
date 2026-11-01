@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../lib/api";
-import { fetchSources, planSearch } from "../../lib/search-api";
-import type { CompanyDecision, IntentFields, SearchPlan, SourceDecision, SourceInfo } from "../../lib/search-api";
+import { fetchJobs, fetchSources, planSearch } from "../../lib/search-api";
+import type { CompanyDecision, FetchedJob, IntentFields, SearchPlan, SourceDecision, SourceInfo } from "../../lib/search-api";
 import { useAsync } from "../../lib/useAsync";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { ActionButton, Notice, PageHeader, Section, Select, Skeleton, Status, TextArea, TextField } from "../../ui";
@@ -21,6 +21,15 @@ const COMPLIANCE: Record<SourceInfo["compliance_status"], string> = {
   restricted: "Terms restrict this use",
   prohibited: "Automated access not allowed",
 };
+
+const HEALTH: Record<SourceInfo["health_status"], { label: string; tone: Tone }> = {
+  unknown: { label: "Not asked yet", tone: "neutral" },
+  healthy: { label: "Healthy", tone: "ok" },
+  degraded: { label: "Slow to answer", tone: "warn" },
+  down: { label: "Paused after failures", tone: "danger" },
+};
+
+const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : null);
 
 const split = (text: string) =>
   text
@@ -101,6 +110,64 @@ function Companies({ items, onPick }: { items: CompanyDecision[]; onPick: (query
   );
 }
 
+function Jobs({ plan }: { plan: SearchPlan }) {
+  const [jobs, setJobs] = useState<FetchedJob[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const list = (key: string) => (Array.isArray(plan.intent[key]) ? (plan.intent[key] as string[]) : []);
+  const searched = plan.sources.filter((d) => d.outcome === "search").map((d) => d.key);
+  const companies = plan.companies.flatMap((c) => (c.company ? [c.company.key] : []));
+  const signature = JSON.stringify([list("roles"), list("locations"), companies, searched, plan.intent.work_mode]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setJobs(null);
+    setFailed(false);
+    fetchJobs(
+      { roles: list("roles"), locations: list("locations"), companies, sources: searched, work_mode: String(plan.intent.work_mode ?? "any") },
+      controller.signal,
+    )
+      .then(setJobs)
+      .catch((caught: unknown) => {
+        if (!(caught instanceof DOMException && caught.name === "AbortError")) setFailed(true);
+      });
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
+
+  if (failed) {
+    return (
+      <Notice tone="danger">
+        <p>The jobs could not be loaded. Nothing was changed.</p>
+      </Notice>
+    );
+  }
+  if (jobs === null) return <Skeleton label="Loading jobs" lines={3} />;
+  if (jobs.length === 0) return <p>No jobs have been fetched for this search yet. The sources are asked politely, a few times a day at most.</p>;
+  return (
+    <ul className="find__list">
+      {jobs.map((job) => (
+        <li key={job.id} className="find__item">
+          <p className="find__line">
+            <strong>{job.title}</strong>
+            {job.company_name ? <span>, {job.company_name}</span> : null}
+          </p>
+          <p className="find__meta">
+            {[job.location, job.workplace, job.employment_type?.replace("_", " "), job.department].filter(Boolean).join(" | ")}
+          </p>
+          {job.excerpt ? <p>{job.excerpt}</p> : null}
+          <p className="find__meta">
+            Source: {job.source_name}
+            {job.attribution_text ? `. ${job.attribution_text}` : ""}. Found {when(job.first_seen_at)}.{" "}
+            <a href={job.url} target="_blank" rel="noopener noreferrer">
+              Open the original posting<span className="visually-hidden"> for {job.title}</span>
+            </a>
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Registry() {
   const sources = useAsync((signal) => fetchSources(signal), []);
   if (sources.loading) return <Skeleton label="Loading the sources" lines={3} />;
@@ -128,6 +195,12 @@ function Registry() {
             ) : null}
           </p>
           {s.reason ? <p className="find__meta">{s.reason}</p> : null}
+          {s.outcome === "search" || s.health_status !== "unknown" ? (
+            <p className="find__meta">
+              <Status tone={HEALTH[s.health_status].tone} label={HEALTH[s.health_status].label} />
+              {s.last_success_at ? ` Last answered ${when(s.last_success_at)}.` : ""} {s.jobs_open} open {s.jobs_open === 1 ? "job" : "jobs"} kept.
+            </p>
+          ) : null}
         </li>
       ))}
     </ul>
@@ -253,6 +326,11 @@ export function FindJobsPage() {
               </p>
             ) : null}
           </Section>
+          {plan.can_search_now ? (
+            <Section title="Jobs from the sources searched">
+              <Jobs plan={plan} />
+            </Section>
+          ) : null}
           <Companies items={plan.companies} onPick={(q, name) => void run({ intent: { ...fromFields(), companies: [name] } })} />
         </>
       ) : null}
