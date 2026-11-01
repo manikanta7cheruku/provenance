@@ -726,3 +726,80 @@ class StudioOptionsOut(BaseModel):
     papers: list[str]
     section_kinds: list[str]
     max_resumes: int
+
+
+# ---- checkpoint 2.4: resume tailoring
+
+
+class TailorStartIn(BaseModel):
+    job_id: uuid.UUID
+
+
+class TailorJobOut(BaseModel):
+    job_id: uuid.UUID
+    title: str | None
+    company: str | None
+
+
+class TailorRequirementOut(BaseModel):
+    id: uuid.UUID
+    text: str
+
+
+class TailorCitationOut(BaseModel):
+    chunk_id: uuid.UUID
+    quote: str
+    source: str
+    entry_type: str | None
+
+
+class TailorClaimOut(BaseModel):
+    text: str
+    kind: str
+    supported: bool
+    source: str | None
+
+
+class TailorSuggestionOut(BaseModel):
+    id: uuid.UUID
+    unit_id: str
+    kind: str
+    label: str
+    before_lines: list[str]
+    after_lines: list[str]
+    reason: str
+    requirements: list[TailorRequirementOut]
+    citations: list[TailorCitationOut]
+    claims: list[TailorClaimOut]
+    blocked: bool
+    edited: bool
+    status: str
+
+
+class TailorGapOut(BaseModel):
+    text: str
+    reason: str
+
+
+class TailoringOut(BaseModel):
+    id: uuid.UUID
+    job_id: uuid.UUID
+    job_title: str | None
+    company: str | None
+    ui_state: str
+    error_message: str | None
+    suggestions: list[TailorSuggestionOut]
+    unclaimed: list[TailorGapOut]
+
+
+class SuggestionEditIn(BaseModel):
+    after_lines: list[str]
+
+
+class SuggestionAcceptIn(BaseModel):
+    revision: int
+
+
+class SuggestionAcceptedOut(BaseModel):
+    suggestion: TailorSuggestionOut
+    document: ResumeDocumentSummaryOut

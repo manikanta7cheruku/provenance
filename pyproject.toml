@@ -55,6 +55,8 @@ known-first-party = [
 "packages/domain/src/pv_domain/resume_render.py" = ["E501"]
 "packages/domain/src/pv_domain/resume_canvas.py" = ["E501"]
 "packages/llm/src/pv_llm/evidence_agent.py" = ["E501"]
+"packages/llm/src/pv_llm/tailor.py" = ["E501"]
+"packages/domain/src/pv_domain/tailoring.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"

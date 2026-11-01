@@ -24,8 +24,8 @@ Let a student create, customize and tailor a professional resume with much more 
 | FR-RES-3 | Professional fonts, self-hosted, with font pairs. Font licences checked before shipping | 2.1, built with three pairs from two open licence families |
 | FR-RES-4 | PDF export matching the preview, text selectable, reading order verified by test | 2.1, built. Page counts agreed on the five sample resumes |
 | FR-RES-5 | At least 20 templates. Each declares an ATS-safe flag. The editor warns when edits reduce ATS safety | 2.3, built |
-| FR-RES-6 | Suggestions in the editor that never add facts the profile does not support. Each suggestion shows why and is accepted, rejected or edited by the user | 2.4 |
-| FR-RES-7 | Tailoring to a job with a grounding verifier (FR-TAI-1, FR-TAI-2) | 2.4 |
+| FR-RES-6 | Suggestions in the editor that never add facts the profile does not support. Each suggestion shows why and is accepted, rejected or edited by the user | 2.4, built |
+| FR-RES-7 | Tailoring to a job with a grounding verifier (FR-TAI-1, FR-TAI-2) | 2.4, built |
 | FR-RES-8 | Free plan: one resume and rate-limited exports. Enforced by entitlements at 3.3. Until then a single configurable limit exists | 2.1 built as `STUDIO_MAX_RESUMES`, 3.3 |
 | FR-RES-9 | Autosave, version history of the last N saves per resume, restore | 2.1, built (N is 20, a restore point at most every two minutes) |
 | FR-RES-10 | Delete a resume removes the stored files and rows. Profile entries remain | 2.1, built |

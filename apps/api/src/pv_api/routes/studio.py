@@ -20,10 +20,17 @@ from pv_api.schemas import (
     ResumePreview,
     ResumeSave,
     StudioOptionsOut,
+    SuggestionAcceptedOut,
+    SuggestionAcceptIn,
+    SuggestionEditIn,
+    TailoringOut,
+    TailorJobOut,
+    TailorStartIn,
+    TailorSuggestionOut,
     TemplateOut,
     VersionOut,
 )
-from pv_api.services import studio_service
+from pv_api.services import studio_service, tailoring_service
 from pv_domain.failures import FailureClass
 from pv_domain.resume_doc import (
     DIVIDERS,
@@ -205,3 +212,91 @@ def download(
             "X-Content-Type-Options": "nosniff",
         },
     )
+
+
+# ---- checkpoint 2.4: tailoring a resume to a job
+
+
+@router.get("/tailoring/jobs", response_model=list[TailorJobOut])
+def tailoring_jobs(auth: CurrentUser, engine: EngineDep) -> list[TailorJobOut]:
+    return tailoring_service.jobs(engine, auth.user_id)
+
+
+@router.post("/resumes/{doc_id}/tailoring", response_model=TailoringOut, status_code=202)
+def start_tailoring(
+    doc_id: uuid.UUID,
+    payload: TailorStartIn,
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> TailoringOut:
+    limiter.check("tailor_start_user", str(auth.user_id))
+    return tailoring_service.start(
+        engine, auth.user_id, doc_id, payload.job_id, ip_hash_of(request, settings)
+    )
+
+
+@router.get("/resumes/{doc_id}/tailoring", response_model=TailoringOut | None)
+def get_tailoring(
+    doc_id: uuid.UUID, job_id: uuid.UUID, auth: CurrentUser, engine: EngineDep
+) -> TailoringOut | None:
+    return tailoring_service.get_for_job(engine, auth.user_id, doc_id, job_id)
+
+
+@router.put(
+    "/resumes/{doc_id}/tailoring/{tailoring_id}/suggestions/{suggestion_id}",
+    response_model=TailorSuggestionOut,
+)
+def edit_suggestion(
+    doc_id: uuid.UUID,
+    tailoring_id: uuid.UUID,
+    suggestion_id: uuid.UUID,
+    payload: SuggestionEditIn,
+    auth: WriterUser,
+    engine: EngineDep,
+    limiter: LimiterDep,
+) -> TailorSuggestionOut:
+    limiter.check("tailor_decide_user", str(auth.user_id))
+    return tailoring_service.edit(
+        engine, auth.user_id, doc_id, tailoring_id, suggestion_id, payload.after_lines
+    )
+
+
+@router.post(
+    "/resumes/{doc_id}/tailoring/{tailoring_id}/suggestions/{suggestion_id}/accept",
+    response_model=SuggestionAcceptedOut,
+)
+def accept_suggestion(
+    doc_id: uuid.UUID,
+    tailoring_id: uuid.UUID,
+    suggestion_id: uuid.UUID,
+    payload: SuggestionAcceptIn,
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> SuggestionAcceptedOut:
+    limiter.check("tailor_decide_user", str(auth.user_id))
+    return tailoring_service.accept(
+        engine, auth.user_id, doc_id, tailoring_id, suggestion_id, payload.revision,
+        ip_hash_of(request, settings),
+    )  # fmt: skip
+
+
+@router.post(
+    "/resumes/{doc_id}/tailoring/{tailoring_id}/suggestions/{suggestion_id}/reject",
+    response_model=TailorSuggestionOut,
+)
+def reject_suggestion(
+    doc_id: uuid.UUID,
+    tailoring_id: uuid.UUID,
+    suggestion_id: uuid.UUID,
+    auth: WriterUser,
+    engine: EngineDep,
+    limiter: LimiterDep,
+) -> TailorSuggestionOut:
+    limiter.check("tailor_decide_user", str(auth.user_id))
+    return tailoring_service.reject(engine, auth.user_id, doc_id, tailoring_id, suggestion_id)

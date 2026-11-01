@@ -22,6 +22,7 @@ import { saveText } from "./labels";
 import { Preview } from "./Preview";
 import { StylePanel, TemplateChoice } from "./StylePanel";
 import { useStudioDocument, usePreview } from "./useStudioDocument";
+import { TailorPanel } from "./tailor/TailorPanel";
 import { VersionsDialog } from "./VersionsDialog";
 import "./studio.css";
 import "./canvas/canvas.css";
@@ -418,6 +419,15 @@ function Editor({
           announce={announce}
         />
       )}
+
+      <Section title="Tailor to a job">
+        <TailorPanel
+          resumeId={initial.id}
+          flush={doc.flush}
+          getRevision={doc.getRevision}
+          onApplied={reload}
+        />
+      </Section>
 
       <Section title="PDF">
         <ExportPanel resumeId={initial.id} beforeExport={doc.flush} fileName={resumeName(content)} />

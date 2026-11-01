@@ -165,10 +165,17 @@ export interface FakeStudio {
   /** Set to make the next save fail the way a stale tab does. */
   conflict: boolean;
   saves: Record<string, any>[];
+  /** Jobs whose evidence check is finished, so a resume can be tailored to them. */
+  tailorJobs: { job_id: string; title: string | null; company: string | null }[];
+  /** The tailoring run once started: it reads as working twice, then ready. */
+  tailoring: Record<string, any> | null;
+  tailorReads: number;
+  /** What the fake model suggests when asked. */
+  tailorSuggestions: Record<string, any>[];
 }
 
 export function newStudio(): FakeStudio {
-  return { doc: null, versions: [], exportReads: 0, exportState: "none", conflict: false, saves: [] };
+  return { doc: null, versions: [], exportReads: 0, exportState: "none", conflict: false, saves: [], tailorJobs: [], tailoring: null, tailorReads: 0, tailorSuggestions: [] };
 }
 
 export const STUDIO_OPTIONS = {
@@ -377,6 +384,7 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       });
     }
     if (path === "/api/v1/studio/options") return json(STUDIO_OPTIONS);
+    if (path === "/api/v1/studio/tailoring/jobs") return json(fake.studio.tailorJobs);
     const studioMatch = path.match(/^\/api\/v1\/studio\/(resumes|exports)(?:\/([^/]+))?(?:\/(.*))?$/);
     if (studioMatch) {
       const [, kind, id, rest = ""] = studioMatch;
@@ -402,6 +410,45 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
           if (body.content.style.accent === "#ffee88") return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { "style.accent": "This color is too light to read on white paper. Choose a darker one." } }, 422);
           s.doc = { ...s.doc, content: body.content, revision: s.doc.revision + 1, template: body.content.style.template };
           return json({ id: s.doc.id, title: s.doc.title, revision: s.doc.revision, template: s.doc.template, updated_at: NOW });
+        }
+        if (rest === "tailoring" || rest.startsWith("tailoring/")) {
+          const jobId = new URL(request.url()).searchParams.get("job_id");
+          const view = () => ({ ...s.tailoring, suggestions: s.tailoring!.ui_state === "ready" ? s.tailoring!.suggestions : [] });
+          if (rest === "tailoring" && method === "POST") {
+            const body = request.postDataJSON() as { job_id: string };
+            s.tailorReads = 0;
+            s.tailoring = { id: "t-1", job_id: body.job_id, job_title: "Data Analyst", company: "Kestrel", ui_state: "working", error_message: null, suggestions: s.tailorSuggestions.map((x) => structuredClone(x)), unclaimed: [{ text: "Experience with Tableau", reason: "Nothing in your profile supports this yet." }] };
+            return json(view(), 202);
+          }
+          if (rest === "tailoring" && method === "GET") {
+            if (!s.tailoring || s.tailoring.job_id !== jobId) return json(null);
+            if (s.tailoring.ui_state === "working") { s.tailorReads += 1; if (s.tailorReads >= 2) s.tailoring.ui_state = "ready"; }
+            return json(view());
+          }
+          const decision = rest.match(/^tailoring\/[^/]+\/suggestions\/([^/]+)(?:\/(accept|reject))?$/);
+          const item = decision && s.tailoring?.suggestions.find((x: any) => x.id === decision[1]);
+          if (!decision || !item) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+          if (decision[2] === "reject") { item.status = "rejected"; return json(item); }
+          if (decision[2] === "accept") {
+            if (item.blocked) return json({ code: "UNSUPPORTED_CLAIMS", message: "This change adds something your evidence does not support. Edit it or reject it." }, 409);
+            const body = request.postDataJSON() as { revision: number };
+            if (body.revision !== s.doc.revision) return json({ code: "REVISION_CONFLICT", message: "This resume was changed somewhere else. Reload to see the latest version." }, 409);
+            const list = s.doc.content.sections[0].blocks[0].body.content[0].content;
+            list.forEach((li: any, i: number) => { if (item.after_lines[i]) li.content[0].content[0].text = item.after_lines[i]; });
+            s.doc = { ...s.doc, revision: s.doc.revision + 1 };
+            item.status = "accepted";
+            return json({ suggestion: item, document: { id: s.doc.id, title: s.doc.title, revision: s.doc.revision, template: s.doc.template, updated_at: NOW } });
+          }
+          if (method === "PUT") {
+            const body = request.postDataJSON() as { after_lines: string[] };
+            if (body.after_lines.length === 0) return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { after_lines: "Write between 1 and 8 lines, each up to 300 characters." } }, 422);
+            const invented = /looker/i.test(body.after_lines.join(" "));
+            item.after_lines = body.after_lines;
+            item.edited = true;
+            item.blocked = invented;
+            item.claims = invented ? [{ text: "looker", kind: "name", supported: false, source: null }] : [{ text: "sql", kind: "name", supported: true, source: "resume" }];
+            return json(item);
+          }
         }
         if (rest === "preview" && method === "POST") return json({ html: previewHtml((request.postDataJSON() as { content: any }).content) });
         if (rest === "versions" && method === "GET") return json(s.versions);

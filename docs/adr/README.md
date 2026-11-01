@@ -37,5 +37,6 @@
 | [0033](0033-resume-studio-document-and-saving.md) | Resume studio document, saving, versions and exports | Accepted |
 | [0034](0034-free-canvas-editor.md) | Free canvas editor | Accepted |
 | [0035](0035-template-library-links-and-themes.md) | Template library, links, fonts and color themes | Accepted |
+| [0036](0036-resume-tailoring-and-grounding.md) | Resume tailoring with a deterministic grounding check | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

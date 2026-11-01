@@ -58,6 +58,7 @@ External attacker, malicious authenticated user, malicious job poster (controls 
 | T19 | Data loss | Backups, restore tests | Restore drills |
 | T20 | Account deletion incomplete | Deletion workflow covering DB, object storage, caches, connector tokens | Deletion tests |
 | T21 | OAuth token theft | Encrypted at rest, minimal scopes, revocation on disconnect | Connector tests |
+| T22 | A tailored resume that claims something untrue, or text in a job or resume that tries to steer the suggestion model | The model only proposes. Code checks every claim (number, name, tool, job keyword) against the old wording and cited evidence, and a failing suggestion is blocked and cannot be accepted, even after an edit. Accept re-checks against current evidence. Labels assigned by code, so no unknown evidence can be cited. Only confirmed requirements are offered, the rest are marked do not claim. Job, resume and evidence sit between random markers and the prompt says they are data. Names, dates and headings are never offered to the model. Accept is a revision-checked save with a restore point | Verifier tests with invented numbers, tools and employers, integration tests for blocked, forged labels, accept re-check, edit re-check and isolation |
 
 ## 5. Blast radius analysis for a malicious job description
 
