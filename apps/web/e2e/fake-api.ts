@@ -207,6 +207,33 @@ export const STUDIO_OPTIONS = {
   max_resumes: 1,
 };
 
+export const SEARCH_SOURCES = [
+  { key: "lever", display_name: "Lever postings", source_type: "ats_board", outcome: "unavailable", message: "Lever postings is currently unavailable. Reason: It is switched off. You can still import jobs you collected from Lever postings.", reason: "It is switched off.", import_available: true, compliance_status: "verified", terms_checked_at: "2026-11-02", terms_url: "https://www.lever.co/terms-of-service/", attribution_text: "" },
+  { key: "linkedin", display_name: "LinkedIn", source_type: "user_import_only", outcome: "import_required", message: "Automated search for LinkedIn is not available. Import jobs by URL, paste, or CSV/XLSX and we will analyze them.", reason: "Automated access to this platform is not permitted, so jobs from it are imported by you.", import_available: true, compliance_status: "prohibited", terms_checked_at: "2026-11-02", terms_url: "https://www.linkedin.com/legal/user-agreement", attribution_text: "" },
+];
+
+export function searchPlan(body: { query?: string; intent?: Record<string, any> }) {
+  const intent = body.intent ?? {};
+  const companies: string[] = intent.companies ?? (body.query?.includes("Google") ? ["Google"] : body.query?.includes("Tata") ? ["Tata"] : []);
+  return {
+    interpreted_by: body.query !== undefined ? "the AI service" : "the fields you set",
+    intent: { roles: intent.roles ?? ["Backend Engineer"], skills: [], min_years: null, max_years: null, locations: intent.locations ?? ["India"], work_mode: intent.work_mode ?? "any", employment_types: [], compensation: null, companies, sources: ["all_permitted"], exclusions: [] },
+    headline: "No source can be searched automatically for this yet. You can import jobs and we will analyze them.",
+    can_search_now: false,
+    notes: [],
+    sources: [
+      { key: "linkedin", display_name: "LinkedIn", outcome: "import_required", message: SEARCH_SOURCES[1]!.message, reason: SEARCH_SOURCES[1]!.reason, import_available: true, named_by_person: false, notes: [] },
+      { key: "lever", display_name: "Lever postings", outcome: "unavailable", message: SEARCH_SOURCES[0]!.message, reason: "It is switched off.", import_available: true, named_by_person: false, notes: [] },
+    ],
+    companies: companies.map((q) =>
+      q === "Tata"
+        ? { query: q, status: "ambiguous", route: "choose", message: "Which one did you mean by Tata? Tata Consultancy Services, Tata Motors.", company: null, source_key: null, candidates: [{ key: "tcs", name: "Tata Consultancy Services", score: 0.8 }, { key: "tata-motors", name: "Tata Motors", score: 0.8 }] }
+        : { query: q, status: "resolved", route: "import", message: "No permitted source can be searched for " + q + ". Import jobs by URL, paste, or CSV/XLSX and we will analyze them.", company: { key: q.toLowerCase(), name: q, score: 1 }, source_key: null, candidates: [] },
+    ),
+    authorization: { countries: ["India"], needs_sponsorship: false, origin: "your profile" },
+  };
+}
+
 export function studioContent(template = "classic", name = "") {
   return {
     version: 1,
@@ -384,6 +411,12 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       });
     }
     if (path === "/api/v1/studio/options") return json(STUDIO_OPTIONS);
+    if (path === "/api/v1/search/sources") return json(SEARCH_SOURCES);
+    if (path === "/api/v1/search/plan" && method === "POST") {
+      const body = request.postDataJSON() as { query?: string; intent?: Record<string, any> };
+      if (body.query === "no key") return json({ code: "AI_NOT_CONFIGURED", message: "Searching by sentence needs the AI service, which is not set up yet." }, 503);
+      return json(searchPlan(body));
+    }
     if (path === "/api/v1/studio/tailoring/jobs") return json(fake.studio.tailorJobs);
     const studioMatch = path.match(/^\/api\/v1\/studio\/(resumes|exports)(?:\/([^/]+))?(?:\/(.*))?$/);
     if (studioMatch) {

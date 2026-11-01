@@ -1,11 +1,11 @@
 """ORM models. The schema itself is owned by the Alembic migrations."""
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, Text, func
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY, CITEXT, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -561,3 +561,56 @@ class TailoringSuggestion(Base):
     ordinal: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+# ---- checkpoint 2.5: source registry and company registry (migration 0010)
+
+
+class JobSource(Base):
+    """Where jobs can come from. Shared reference data: no Row Level Security."""
+
+    __tablename__ = "job_sources"
+
+    key: Mapped[str] = mapped_column(Text, primary_key=True)
+    display_name: Mapped[str] = mapped_column(Text)
+    source_type: Mapped[str] = mapped_column(Text)
+    adapter: Mapped[str | None] = mapped_column(Text, default=None)
+    endpoint_or_feed: Mapped[str | None] = mapped_column(Text, default=None)
+    capabilities: Mapped[dict[str, bool]] = mapped_column(JSONB, default=dict)
+    auth_requirements: Mapped[str] = mapped_column(Text, default="None")
+    compliance_status: Mapped[str] = mapped_column(Text, default="unverified")
+    terms_checked_at: Mapped[date | None] = mapped_column(Date, default=None)
+    terms_url: Mapped[str | None] = mapped_column(Text, default=None)
+    verification_owner: Mapped[str | None] = mapped_column(Text, default=None)
+    rate_limit: Mapped[str] = mapped_column(Text, default="")
+    quota_policy: Mapped[str] = mapped_column(Text, default="")
+    min_poll_interval_seconds: Mapped[int] = mapped_column(Integer, default=3600)
+    attribution_text: Mapped[str] = mapped_column(Text, default="")
+    geographic_coverage: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    supports_user_import: Mapped[bool] = mapped_column(Boolean, default=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    compliance_notes: Mapped[str] = mapped_column(Text, default="")
+    health_status: Mapped[str] = mapped_column(Text, default="unknown")
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    last_failure_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    failure_streak: Mapped[int] = mapped_column(Integer, default=0)
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class CompanyRow(Base):
+    __tablename__ = "companies"
+
+    key: Mapped[str] = mapped_column(Text, primary_key=True)
+    canonical_name: Mapped[str] = mapped_column(Text)
+    aliases: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    domain: Mapped[str | None] = mapped_column(Text, default=None)
+    career_url: Mapped[str | None] = mapped_column(Text, default=None)
+    ats_platform: Mapped[str | None] = mapped_column(Text, default=None)
+    ats_board_id: Mapped[str | None] = mapped_column(Text, default=None)
+    industry: Mapped[str | None] = mapped_column(Text, default=None)
+    country: Mapped[str | None] = mapped_column(Text, default=None)
+    last_verified_at: Mapped[date | None] = mapped_column(Date, default=None)
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -1,6 +1,6 @@
 # Source Compliance
 
-Status: Unverified. No source below has been verified yet. This document defines the process and records the verification state. Statements about what a platform permits must come from its current official documentation and terms, read at integration time, not from memory, tutorials or forum posts.
+Status: Records made at checkpoint 2.5 (2026-11-02) from official pages. One source is verified, two are unverified, two are restricted, three are prohibited for automation and one could not be read. Nothing is enabled and no adapter exists. This document defines the process and records the verification state. Statements about what a platform permits must come from its current official documentation and terms, read at integration time, not from memory, tutorials or forum posts.
 
 ## 1. Verification record (required for each source)
 
@@ -23,18 +23,22 @@ A source cannot be enabled without a completed record, and verification expires 
 
 ## 2. Candidate sources and current state
 
-| Source | Intended role | State |
-|---|---|---|
-| Greenhouse job boards | Employer ATS public board data | Unverified. Verify at 2.5, build at 2.6 |
-| Lever postings | Employer ATS public postings | Unverified. Verify at 2.5, build at 2.6 |
-| Ashby job boards | Employer ATS public postings | Unverified. Verify at 2.5, build at 2.6 |
-| Remotive | Remote jobs feed or API | Unverified. Verify attribution and use limits at 2.5 |
-| Adzuna | Job search API with key | Unverified. Verify coverage for target countries and terms at 2.5 |
-| Company career pages | First-party | Per company. Check robots and terms before any fetch |
-| LinkedIn | User import only | No automated access. Do not build any |
-| Indeed, Wellfound, Naukri, Handshake | User import only unless an official integration is verified | No automated access assumed |
-| GitHub | Candidate evidence via official API and OAuth | Unverified. Verify at 3.1 |
-| LeetCode, CodeChef, GeeksforGeeks | Candidate evidence via user provided URL or export only unless an official API exists | Unverified. Verify at 3.1 |
+State as recorded on 2026-11-02. The registry (`job_sources`) holds the same records, and each provider has a file in [providers/](../providers/README.md). "Read" means the page was read on that date. It is not legal advice, and every record expires after the review window (180 days).
+
+| Source | Intended role | Status | What was read and what is open |
+|---|---|---|---|
+| Greenhouse job boards | Employer ATS public board data | Unverified | API documentation read: public, no authentication to read, no rate limit or attribution stated. The governing terms could not be located. Owner to read (C-34) |
+| Lever postings | Employer ATS public postings | Verified (owner confirmation pending, C-34) | API documentation and terms of service read: postings are public and may be scraped by third parties, terms do not mention the API. No rate limit for reading |
+| Ashby job boards | Employer ATS public postings | Unverified | API documentation read: public endpoint, no authentication, no rate limit stated. Customer terms found, not read in full. Owner to read (C-34) |
+| Remotive | Remote jobs feed or API | Restricted | Official API repository read: attribution required, 4 requests a day advised, 24 hour delay, no redistribution to other job sites, no displaying jobs to collect sign-ups. Owner decision (C-35) |
+| Adzuna | Job search API with key | Restricted | Official terms read: personal use allowed, commercial or lead generating use needs a licence, attribution required, no numeric limits. India coverage not confirmed from official pages. Owner decision (C-35) |
+| Company career pages | First-party | Unverified | Per company. robots.txt and terms before any fetch |
+| LinkedIn | User import only | Prohibited for automation | User Agreement read: forbids bots, scraping and automated access |
+| Indeed | User import only | Prohibited for automation | About 200,000 of 349,000 characters read: forbids scraping the sourcing database and automating apply. Rest to be read (C-36) |
+| Wellfound | User import only | Prohibited for automation | Terms read: forbid copying content, scraping and excess automated access |
+| Naukri | User import only | Unverified | Terms page returned HTTP 403, not read. No automation assumed (C-36) |
+| GitHub | Candidate evidence via official API and OAuth | Unverified | Verify at 3.1 |
+| LeetCode, CodeChef, GeeksforGeeks | Candidate evidence via user provided URL or export only unless an official API exists | Unverified | Verify at 3.1 |
 
 ### Open verification questions (2026-10-30)
 

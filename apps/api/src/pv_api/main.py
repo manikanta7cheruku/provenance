@@ -20,13 +20,26 @@ from pv_api import __version__
 from pv_api.errors import ApiError, api_error_handler, validation_error_handler
 from pv_api.logging_config import configure_logging
 from pv_api.ratelimiter import RateLimiter
-from pv_api.routes import admin, auth, evidence, jobs, ops, profile, resume, runs, studio, v1
+from pv_api.routes import (
+    admin,
+    auth,
+    evidence,
+    jobs,
+    ops,
+    profile,
+    resume,
+    runs,
+    search,
+    studio,
+    v1,
+)
 from pv_api.security.middleware import body_limit, origin_guard, security_headers
 from pv_config import Settings, get_settings
 from pv_domain.failures import FailureClass
 from pv_domain.ratelimit import DEFAULT_POLICIES, RatePolicy
 from pv_files import FileStorage, build_storage
 from pv_persistence.engine import create_db_engine
+from pv_persistence.registry import seed_registry
 
 logger = logging.getLogger("pv_api")
 
@@ -92,6 +105,10 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         logger.info("startup", extra={"path": cfg.environment})
+        try:
+            seed_registry(engine)
+        except Exception:  # noqa: BLE001 - a registry that cannot be seeded must not stop the API
+            logger.warning("registry_seed_failed", exc_info=True)
         yield
         engine.dispose()
         logger.info("shutdown")
@@ -137,5 +154,6 @@ def create_app(
     app.include_router(jobs.router, prefix="/api/v1")
     app.include_router(studio.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")
+    app.include_router(search.router, prefix="/api/v1")
     app.include_router(admin.router, prefix="/api/v1")
     return app

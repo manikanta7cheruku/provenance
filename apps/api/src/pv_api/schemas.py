@@ -2,7 +2,7 @@
 
 import json
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -803,3 +803,116 @@ class SuggestionAcceptIn(BaseModel):
 class SuggestionAcceptedOut(BaseModel):
     suggestion: TailorSuggestionOut
     document: ResumeDocumentSummaryOut
+
+
+# ---- checkpoint 2.5: sources, companies and the search plan
+
+
+class SearchPlanIn(BaseModel):
+    """A typed sentence, or an intent the person filled in. The sentence needs the AI service."""
+
+    query: str | None = None
+    intent: dict[str, Any] | None = None
+
+
+class SourceOut(BaseModel):
+    key: str
+    display_name: str
+    source_type: str
+    outcome: str
+    message: str
+    reason: str | None
+    import_available: bool
+    compliance_status: str
+    terms_checked_at: date | None
+    terms_url: str | None
+    attribution_text: str
+    capabilities: dict[str, bool]
+
+
+class SourceDecisionOut(BaseModel):
+    key: str
+    display_name: str
+    outcome: str
+    message: str
+    reason: str | None
+    import_available: bool
+    named_by_person: bool
+    notes: list[str]
+
+
+class CompanyCandidateOut(BaseModel):
+    key: str
+    name: str
+    score: float
+
+
+class CompanyDecisionOut(BaseModel):
+    query: str
+    status: str
+    route: str
+    message: str
+    company: CompanyCandidateOut | None
+    source_key: str | None
+    candidates: list[CompanyCandidateOut]
+
+
+class AuthorizationOut(BaseModel):
+    countries: list[str]
+    needs_sponsorship: bool | None
+    origin: str
+
+
+class SearchPlanOut(BaseModel):
+    interpreted_by: str
+    intent: dict[str, Any]
+    headline: str
+    can_search_now: bool
+    notes: list[str]
+    sources: list[SourceDecisionOut]
+    companies: list[CompanyDecisionOut]
+    authorization: AuthorizationOut
+
+
+class AdminSourceOut(BaseModel):
+    key: str
+    display_name: str
+    source_type: str
+    adapter: str | None
+    endpoint_or_feed: str | None
+    capabilities: dict[str, bool]
+    auth_requirements: str
+    compliance_status: str
+    terms_checked_at: date | None
+    terms_url: str | None
+    verification_owner: str | None
+    rate_limit: str
+    quota_policy: str
+    min_poll_interval_seconds: int
+    attribution_text: str
+    geographic_coverage: list[str]
+    enabled: bool
+    compliance_notes: str
+    health_status: str
+    last_success_at: datetime | None
+    last_failure_at: datetime | None
+    failure_streak: int
+    review_expired: bool
+    enable_blocker: str | None
+    edited: bool
+
+
+class SourceUpdateIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool | None = None
+    compliance_status: str | None = None
+    terms_checked_at: date | None = None
+    terms_url: str | None = None
+    verification_owner: str | None = None
+    rate_limit: str | None = None
+    quota_policy: str | None = None
+    min_poll_interval_seconds: int | None = None
+    attribution_text: str | None = None
+    geographic_coverage: list[str] | None = None
+    compliance_notes: str | None = None

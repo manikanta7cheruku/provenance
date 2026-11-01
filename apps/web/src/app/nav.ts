@@ -10,6 +10,7 @@ export interface NavItem {
 /** Single source of truth for navigation. Order is the order shown to users. */
 export const NAV_ITEMS: NavItem[] = [
   { path: "/opportunities", label: "Opportunities" },
+  { path: "/find", label: "Find jobs" },
   { path: "/saved", label: "Saved" },
   { path: "/applications", label: "Applications" },
   { path: "/profile", label: "Profile" },
