@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-29 checkpoints in total. Eleven are done and merged (1.1 to 1.9, 2.1 and 2.2). Checkpoint 2.3 is built and awaiting merge. Seventeen remain after it. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
+29 checkpoints in total. Twelve are done and merged (1.1 to 1.9 and 2.1 to 2.3). Checkpoint 2.4 is built and awaiting merge. Sixteen remain after it. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
 
 | Checkpoint | State |
 |---|---|
@@ -25,8 +25,9 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 1.9 | Done and merged |
 | 2.1 | Done and merged |
 | 2.2 | Done and merged |
-| 2.3 | Built on branch phase-2/checkpoint-2.3-templates, awaiting review and merge |
-| 2.4 to 2.13 | Not started |
+| 2.3 | Done and merged |
+| 2.4 | Built on branch phase-2/checkpoint-2.4-resume-tailoring, awaiting review and merge |
+| 2.5 to 2.13 | Not started |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
@@ -70,7 +71,7 @@ Exit: critical test passes (start analysis, interrupt, kill worker, restart, ans
 | 2.1 | **Resume studio core.** Structured editor with live preview, rich text, lines, spacing, fonts, section order. Professional PDF export (spike and ADR-0025 first). First three templates. Free-plan shape: one resume, rate limited | Rich text editing models, print CSS, PDF rendering |
 | 2.2 | **Free canvas editor.** Canva-level freedom, kept professional: every element (name, headline, contacts, sections, items, lines, shapes) is a box on the page that can be dragged, resized, nudged with the arrow keys, snapped to guides, aligned, distributed, layered, multi-selected, locked and grouped, with undo and redo, zoom and a margin grid. Text is edited directly on the page, and the side panel edits the same data, with both updating instantly because the page is drawn in the browser from local state. First step is a **fidelity spike** (browser canvas against the PDF engine) that may reverse the WeasyPrint choice of ADR-0025. Reading order for the PDF and ATS (top to bottom, then left to right), an ATS-safety warning when elements sit in columns or overlap, autosave and versions as in 2.1, structured mode kept for ATS-safe resumes. Images are out of the first version (ADR-0034) | Canvas editors, hit testing, snapping, command history for undo and redo, layout fidelity between a browser and a PDF engine |
 | 2.3 | **Template library (24), links, more fonts and color themes, built on the canvas.** One layout engine and 24 template specs, a gallery with previews of your own words, Change template without losing words, an ATS-safe label that is measured, links in text and contacts (https, mailto, tel only), nine font families in twelve pairs, twelve color palettes | Design systems for documents, ATS parsing behavior, URL scheme allowlists |
-| 2.4 | **Resume tailoring** (W) with grounding verifier, side by side diff, accept, reject, edit. In-editor suggestions that never add unsupported facts | Claim-level verification, why LLM judges are not enough |
+| 2.4 | **Resume tailoring** (W) with a deterministic grounding check: only confirmed requirements and cited evidence are used, every number, name and job keyword in a suggestion must be found in the old wording or the cited evidence, side by side diff with reason and evidence, accept (re-checked), reject, edit (re-checked), restore point on accept | Claim-level verification, why LLM judges are not enough |
 | 2.5 | **Source verification first.** Source registry as a first-class component with all fields in search-requirements.md, company registry, search intent parsing (L), deterministic resolver. Official terms of every candidate source read and recorded before any adapter work | Capability modeling, resolver design, compliance as data |
 | 2.6 | Adapters for the sources that pass verification, fetch layer with rate limits, polling intervals, circuit breakers, source health. Provider docs and compliance records completed per source first | Adapter pattern, API compliance, circuit breakers |
 | 2.7 | Deduplication with reversible links, private versus public visibility, sightings | Layered matching, data integrity |

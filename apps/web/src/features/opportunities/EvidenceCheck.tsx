@@ -330,6 +330,11 @@ export function EvidenceCheck({ jobId }: { jobId: string }) {
         </span>
       </p>
 
+      {data.ui_state === "ready" ? (
+        <p className="job__explanation">
+          Next: <Link to="/studio">tailor your resume to this job</Link>. Suggestions only use what this check confirmed.
+        </p>
+      ) : null}
       {data.ui_state === "failed" && data.error_message ? (
         <Notice tone="danger">
           <p>{data.error_message}</p>

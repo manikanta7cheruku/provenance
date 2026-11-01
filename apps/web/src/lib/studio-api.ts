@@ -162,3 +162,77 @@ export function startExport(id: string): Promise<ExportInfo> {
 export function downloadUrl(exportId: string): string {
   return `${BASE}/exports/${enc(exportId)}/download`;
 }
+
+// ---- tailoring a resume to a job (checkpoint 2.4)
+
+export interface TailorJob {
+  job_id: string;
+  title: string | null;
+  company: string | null;
+}
+
+export interface TailorClaim {
+  text: string;
+  kind: string;
+  supported: boolean;
+  source: string | null;
+}
+
+export interface TailorSuggestion {
+  id: string;
+  unit_id: string;
+  kind: "bullets" | "paragraph";
+  label: string;
+  before_lines: string[];
+  after_lines: string[];
+  reason: string;
+  requirements: { id: string; text: string }[];
+  citations: { chunk_id: string; quote: string; source: string; entry_type: string | null }[];
+  claims: TailorClaim[];
+  blocked: boolean;
+  edited: boolean;
+  status: "pending" | "accepted" | "rejected";
+}
+
+export interface Tailoring {
+  id: string;
+  job_id: string;
+  job_title: string | null;
+  company: string | null;
+  ui_state: "working" | "ready" | "failed";
+  error_message: string | null;
+  suggestions: TailorSuggestion[];
+  unclaimed: { text: string; reason: string }[];
+}
+
+export function fetchTailorJobs(signal?: AbortSignal): Promise<TailorJob[]> {
+  return request<TailorJob[]>("GET", `${BASE}/tailoring/jobs`, { signal });
+}
+
+export function startTailoring(resumeId: string, jobId: string): Promise<Tailoring> {
+  return request<Tailoring>("POST", `${BASE}/resumes/${enc(resumeId)}/tailoring`, { body: { job_id: jobId } });
+}
+
+export function fetchTailoring(resumeId: string, jobId: string, signal?: AbortSignal): Promise<Tailoring | null> {
+  return request<Tailoring | null>("GET", `${BASE}/resumes/${enc(resumeId)}/tailoring?job_id=${enc(jobId)}`, { signal });
+}
+
+const suggestionUrl = (resumeId: string, tailoringId: string, suggestionId: string) =>
+  `${BASE}/resumes/${enc(resumeId)}/tailoring/${enc(tailoringId)}/suggestions/${enc(suggestionId)}`;
+
+export function editSuggestion(resumeId: string, tailoringId: string, id: string, afterLines: string[]): Promise<TailorSuggestion> {
+  return request<TailorSuggestion>("PUT", suggestionUrl(resumeId, tailoringId, id), { body: { after_lines: afterLines } });
+}
+
+export function acceptSuggestion(
+  resumeId: string,
+  tailoringId: string,
+  id: string,
+  revision: number,
+): Promise<{ suggestion: TailorSuggestion; document: ResumeSummary }> {
+  return request("POST", `${suggestionUrl(resumeId, tailoringId, id)}/accept`, { body: { revision } });
+}
+
+export function rejectSuggestion(resumeId: string, tailoringId: string, id: string): Promise<TailorSuggestion> {
+  return request<TailorSuggestion>("POST", `${suggestionUrl(resumeId, tailoringId, id)}/reject`);
+}
