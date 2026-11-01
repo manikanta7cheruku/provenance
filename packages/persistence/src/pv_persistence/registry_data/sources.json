@@ -3,7 +3,7 @@
     "key": "greenhouse",
     "display_name": "Greenhouse job boards",
     "source_type": "ats_board",
-    "adapter": null,
+    "adapter": "greenhouse",
     "endpoint_or_feed": "https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs",
     "capabilities": {
       "can_search": false,
@@ -31,7 +31,7 @@
     "key": "lever",
     "display_name": "Lever postings",
     "source_type": "ats_board",
-    "adapter": null,
+    "adapter": "lever",
     "endpoint_or_feed": "https://api.lever.co/v0/postings/{site}?mode=json",
     "capabilities": {
       "can_search": false,
@@ -59,7 +59,7 @@
     "key": "ashby",
     "display_name": "Ashby job boards",
     "source_type": "ats_board",
-    "adapter": null,
+    "adapter": "ashby",
     "endpoint_or_feed": "https://api.ashbyhq.com/posting-api/job-board/{board_name}",
     "capabilities": {
       "can_search": false,
@@ -275,7 +275,9 @@
     "quota_policy": "Not applicable.",
     "min_poll_interval_seconds": 0,
     "attribution_text": "",
-    "geographic_coverage": ["India"],
+    "geographic_coverage": [
+      "India"
+    ],
     "enabled": false,
     "compliance_notes": "The terms page returned HTTP 403 when read on 2026-11-02, so it was not read. No permitted feed or API is known. No automated access is assumed or built. Jobs the person copies themselves can be imported."
   }

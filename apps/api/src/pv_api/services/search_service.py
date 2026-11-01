@@ -10,7 +10,7 @@ typed sentence.
 """
 
 import uuid
-from datetime import date
+from datetime import UTC, date, datetime
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -21,9 +21,12 @@ from pv_api.schemas import (
     AuthorizationOut,
     CompanyCandidateOut,
     CompanyDecisionOut,
+    FetchLogOut,
+    PollQueuedOut,
     SearchPlanIn,
     SearchPlanOut,
     SourceDecisionOut,
+    SourceJobOut,
     SourceOut,
     SourceUpdateIn,
 )
@@ -31,9 +34,16 @@ from pv_api.services.job_service import not_found
 from pv_config import Settings
 from pv_domain.company import Candidate, Company
 from pv_domain.failures import FailureClass
+from pv_domain.job_feed import ADAPTERS
 from pv_domain.resolver import SearchPlan, decide_source, plan_search
 from pv_domain.search_intent import SearchIntent, clean_intent, clean_query, intent_to_dict
-from pv_domain.sources import SourceError, SourceRecord, enable_blocker, review_expired
+from pv_domain.sources import (
+    SourceError,
+    SourceRecord,
+    enable_blocker,
+    review_expired,
+    unavailable_reason,
+)
 from pv_llm import LLMError, build_provider, content_hash, record_result
 from pv_llm.search_intent import PROMPT_VERSION, parse_intent
 from pv_persistence.audit import record_audit
@@ -46,6 +56,12 @@ from pv_persistence.registry import (
     list_sources,
     to_record,
     update_source,
+)
+from pv_persistence.source_jobs import (
+    queue_poll,
+    recent_log,
+    search_jobs,
+    source_counts,
 )
 from pv_persistence.tenancy import tenant_session
 
@@ -67,9 +83,11 @@ def _company(c: Company) -> CompanyCandidateOut:
 def sources(engine: Engine, settings: Settings) -> list[SourceOut]:
     """Every source as the person sees it: what could be done with it right now."""
     with Session(engine) as db:
-        records = list_sources(db)
+        rows = list_source_rows(db)
+        counts = source_counts(db)
     out = []
-    for r in records:
+    for row in rows:
+        r = to_record(row)
         d = decide_source(r, SearchIntent(), _today(), settings.source_review_window_days)
         out.append(
             SourceOut(
@@ -85,6 +103,9 @@ def sources(engine: Engine, settings: Settings) -> list[SourceOut]:
                 terms_url=r.terms_url,
                 attribution_text=r.attribution_text,
                 capabilities=dict(r.capabilities),
+                health_status=row.health_status,
+                last_success_at=row.last_success_at,
+                jobs_open=counts.get(r.key, 0),
             )
         )
     return out
@@ -193,7 +214,7 @@ def plan(
 # ---- administrators
 
 
-def _admin_out(row: JobSource, settings: Settings) -> AdminSourceOut:
+def _admin_out(row: JobSource, settings: Settings, jobs_open: int = 0) -> AdminSourceOut:
     record: SourceRecord = to_record(row)
     today = _today()
     window = settings.source_review_window_days
@@ -223,12 +244,15 @@ def _admin_out(row: JobSource, settings: Settings) -> AdminSourceOut:
         review_expired=review_expired(row.terms_checked_at, today, window),
         enable_blocker=enable_blocker(record, today, window),
         edited=row.edited_at is not None,
+        breaker_open_until=row.breaker_open_until,
+        jobs_open=jobs_open,
     )
 
 
 def admin_sources(engine: Engine, settings: Settings) -> list[AdminSourceOut]:
     with Session(engine) as db:
-        return [_admin_out(r, settings) for r in list_source_rows(db)]
+        counts = source_counts(db)
+        return [_admin_out(r, settings, counts.get(r.key, 0)) for r in list_source_rows(db)]
 
 
 def admin_update(
@@ -245,6 +269,7 @@ def admin_update(
         row = get_source_row(db, key)
         if row is None:
             raise not_found()
+        was_enabled = row.enabled
         try:
             update_source(db, row, patch, _today(), settings.source_review_window_days)
         except SourceError as exc:
@@ -252,10 +277,103 @@ def admin_update(
                 422, "VALIDATION_FAILED", "Some details need fixing.",
                 failure_class=FailureClass.VALIDATION_FAILED, fields=exc.problems,
             ) from exc  # fmt: skip
-        out = _admin_out(row, settings)
+        if row.enabled and not was_enabled and row.adapter in ADAPTERS:
+            queue_poll(
+                db,
+                key,
+                now=datetime.now(UTC),
+                interval_seconds=row.min_poll_interval_seconds,
+                chain=True,
+            )
+        out = _admin_out(row, settings, source_counts(db).get(key, 0))
     record_audit(
         engine, category="audit", action="source.updated", actor_user_id=actor_id,
         target_type="job_source", target_id=key, ip_hash=ip_hash,
         metadata={"fields": sorted(patch)},
     )  # fmt: skip
     return out
+
+
+def request_poll(
+    engine: Engine, settings: Settings, actor_id: uuid.UUID, key: str, ip_hash: str | None
+) -> PollQueuedOut:
+    """Ask for one poll now. The poll itself still refuses boards asked for too recently and a
+    source that is not usable, so this cannot be used to get around the limits."""
+    with Session(engine) as db, db.begin():
+        row = get_source_row(db, key)
+        if row is None:
+            raise not_found()
+        reason = unavailable_reason(to_record(row), _today(), settings.source_review_window_days)
+        if reason is not None or row.adapter not in ADAPTERS:
+            raise ApiError(
+                409, "SOURCE_NOT_USABLE", "This source cannot be polled now.",
+                failure_class=FailureClass.USER_ACTION_REQUIRED,
+                fields={"source": reason or "It has no adapter."},
+            )  # fmt: skip
+        queued = queue_poll(db, key, now=datetime.now(UTC), interval_seconds=60, chain=False)
+    record_audit(
+        engine, category="audit", action="source.poll_requested", actor_user_id=actor_id,
+        target_type="job_source", target_id=key, ip_hash=ip_hash,
+    )  # fmt: skip
+    return PollQueuedOut(
+        message="A poll was queued. Boards asked for too recently are skipped."
+        if queued
+        else "A poll was already queued for this minute."
+    )
+
+
+def fetch_log(engine: Engine, key: str) -> list[FetchLogOut]:
+    with Session(engine) as db:
+        if get_source_row(db, key) is None:
+            raise not_found()
+        return [
+            FetchLogOut(
+                started_at=r.started_at, board_id=r.board_id, outcome=r.outcome,
+                http_status=r.http_status, duration_ms=r.duration_ms, jobs_seen=r.jobs_seen,
+                jobs_new=r.jobs_new, jobs_changed=r.jobs_changed, jobs_closed=r.jobs_closed,
+                jobs_skipped=r.jobs_skipped, error_class=r.error_class,
+            )
+            for r in recent_log(db, key)
+        ]  # fmt: skip
+
+
+def _clean(items: list[str]) -> list[str]:
+    return [s.strip()[:80] for s in items if s.strip()][:12]
+
+
+def jobs(
+    engine: Engine,
+    settings: Settings,
+    *,
+    roles: list[str],
+    companies: list[str],
+    locations: list[str],
+    work_mode: str | None,
+    sources: list[str],
+    limit: int,
+    offset: int,
+) -> list[SourceJobOut]:
+    """Jobs fetched from sources that may be used right now, filtered in SQL."""
+    with Session(engine) as db:
+        rows = search_jobs(
+            db,
+            today=_today(),
+            window_days=settings.source_review_window_days,
+            roles=_clean(roles),
+            companies=_clean(companies),
+            locations=_clean(locations),
+            work_mode=work_mode if work_mode in ("remote", "hybrid", "onsite") else None,
+            sources=_clean(sources),
+            limit=max(1, min(limit, 50)),
+            offset=max(0, offset),
+        )
+        return [
+            SourceJobOut(
+                id=j.id, title=j.title, company_name=j.company_name, location=j.location,
+                workplace=j.workplace, employment_type=j.employment_type, department=j.department,
+                url=j.url, excerpt=j.description[:300], source_key=s.key,
+                source_name=s.display_name, attribution_text=s.attribution_text,
+                posted_at=j.posted_at, first_seen_at=j.first_seen_at,
+            )
+            for j, s in rows
+        ]  # fmt: skip

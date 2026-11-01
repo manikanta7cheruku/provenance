@@ -19,10 +19,12 @@ from pv_api.schemas import (
     AdminUserDetail,
     AdminUserList,
     AuditList,
+    FetchLogOut,
     InviteCreate,
     InviteCreated,
     InviteOut,
     MessageResponse,
+    PollQueuedOut,
     SourceUpdateIn,
     SystemOverview,
 )
@@ -165,3 +167,17 @@ def update_source(
     return search_service.admin_update(
         engine, settings, actor.user_id, key, payload, ip_hash_of(request, settings)
     )
+
+
+@router.post("/sources/{key}/poll", response_model=PollQueuedOut, status_code=202)
+def poll_source(
+    key: str, request: Request, actor: AdminWriter, engine: EngineDep, settings: SettingsDep
+) -> PollQueuedOut:
+    return search_service.request_poll(
+        engine, settings, actor.user_id, key, ip_hash_of(request, settings)
+    )
+
+
+@router.get("/sources/{key}/log", response_model=list[FetchLogOut])
+def source_log(key: str, _: AdminUser, engine: EngineDep) -> list[FetchLogOut]:
+    return search_service.fetch_log(engine, key)

@@ -828,6 +828,9 @@ class SourceOut(BaseModel):
     terms_url: str | None
     attribution_text: str
     capabilities: dict[str, bool]
+    health_status: str = "unknown"
+    last_success_at: datetime | None = None
+    jobs_open: int = 0
 
 
 class SourceDecisionOut(BaseModel):
@@ -900,6 +903,8 @@ class AdminSourceOut(BaseModel):
     review_expired: bool
     enable_blocker: str | None
     edited: bool
+    breaker_open_until: datetime | None = None
+    jobs_open: int = 0
 
 
 class SourceUpdateIn(BaseModel):
@@ -916,3 +921,41 @@ class SourceUpdateIn(BaseModel):
     attribution_text: str | None = None
     geographic_coverage: list[str] | None = None
     compliance_notes: str | None = None
+
+
+# ---- checkpoint 2.6: fetched jobs and source health
+
+
+class SourceJobOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    company_name: str | None
+    location: str
+    workplace: str | None
+    employment_type: str | None
+    department: str
+    url: str
+    excerpt: str
+    source_key: str
+    source_name: str
+    attribution_text: str
+    posted_at: datetime | None
+    first_seen_at: datetime
+
+
+class FetchLogOut(BaseModel):
+    started_at: datetime
+    board_id: str | None
+    outcome: str
+    http_status: int | None
+    duration_ms: int
+    jobs_seen: int
+    jobs_new: int
+    jobs_changed: int
+    jobs_closed: int
+    jobs_skipped: int
+    error_class: str | None
+
+
+class PollQueuedOut(BaseModel):
+    message: str

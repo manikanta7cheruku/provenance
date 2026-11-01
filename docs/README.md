@@ -52,6 +52,7 @@ Phase 0 planning pack, extended by later checkpoints (roadmap revision 2, 2026-1
 - [Checkpoint 2.3](checkpoints/checkpoint-2.3.md)
 - [Checkpoint 2.4](checkpoints/checkpoint-2.4.md)
 - [Checkpoint 2.5](checkpoints/checkpoint-2.5.md)
+- [Checkpoint 2.6](checkpoints/checkpoint-2.6.md)
 - [Carryover: what is left for the end](carryover/README.md)
 - [Git workflow](engineering/git-workflow.md)
 - [Master implementation plan](roadmap/implementation-plan.md)
