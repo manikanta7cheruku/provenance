@@ -15,6 +15,7 @@ A person presses "Make a PDF" and sees "The PDF could not be made. Your resume i
 | Stays on "Making your PDF" | The task is queued, retrying, or the worker is down | `.\scripts\pv.ps1 queue`, then [worker failure](worker-failure.md) or [stuck task](stuck-task.md) |
 | PDF text is in a plain system font | The shipped fonts did not load. Look for the warning "Font-face cannot be loaded" in the worker log | Rebuild the image (`.\scripts\pv.ps1 up`), check that `packages/files/src/pv_files/assets/fonts` has eight `.woff` files, and run `pdftest`, whose font test fails in this case |
 | Messages "Fontconfig error: No writable cache directories" | The image has no writable cache folder | Rebuild. The Dockerfile creates `/tmp/cache` and sets `XDG_CACHE_HOME` |
+| A canvas resume prints differently from the screen | A change to the canvas CSS on one side only, or fonts missing | Run `.\scripts\pv.ps1 pdftest` and the web unit tests: the golden CSS test fails when the server and the browser disagree. Check `tests/pdf/test_canvas_pdf.py` for position and order |
 | "The free plan keeps one resume" | Not a failure: the limit is a setting | `STUDIO_MAX_RESUMES` |
 
 ## Mitigation

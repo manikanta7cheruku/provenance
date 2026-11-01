@@ -74,7 +74,7 @@ The end-to-end flow is in [user-journey.md](user-journey.md). Each journey is ch
 | `/forgot-password` `/reset-password` `/verify-email` | Recovery flows | 1.3 | Built. Verification is enforced only when EMAIL_VERIFICATION_REQUIRED is true |
 | `/runs` | Minimal run list | 1.4 | Full inspector 3.5 |
 | `/profile` | Resume upload, parse status, editable profile, evidence | 1.5 | |
-| `/studio` | Resume studio: start from the profile or a blank page, edit with rich text, design panel, live preview, versions, PDF | 2.1 | Template gallery at 2.3, tailoring review at 2.4 |
+| `/studio` | Resume studio: guided editor or free canvas (drag, resize, edit on the page, layers, layout check), design, versions, PDF | 2.1, 2.2 | Template gallery at 2.3, tailoring review at 2.4 |
 | `/opportunities` | Basic list and paste-a-job (built in 1.8) | 1.8 | Full workbench at 2.9 |
 | `/opportunities/:id` | Job detail, eligibility gates and requirements (1.8), the evidence check with verdicts, band, questions and gap plan (1.9) | 1.9 | Core trust screen. Tabs and the detail pane arrive with the workbench at 2.9 |
 | `/opportunities` (add jobs) | Import flow | 2.5 | |

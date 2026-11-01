@@ -295,7 +295,14 @@ def _clean_style(raw: Any, problems: dict[str, str]) -> dict[str, Any]:
 
 
 def validate_document(raw: Any) -> dict[str, Any]:
-    """Return a clean copy of a document, or raise ResumeDocError naming what is wrong."""
+    """Return a clean copy of a document, or raise ResumeDocError naming what is wrong.
+
+    Version 2 is the free canvas (resume_canvas). Anything else is the flowing document.
+    """
+    if isinstance(raw, dict) and raw.get("version") == 2:
+        from pv_domain.resume_canvas import validate_canvas
+
+        return validate_canvas(raw)
     problems: dict[str, str] = {}
     if not isinstance(raw, dict):
         raise ResumeDocError({"document": "The resume is not valid."})
@@ -386,6 +393,10 @@ def validate_document(raw: Any) -> dict[str, Any]:
 
 def document_text(doc: dict[str, Any]) -> str:
     """All the text of a document in reading order. Used for limits, search and PDF checks."""
+    if doc.get("version") == 2:
+        from pv_domain.resume_canvas import canvas_text
+
+        return canvas_text(doc)
     header = doc["header"]
     parts = [header["name"], header["headline"], *header["contacts"]]
     for section in doc["sections"]:

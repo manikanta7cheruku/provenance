@@ -51,13 +51,13 @@ Other resume builders either give templates with little freedom or give Canva-st
 
 | ID | Requirement | Checkpoint |
 |---|---|---|
-| FR-RES-11 | Every element on the page is a box that can be selected, dragged, resized and moved with the arrow keys (with larger steps while a modifier key is held), with snapping guides to the margins, the page centre and other elements | 2.2 |
-| FR-RES-12 | Text is edited in place on the page. The side panel edits the same content. A change in either shows in the other at once, with no network wait | 2.2 |
-| FR-RES-13 | Multi-select, align, distribute, layers (bring forward, send back), lock, group, duplicate, delete, undo and redo that cover every edit, zoom, a margin grid and rulers | 2.2 |
-| FR-RES-14 | Lines and simple shapes as elements. Images are not in the first release | 2.2 |
-| FR-RES-15 | PDF output matches the canvas, with selectable text in reading order (top to bottom, then left to right) | 2.2 |
-| FR-RES-16 | A visible ATS-safety indicator that says when the layout uses columns, overlaps or text over shapes, with the reason | 2.2 |
-| FR-RES-17 | Every canvas action works from the keyboard, with announcements for screen readers. A person who cannot use a pointer can do everything | 2.2 |
+| FR-RES-11 | Every element on the page is a box that can be selected, dragged, resized and moved with the arrow keys (with larger steps while a modifier key is held), with snapping guides to the margins, the page centre and other elements | 2.2, built |
+| FR-RES-12 | Text is edited in place on the page. The side panel edits the same content. A change in either shows in the other at once, with no network wait | 2.2, built |
+| FR-RES-13 | Multi-select, align, distribute, layers (bring forward, send back), lock, group, duplicate, delete, undo and redo that cover every edit, zoom, a margin grid and rulers | 2.2, built |
+| FR-RES-14 | Lines and simple shapes as elements. Images are not in the first release | 2.2, built |
+| FR-RES-15 | PDF output matches the canvas, with selectable text in reading order (top to bottom, then left to right) | 2.2, built |
+| FR-RES-16 | A visible ATS-safety indicator that says when the layout uses columns, overlaps or text over shapes, with the reason | 2.2, built |
+| FR-RES-17 | Every canvas action works from the keyboard, with announcements for screen readers. A person who cannot use a pointer can do everything | 2.2, built |
 | FR-RES-18 | Templates (2.3) are canvas layouts. Switching a template re-flows content and keeps the person's edits where possible | 2.3 |
 
 Rules: the canvas never invents content. Suggestions and tailoring (2.4) change text and never layout. The structured mode stays for people who want an ATS-safe resume with no layout work.

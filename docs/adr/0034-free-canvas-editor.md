@@ -1,6 +1,6 @@
 # ADR-0034: Free canvas editor
 
-Status: Proposed (planned for checkpoint 2.2, to be accepted after its spike). Builds on [ADR-0024](0024-resume-studio-editor-approach.md), [ADR-0025](0025-resume-pdf-rendering.md) and [ADR-0033](0033-resume-studio-document-and-saving.md).
+Status: Accepted (checkpoint 2.2). The spike passed and WeasyPrint stays. Builds on [ADR-0024](0024-resume-studio-editor-approach.md), [ADR-0025](0025-resume-pdf-rendering.md) and [ADR-0033](0033-resume-studio-document-and-saving.md).
 
 ## Context
 After the structured editor of 2.1 was built, the owner compared it with Canva-style tools and judged the missing freedom to be the main gap against other resume builders: a person must be able to write their name, move it to the right, nudge it with the arrow keys, and place and resize anything on the page, editing the text right there, with changes from the side panel appearing on the page without delay.
@@ -22,7 +22,33 @@ How can a resume be freely positioned without becoming a design tool that produc
 | Images | include, defer | Defer. Uploaded images need their own safety work (type checks, re-encoding, size limits, privacy of metadata) |
 | Accessibility | pointer only, full keyboard | Full keyboard and screen reader support is a requirement, not a polish step. Selection, moves, resize, layers, grouping and deleting all work without a pointer, with announcements |
 
-## Decision (provisional)
+## Spike result (checkpoint 2.2)
+Five positioned layouts were drawn three ways: by the canvas in the browser (the real editor), by WeasyPrint, and by Edge's own print engine. The layouts were a header with a name and a date row, two columns, a right-aligned name and contacts, justified text with three type sizes and capitals, and a serif-only page. Every word was matched between the canvas and each PDF, and positions were compared after removing the constant offset between a line box and a glyph box.
+
+| Layout | Words matched | Largest horizontal difference | Largest vertical difference (after the offset) |
+|---|---|---|---|
+| header, role, dates, bullets | 28 of 29 | 0.03 mm | 0.07 mm (WeasyPrint), 0.21 mm (Edge) |
+| two columns | 110 of 110 | 0.05 mm | 0.07 mm, 0.19 mm |
+| right-aligned name and dates | 54 of 54 | 0.03 mm | 0.01 mm, 0.19 mm |
+| justified, sizes, capitals | 125 of 128 | 0.03 mm | 0.20 mm, 0.10 mm |
+| serif body | 46 of 46 | 0.01 mm | 0.00 mm, 0.05 mm |
+
+The unmatched words are the ones set in capitals by CSS: the PDF text says EXPERIENCE where the screen says Experience. Both engines agree with the canvas to a few hundredths of a millimetre across and a fifth of a millimetre down, which is below what a person can see. **Decision: WeasyPrint stays. Chromium is not needed.** Not measured: a full page of dense text, other fonts, and many concurrent renders.
+
+The spike also found a real problem that the layouts alone did not show: a PDF keeps text in the order it was drawn, and the PDF engine draws by stacking order, so the box added last was read last wherever it sat. See "Drawing order" below.
+
+## As built
+- **Model.** Version 2 of the resume content: `pages` of `elements`. An element is a text box (rich text, font role, size, color, alignment, line height, capitals) or a shape, in millimetres. A rule is a thin shape. Up to 3 pages and 150 elements. Validated on the server by `pv_domain.resume_canvas.validate_canvas` against a whitelist: positions must stay on the page, colors are a name or a hex code, rich text follows the same rules as version 1.
+- **One CSS, two drawers.** The server writes each box's CSS (`element_css`) and the browser writes the same (`css.ts`). A golden file, `tests/fixtures/canvas_css_golden.json`, is checked by a Python test and a TypeScript test, so a change on one side fails the other.
+- **Text boxes are as tall as their text.** The browser measures the content and stores the height, so nothing is cut off. The stored height is a minimum, and the server trims a height that would pass the page bottom instead of refusing it.
+- **Drawing order.** `paint_order` draws in reading order (top to bottom, then left to right) except where two boxes overlap, where the one added later stays on top. The picture is identical and the PDF text is in the order a person reads. Tested on the real PDF.
+- **Editing.** Pointer: select, shift-select, marquee, drag with snapping to the page edges, margins, page centre and other elements, resize by handles (a text box changes only its width), double press to edit in place. Keyboard: Tab through elements in reading order, arrows nudge by 0.5 mm (Shift 5 mm, Ctrl 0.1 mm), Alt with arrows resizes, Enter edits, Delete removes, Ctrl+D duplicates, Ctrl+G groups, Ctrl+Z and Ctrl+Shift+Z undo and redo, Ctrl+[ and ] reorder. Side panel: exact numbers for position and width, text style, the same rich text field (kept in step with the page), layers with forward, backward and lock, page and style.
+- **Undo.** One history for every edit. Quick changes of the same kind (a drag, a held arrow key, typing) are one step.
+- **Moving from guided.** The guided document is laid out on the canvas by measuring it in the browser, and the guided version is kept as an earlier version.
+- **Layout check.** In plain words, with the reason: overlapping text, text boxes side by side as columns, text on a filled shape (these can make a tracking system misread), and small text, text near the page edge, pale text (notes). It is advice and never blocks anything.
+- **Small screens.** Below about 980 pixels the page is shown and the PDF can be made, but editing is switched off with a sentence saying why. The guided editor is the way to edit on a phone.
+
+## Decision (as planned)
 1. Add checkpoint 2.2, before templates, because templates become canvas layouts.
 2. Start with a spike: draw the five sample resumes plus positioned layouts (columns, a right-aligned name, overlapping text and a line) with the browser and with WeasyPrint and Chromium, and compare text positions, wrapping, page breaks and reading order. Record the result here and in ADR-0025.
 3. Build the model, the browser renderer, selection and handles, snapping guides, keyboard moves and resize, in-place text editing, alignment and distribution, layers, lock and group, undo and redo, zoom, rulers and a margin grid, then the ATS warning.

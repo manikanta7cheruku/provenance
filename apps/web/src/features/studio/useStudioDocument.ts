@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "../../lib/api";
 import { previewResume, saveResume } from "../../lib/studio-api";
-import type { ResumeContent, ResumeDocument } from "../../lib/studio-api";
+import type { ResumeContent } from "../../lib/studio-api";
 import { sameDocument } from "./doc-ops";
 
 export type SaveState = "saved" | "unsaved" | "saving" | "error" | "conflict";
@@ -17,8 +17,14 @@ const PREVIEW_DELAY_MS = 500;
  * If the person keeps typing during a save, another save follows. `flush` saves right now, which
  * the export button uses so the PDF matches what is on screen.
  */
-export function useStudioDocument(initial: ResumeDocument) {
-  const [content, setContentState] = useState<ResumeContent>(initial.content);
+interface Editable<T> {
+  id: string;
+  revision: number;
+  content: T;
+}
+
+export function useStudioDocument<T extends object>(initial: Editable<T>) {
+  const [content, setContentState] = useState<T>(initial.content);
   const [revision, setRevision] = useState(initial.revision);
   const [state, setState] = useState<SaveState>("saved");
   const [problems, setProblems] = useState<Record<string, string>>({});
@@ -89,7 +95,7 @@ export function useStudioDocument(initial: ResumeDocument) {
   }, [runSave]);
 
   const setContent = useCallback(
-    (next: ResumeContent | ((current: ResumeContent) => ResumeContent)) => {
+    (next: T | ((current: T) => T)) => {
       const value = typeof next === "function" ? next(latest.current) : next;
       latest.current = value;
       setContentState(value);
@@ -110,7 +116,7 @@ export function useStudioDocument(initial: ResumeDocument) {
   }, [runSave]);
 
   /** Replace everything with a document from the server (after a restore or a reload). */
-  const replace = useCallback((doc: ResumeDocument) => {
+  const replace = useCallback((doc: { revision: number; content: T }) => {
     if (timer.current !== null) window.clearTimeout(timer.current);
     timer.current = null;
     latest.current = doc.content;

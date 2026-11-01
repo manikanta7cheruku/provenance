@@ -97,6 +97,6 @@ export function isEmptyRich(body: RichDoc | null): boolean {
 }
 
 /** True when two documents are the same, so autosave does not fire for a no-op. */
-export function sameDocument(a: ResumeContent, b: ResumeContent): boolean {
+export function sameDocument(a: object, b: object): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }

@@ -1,4 +1,5 @@
 // A small stateful fake of the API for browser tests of the profile screen.
+import { resolve } from "node:path";
 import type { Page, Route } from "@playwright/test";
 
 export const NOW = "2026-10-30T09:00:00Z";
@@ -211,6 +212,39 @@ export function studioDoc(name = "Asha Rao", template = "classic", revision = 1)
   return { id: "doc-1", title: "My resume", revision, template, updated_at: NOW, content: studioContent(template, name) };
 }
 
+
+function para(text: string, marks: string[] = []) {
+  return { type: "paragraph", content: [{ type: "text", text, ...(marks.length ? { marks: marks.map((type) => ({ type })) } : {}) }] };
+}
+
+function textEl(id: string, name: string, x: number, y: number, w: number, h: number, body: unknown, extra: Record<string, unknown> = {}) {
+  return { id, kind: "text", name, x, y, w, h, locked: false, group: null, body, font: "body", size: 10.5, color: "ink", align: "left", line_height: 1.3, caps: false, ...extra };
+}
+
+/** A free canvas resume: a name, a headline, a rule, a role with a right-aligned date, and bullets. */
+export function canvasContent(name = "Asha Rao") {
+  const bullets = { type: "doc", content: [{ type: "bulletList", content: ["Cleaned six CSV sources with pandas", "Wrote SQL joins over 1.2 million rows"].map((line) => ({ type: "listItem", content: [para(line)] })) }] };
+  return {
+    version: 2,
+    style: { template: "classic", font_pair: "plex-newsreader", accent: "#1f3d7a", paper: "a4", margin_mm: 16 },
+    pages: [{
+      id: "pg1",
+      elements: [
+        textEl("name", "Name", 16, 16, 178, 11, { type: "doc", content: [para(name)] }, { font: "heading", size: 26, color: "accent", line_height: 1.1 }),
+        textEl("headline", "Headline", 16, 29, 178, 6, { type: "doc", content: [para("Data analyst")] }, { size: 11 }),
+        { id: "rule", kind: "shape", name: "Rule", x: 16, y: 38, w: 178, h: 0.4, locked: false, group: null, fill: "accent", stroke: "none", stroke_pt: 0, radius: 0 },
+        textEl("role", "Role", 16, 44, 140, 6, { type: "doc", content: [para("Data Intern, Kestrel Analytics", ["bold"])] }),
+        textEl("dates", "Dates", 158, 44, 36, 5, { type: "doc", content: [para("2025-06 to 2025-08")] }, { align: "right", size: 9.5, color: "muted" }),
+        textEl("bullets", "Highlights", 16, 52, 178, 12, bullets),
+      ],
+    }],
+  };
+}
+
+export function canvasDoc(name = "Asha Rao", revision = 1) {
+  return { id: "doc-1", title: "My resume", revision, template: "classic", updated_at: NOW, content: canvasContent(name) };
+}
+
 export function previewHtml(content: any): string {
   const sections = (content.sections ?? []).map((s: any) => `<h2>${s.title}</h2>`).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Resume</title><style>body{margin:0;background:#e9e9e6;font-family:sans-serif}.sheet{width:794px;min-height:1123px;margin:0 auto;padding:60px;box-sizing:border-box;background:#fff}</style></head><body><main class="sheet"><h1>${content.header?.name ?? ""}</h1>${sections}</main></body></html>`;
@@ -324,6 +358,14 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       fake.jobs.unshift(job);
       fake.jobReads[job.id] = 0;
       return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    const fontMatch = path.match(/^\/api\/v1\/studio\/fonts\/([\w.-]+\.woff)$/);
+    if (fontMatch) {
+      return route.fulfill({
+        path: resolve(process.cwd(), "../../packages/files/src/pv_files/assets/fonts", fontMatch[1] ?? ""),
+        contentType: "font/woff",
+        headers: { "access-control-allow-origin": "*" },
+      });
     }
     if (path === "/api/v1/studio/options") return json(STUDIO_OPTIONS);
     const studioMatch = path.match(/^\/api\/v1\/studio\/(resumes|exports)(?:\/([^/]+))?(?:\/(.*))?$/);
