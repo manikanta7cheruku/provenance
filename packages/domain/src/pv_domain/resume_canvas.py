@@ -23,8 +23,11 @@ from pv_domain.resume_doc import (
     FONT_PAIRS,
     MAX_TEXT_CHARS,
     PAPERS,
+    SECTION_KINDS,
     ResumeDocError,
     clean_rich,
+    contrast_on_white,
+    contrast_ratio,
     new_id,
     rich_to_text,
 )
@@ -45,9 +48,13 @@ ROW_BAND_MM = 3.0
 KINDS = ("text", "shape")
 FONT_ROLES = ("heading", "body")
 ALIGNS = ("left", "center", "right", "justify")
-COLOR_TOKENS = ("ink", "muted", "accent", "white", "none")
+COLOR_TOKENS = ("ink", "muted", "accent", "tint", "white", "none")
 INK = "#1b1b1b"
 MUTED = "#4a4a4a"
+TINT = "#eef1f6"
+# What a template says an element is, so a template can be changed later without losing the words.
+ROLES = ("name", "headline", "contacts", "title", "item", "dates", "decor")
+MIN_TEXT_CONTRAST = 4.5
 _HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 _ID = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
 
@@ -68,6 +75,9 @@ def default_canvas_style(template: str = "free") -> dict[str, Any]:
         "template": template,
         "font_pair": "plex-newsreader",
         "accent": "#1f3d7a",
+        "ink": INK,
+        "muted": MUTED,
+        "tint": TINT,
         "paper": "a4",
         "margin_mm": 16.0,
     }
@@ -175,11 +185,56 @@ def _clean_style(raw: Any, problems: dict[str, str]) -> dict[str, Any]:
             style["accent"] = raw["accent"].lower()
         else:
             problems["style.accent"] = "Use a color like #1f3d7a."
+    for key, what in (("ink", "The text color"), ("muted", "The grey text color")):
+        if key in raw:
+            value = raw[key]
+            if not (isinstance(value, str) and _HEX.match(value)):
+                problems[f"style.{key}"] = "Use a color like #1b1b1b."
+            elif contrast_on_white(value) < MIN_TEXT_CONTRAST:
+                problems[f"style.{key}"] = (
+                    f"{what} is too light to read on white. Choose a darker one."
+                )
+            else:
+                style[key] = value.lower()
+    if "tint" in raw:
+        value = raw["tint"]
+        if not (isinstance(value, str) and _HEX.match(value)):
+            problems["style.tint"] = "Use a color like #eef1f6."
+        else:
+            style["tint"] = value.lower()
+    if contrast_ratio(style["tint"], style["ink"]) < MIN_TEXT_CONTRAST or (
+        contrast_ratio(style["tint"], style["muted"]) < MIN_TEXT_CONTRAST
+    ):
+        problems["style.tint"] = (
+            "The background tint is too dark for the text on it. Choose a lighter one."
+        )
     if "margin_mm" in raw:
         style["margin_mm"] = round(
             _number(raw["margin_mm"], *MARGIN_MM, "style.margin_mm", problems, "The margin"), 1
         )
     return style
+
+
+def _index(value: Any, high: int) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= high:
+        return None
+    return int(value)
+
+
+def _clean_meta(raw: Any, path: str, problems: dict[str, str]) -> dict[str, Any] | None:
+    """What a template made this element for: a name, a section title, an item and so on."""
+    if raw is None:
+        return None
+    if not isinstance(raw, dict) or raw.get("role") not in ROLES:
+        problems[path] = "This label is not valid."
+        return None
+    sec = _index(raw.get("sec"), 99)
+    idx = _index(raw.get("idx"), 199)
+    kind = raw.get("kind")
+    if kind is not None and kind not in SECTION_KINDS:
+        problems[path] = "This label is not valid."
+        return None
+    return {"role": raw["role"], "sec": sec, "idx": idx, "kind": kind}
 
 
 def _clean_element(
@@ -213,6 +268,7 @@ def _clean_element(
         # past the page. The height is a minimum, so it is trimmed to the page instead of refused.
         h = min(h, max(page_h - y, MIN_SIZE_MM))
 
+    meta = _clean_meta(raw.get("meta"), f"{path}.meta", problems)
     out: dict[str, Any] = {
         "id": el_id,
         "kind": kind,
@@ -224,6 +280,8 @@ def _clean_element(
         "locked": raw.get("locked") is True,
         "group": group,
     }
+    if meta is not None:
+        out["meta"] = meta
     if kind == "text":
         font = raw.get("font", "body")
         align = raw.get("align", "left")
@@ -401,11 +459,13 @@ def canvas_text(doc: dict[str, Any]) -> str:
 
 def resolve_color(value: str, style: dict[str, Any]) -> str:
     if value == "ink":
-        return INK
+        return str(style["ink"])
     if value == "muted":
-        return MUTED
+        return str(style["muted"])
     if value == "accent":
         return str(style["accent"])
+    if value == "tint":
+        return str(style["tint"])
     if value == "white":
         return "#ffffff"
     if value == "none":
@@ -475,6 +535,7 @@ body{margin:0;color:#1b1b1b}
 .t strong{font-weight:600}
 .t mark{background:#fff1a8;color:inherit;padding:0 .4mm}
 .t u{text-decoration:underline;text-underline-offset:1pt}
+.t a{color:inherit;text-decoration:underline;text-underline-offset:1pt}
 """
 
 

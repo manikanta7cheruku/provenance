@@ -8,8 +8,20 @@ export interface CanvasStyle {
   template: string;
   font_pair: string;
   accent: string;
+  ink: string;
+  muted: string;
+  tint: string;
   paper: string;
   margin_mm: number;
+}
+
+/** What a template made an element for, so the words can be laid out again by another template. */
+export type Role = "name" | "headline" | "contacts" | "title" | "item" | "dates" | "decor";
+export interface ElementMeta {
+  role: Role;
+  sec: number | null;
+  idx: number | null;
+  kind: string | null;
 }
 
 interface ElementBase {
@@ -21,6 +33,7 @@ interface ElementBase {
   h: number;
   locked: boolean;
   group: string | null;
+  meta?: ElementMeta;
 }
 
 export interface TextElement extends ElementBase {
@@ -71,11 +84,13 @@ export const LIMITS = {
 
 export const INK = "#1b1b1b";
 export const MUTED = "#4a4a4a";
+export const TINT = "#eef1f6";
 
 export const COLOR_CHOICES = [
   { value: "ink", label: "Ink" },
   { value: "muted", label: "Grey" },
   { value: "accent", label: "Accent" },
+  { value: "tint", label: "Tint" },
   { value: "white", label: "White" },
 ] as const;
 

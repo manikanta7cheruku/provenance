@@ -225,6 +225,12 @@
   text-decoration: underline;
   text-underline-offset: 1pt;
 }
+.cv-el--text a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 1pt;
+  pointer-events: none;
+}
 .cv-text-inner {
   min-height: 1em;
 }

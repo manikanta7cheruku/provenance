@@ -327,11 +327,32 @@ class TestSharedCss:
         ),
     ]
 
+    # The same element drawn with another palette and another font pair.
+    PALETTE = {
+        "font_pair": "playfair-source",
+        "accent": "#7a1f3d",
+        "ink": "#222a35",
+        "muted": "#555b66",
+        "tint": "#f3ede4",
+    }
+    STYLED = [
+        (
+            "palette, heading in accent",
+            text_el("p1", 16, 20, 100, 8, rich("x"), font="heading", color="accent"),
+        ),
+        ("palette, grey text", text_el("p2", 16, 30, 100, 8, rich("x"), color="muted")),
+        ("palette, tint shape", shape_el("p3", 0, 0, 70, 297, fill="tint")),
+    ]
+
     def build(self) -> list[dict[str, Any]]:
         style = validate_canvas(canvas(text_el("a", 1, 1, 5, 5)))["style"]
+        styled = validate_canvas(canvas(text_el("a", 1, 1, 5, 5), **self.PALETTE))["style"]
+        cases = [(n, e, style) for n, e in self.CASES] + [(n, e, styled) for n, e in self.STYLED]
         out = []
-        for index, (name, el) in enumerate(self.CASES, start=1):
-            cleaned = validate_canvas(canvas(el))["pages"][0]["elements"][0]
+        for index, (name, el, style) in enumerate(cases, start=1):
+            cleaned = validate_canvas(
+                canvas(el, **{k: style[k] for k in style if k != "template"})
+            )["pages"][0]["elements"][0]
             out.append(
                 {
                     "name": name,

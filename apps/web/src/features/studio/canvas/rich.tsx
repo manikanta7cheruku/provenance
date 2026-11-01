@@ -11,6 +11,14 @@ function inline(node: RichNode, key: number): ReactNode {
     else if (mark.type === "italic") out = <em>{out}</em>;
     else if (mark.type === "underline") out = <u>{out}</u>;
     else if (mark.type === "highlight") out = <mark>{out}</mark>;
+    else if (mark.type === "link" && mark.attrs?.href) {
+      // Links are drawn but not followed on the page: a click there selects or edits the box.
+      out = (
+        <a href={mark.attrs.href} tabIndex={-1} rel="noopener noreferrer">
+          {out}
+        </a>
+      );
+    }
   }
   return <span key={key}>{out}</span>;
 }

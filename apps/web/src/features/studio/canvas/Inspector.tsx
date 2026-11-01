@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActionButton, Select, TextField } from "../../../ui";
 import { ACCENT_PRESETS, accentProblem } from "../contrast";
 import { OPTION_LABELS } from "../labels";
 import { RichField } from "../RichField";
 import { ColorField, NumberField } from "./fields";
+import { contrastOnWhite, contrastRatio } from "./css";
 import { LayersPanel } from "./LayersPanel";
+import { matchingPalette, PALETTES } from "./templates/palettes";
 import type { Order } from "./edit";
 import { LIMITS, pageSize } from "./types";
 import type { CanvasDoc, CanvasElement, CanvasStyle, ShapeElement, TextElement } from "./types";
@@ -107,6 +109,30 @@ function ShapeProps({ el, onPatch, onBox, doc }: { el: ShapeElement } & Pick<Ins
   );
 }
 
+/** A hex color box that applies only when the value is a valid color that stays readable. */
+function ShadeField({ label, value, against, onValid }: { label: string; value: string; against: string[] | null; onValid: (hex: string) => void }) {
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  const hex = /^#[0-9a-fA-F]{6}$/.test(text);
+  let problem: string | undefined;
+  if (!hex) problem = "Use a color like #1b1b1b.";
+  else if (against === null && contrastOnWhite(text) < 4.5) problem = "Too light to read on white. Choose a darker one.";
+  else if (against !== null && against.some((c) => contrastRatio(text, c) < 4.5)) problem = "Too dark for the text on it. Choose a lighter one.";
+  return (
+    <TextField
+      label={label}
+      value={text}
+      error={problem}
+      onChange={(event) => {
+        const v = event.target.value.trim();
+        setText(v);
+        const ok = /^#[0-9a-fA-F]{6}$/.test(v) && (against === null ? contrastOnWhite(v) >= 4.5 : against.every((c) => contrastRatio(v, c) >= 4.5));
+        if (ok) onValid(v.toLowerCase());
+      }}
+    />
+  );
+}
+
 function PageProps({ doc, options, onStyle, onAddPage, onRemovePage, onMoveToPage, selectedCount }: Pick<InspectorProps, "doc" | "options" | "onStyle" | "onAddPage" | "onRemovePage" | "onMoveToPage"> & { selectedCount: number }) {
   const [accent, setAccent] = useState(doc.style.accent);
   const problem = accentProblem(accent);
@@ -131,6 +157,36 @@ function PageProps({ doc, options, onStyle, onAddPage, onRemovePage, onMoveToPag
             </option>
           ))}
         </Select>
+      </fieldset>
+      <fieldset className="cv-fields">
+        <legend className="group__title">Color theme</legend>
+        <p className="field__hint">Four colors that work together: the accent, the text, the grey and a soft tint. Pick a set, or change any of them below.</p>
+        <div className="cv-themes" role="group" aria-label="Color themes">
+          {PALETTES.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="cv-theme"
+              aria-pressed={matchingPalette(doc.style)?.id === p.id}
+              onClick={() => {
+                setAccent(p.accent);
+                onStyle({ accent: p.accent, ink: p.ink, muted: p.muted, tint: p.tint });
+              }}
+            >
+              <span className="cv-theme__chips" aria-hidden="true">
+                {[p.accent, p.ink, p.muted, p.tint].map((c) => (
+                  <span key={c} style={{ background: c }} />
+                ))}
+              </span>
+              {p.name}
+            </button>
+          ))}
+        </div>
+        <div className="cv-grid">
+          <ShadeField label="Text color" value={doc.style.ink} against={null} onValid={(ink) => onStyle({ ink })} />
+          <ShadeField label="Grey text color" value={doc.style.muted} against={null} onValid={(muted) => onStyle({ muted })} />
+          <ShadeField label="Tint" value={doc.style.tint} against={[doc.style.ink, doc.style.muted]} onValid={(tint) => onStyle({ tint })} />
+        </div>
       </fieldset>
       <fieldset className="cv-fields">
         <legend className="group__title">Accent color</legend>

@@ -43,6 +43,15 @@ _FONT_PAIR_LABELS = {
     "plex-newsreader": "Serif headings, sans body",
     "plex": "Sans serif throughout",
     "newsreader": "Serif throughout",
+    "inter": "Inter throughout",
+    "inter-lora": "Lora headings, Inter body",
+    "lato": "Lato throughout",
+    "montserrat-lato": "Montserrat headings, Lato body",
+    "source": "Source Sans throughout",
+    "source-merriweather": "Merriweather headings, Source Sans body",
+    "playfair-source": "Playfair headings, Source Sans body",
+    "lora": "Lora throughout",
+    "merriweather": "Merriweather throughout",
 }
 
 
