@@ -208,12 +208,29 @@ export const STUDIO_OPTIONS = {
 };
 
 export const SEARCH_SOURCES = [
-  { key: "lever", display_name: "Lever postings", source_type: "ats_board", outcome: "unavailable", message: "Lever postings is currently unavailable. Reason: It is switched off. You can still import jobs you collected from Lever postings.", reason: "It is switched off.", import_available: true, compliance_status: "verified", terms_checked_at: "2026-11-02", terms_url: "https://www.lever.co/terms-of-service/", attribution_text: "" },
-  { key: "linkedin", display_name: "LinkedIn", source_type: "user_import_only", outcome: "import_required", message: "Automated search for LinkedIn is not available. Import jobs by URL, paste, or CSV/XLSX and we will analyze them.", reason: "Automated access to this platform is not permitted, so jobs from it are imported by you.", import_available: true, compliance_status: "prohibited", terms_checked_at: "2026-11-02", terms_url: "https://www.linkedin.com/legal/user-agreement", attribution_text: "" },
+  { key: "lever", display_name: "Lever postings", source_type: "ats_board", outcome: "unavailable", message: "Lever postings is currently unavailable. Reason: It is switched off. You can still import jobs you collected from Lever postings.", reason: "It is switched off.", import_available: true, compliance_status: "verified", terms_checked_at: "2026-11-02", terms_url: "https://www.lever.co/terms-of-service/", attribution_text: "", health_status: "healthy", last_success_at: "2026-11-02T10:00:00Z", jobs_open: 2 },
+  { key: "linkedin", display_name: "LinkedIn", source_type: "user_import_only", outcome: "import_required", message: "Automated search for LinkedIn is not available. Import jobs by URL, paste, or CSV/XLSX and we will analyze them.", reason: "Automated access to this platform is not permitted, so jobs from it are imported by you.", import_available: true, compliance_status: "prohibited", terms_checked_at: "2026-11-02", terms_url: "https://www.linkedin.com/legal/user-agreement", attribution_text: "", health_status: "unknown", last_success_at: null, jobs_open: 0 },
+];
+
+export const FETCHED_JOBS = [
+  { id: "j1", title: "Backend Engineer", company_name: "Palantir", location: "London, United Kingdom", workplace: "hybrid", employment_type: "full_time", department: "Engineering", url: "https://jobs.lever.co/palantir/1", excerpt: "Build data systems used by governments and companies.", source_key: "lever", source_name: "Lever postings", attribution_text: "", posted_at: "2026-11-01T09:00:00Z", first_seen_at: "2026-11-02T10:00:00Z" },
+  { id: "j2", title: "Data Analyst", company_name: "Palantir", location: "Remote", workplace: "remote", employment_type: "full_time", department: "Analytics", url: "https://jobs.lever.co/palantir/2", excerpt: "", source_key: "lever", source_name: "Lever postings", attribution_text: "", posted_at: null, first_seen_at: "2026-11-02T10:00:00Z" },
 ];
 
 export function searchPlan(body: { query?: string; intent?: Record<string, any> }) {
   const intent = body.intent ?? {};
+  if (body.query?.includes("searchable")) {
+    return {
+      interpreted_by: "the AI service",
+      intent: { roles: ["Backend Engineer"], skills: [], min_years: null, max_years: null, locations: [], work_mode: "any", employment_types: [], compensation: null, companies: ["Palantir"], sources: ["all_permitted"], exclusions: [] },
+      headline: "Searching Lever postings.",
+      can_search_now: true,
+      notes: [],
+      sources: [{ key: "lever", display_name: "Lever postings", outcome: "search", message: "Searching Lever postings", reason: null, import_available: true, named_by_person: false, notes: [] }],
+      companies: [{ query: "Palantir", status: "resolved", route: "first_party", message: "Using the company's own career system (Lever postings).", company: { key: "palantir", name: "Palantir", score: 1 }, source_key: "lever", candidates: [] }],
+      authorization: { countries: ["India"], needs_sponsorship: false, origin: "your profile" },
+    };
+  }
   const companies: string[] = intent.companies ?? (body.query?.includes("Google") ? ["Google"] : body.query?.includes("Tata") ? ["Tata"] : []);
   return {
     interpreted_by: body.query !== undefined ? "the AI service" : "the fields you set",
@@ -412,6 +429,10 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
     }
     if (path === "/api/v1/studio/options") return json(STUDIO_OPTIONS);
     if (path === "/api/v1/search/sources") return json(SEARCH_SOURCES);
+    if (path === "/api/v1/search/jobs") {
+      const roles = new URL(request.url()).searchParams.getAll("roles");
+      return json(FETCHED_JOBS.filter((j) => roles.length === 0 || roles.some((r) => j.title.toLowerCase().includes(r.toLowerCase()))));
+    }
     if (path === "/api/v1/search/plan" && method === "POST") {
       const body = request.postDataJSON() as { query?: string; intent?: Record<string, any> };
       if (body.query === "no key") return json({ code: "AI_NOT_CONFIGURED", message: "Searching by sentence needs the AI service, which is not set up yet." }, 503);

@@ -594,6 +594,9 @@ class JobSource(Base):
     last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     last_failure_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     failure_streak: Mapped[int] = mapped_column(Integer, default=0)
+    breaker_open_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
     edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -614,3 +617,69 @@ class CompanyRow(Base):
     last_verified_at: Mapped[date | None] = mapped_column(Date, default=None)
     edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 2.6: jobs fetched from sources (migration 0011)
+
+
+class SourceJob(Base):
+    """One job as a source published it. Shared reference data: no Row Level Security."""
+
+    __tablename__ = "source_jobs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    source_key: Mapped[str] = mapped_column(ForeignKey("job_sources.key", ondelete="CASCADE"))
+    board_id: Mapped[str] = mapped_column(Text)
+    external_id: Mapped[str] = mapped_column(Text)
+    url: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(Text)
+    company_name: Mapped[str | None] = mapped_column(Text, default=None)
+    location: Mapped[str] = mapped_column(Text, default="")
+    workplace: Mapped[str | None] = mapped_column(Text, default=None)
+    employment_type: Mapped[str | None] = mapped_column(Text, default=None)
+    department: Mapped[str] = mapped_column(Text, default="")
+    description: Mapped[str] = mapped_column(Text, default="")
+    posted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    source_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    content_hash: Mapped[str] = mapped_column(Text)
+    first_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class SourceTarget(Base):
+    __tablename__ = "source_targets"
+
+    source_key: Mapped[str] = mapped_column(
+        ForeignKey("job_sources.key", ondelete="CASCADE"), primary_key=True
+    )
+    board_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    last_polled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    last_outcome: Mapped[str | None] = mapped_column(Text, default=None)
+    consecutive_errors: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_open: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class FetchLog(Base):
+    __tablename__ = "fetch_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source_key: Mapped[str] = mapped_column(ForeignKey("job_sources.key", ondelete="CASCADE"))
+    board_id: Mapped[str | None] = mapped_column(Text, default=None)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    outcome: Mapped[str] = mapped_column(Text)
+    http_status: Mapped[int | None] = mapped_column(Integer, default=None)
+    bytes_read: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_seen: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_new: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_changed: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_closed: Mapped[int] = mapped_column(Integer, default=0)
+    jobs_skipped: Mapped[int] = mapped_column(Integer, default=0)
+    error_class: Mapped[str | None] = mapped_column(Text, default=None)

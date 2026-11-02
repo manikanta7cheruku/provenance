@@ -56,6 +56,17 @@ The product runs end to end without a key and says so honestly. These items need
 | C-38 | 2.5 | A larger company list and verified board ids | 24 companies, three with confirmed boards | Add the companies you care about to `registry_data/companies.json`. Confirm a board exists before adding its id | open |
 | C-39 | 2.5 | Review dates | Every verification expires after 180 days | Put a reminder at 2027-04-30 to re-read each enabled source | open |
 
+## G. Fetching and source health (added at 2.6)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-50 | 2.6 | A live poll through the whole path | Nothing is enabled, so the poller has never used the real network. Tests use a fake fetcher and saved real answers | After C-34, record Lever's review in Admin and enable it (see [source-health runbook](../operations/runbooks/source-health.md)). Check the fetch log shows `ok` with new jobs, then Find jobs lists them | open |
+| C-51 | 2.6 | Greenhouse and Ashby cannot be used yet | Their adapters are built, but their terms are unverified | Read their terms (C-34). If they allow it, record the review and enable. If not, leave them off or remove the adapters | open |
+| C-52 | 2.6 | The weight of a big board | A Greenhouse board with full descriptions was 5.8 MB, an Ashby board 2.9 MB, per poll | Watch `bytes_read` in the fetch log for a week. If it matters, poll the list without content and fetch only changed jobs | open |
+| C-53 | 2.6 | A retention rule for fetched job text | The terms read state no retention rule. Closed jobs are kept | Decide how long closed jobs are kept and add a cleanup. Check each source's terms again | open |
+| C-54 | 2.6 | Behavior over days | Intervals, the breaker and chaining were tested with a fake clock | Leave Lever enabled for a few days. Read the log for skips, failures and breaker events | open |
+| C-55 | 2.6 | Remotive and Adzuna adapters | Waiting for the owner decisions in C-35 | After the decisions, build an adapter for each source that stays | open |
+| C-56 | 2.6 | The shape fixtures age | They are one day's real answers (2026-11-02) | When a source reports `bad_response`, read a fresh answer, update the fixture and the parser | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

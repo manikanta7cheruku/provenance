@@ -201,7 +201,8 @@ class TestTheSeedFiles:
 
     def test_nothing_is_switched_on_before_an_adapter_exists(self) -> None:
         for s in seed_sources():
-            assert s.enabled is False and s.adapter is None, s.key
+            assert s.enabled is False, s.key
+            assert (s.adapter is not None) == (s.key in ("lever", "greenhouse", "ashby")), s.key
 
     def test_every_platform_without_a_permitted_feed_is_import_only(self) -> None:
         by_key = {s.key: s for s in seed_sources()}

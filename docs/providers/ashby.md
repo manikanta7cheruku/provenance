@@ -15,7 +15,7 @@
 | Required attribution | None stated |
 | Data retention requirements | None stated |
 | Capability class | PUBLIC_DATA |
-| Current integration status | Recorded as `unverified`, not enabled, no adapter. Board `ramp` was confirmed to exist on 2026-11-02 |
+| Current integration status | Adapter built at 2.6 (`parse_ashby`, checked against one real answer on 2026-11-02: a full board was 2.9 MB, a title had a leading space). Recorded as `unverified`, so it cannot be enabled or polled. Board `ramp` was confirmed to exist on 2026-11-02 |
 | Last reviewed date | 2026-11-02 |
 | Reviewed by | Build assistant, from the official documentation |
 | Next review due | When the owner reads the terms (carryover C-34) |

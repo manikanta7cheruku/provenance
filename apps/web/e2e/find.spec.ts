@@ -67,6 +67,33 @@ test("a sentence without the AI service says so and an empty sentence cannot be 
   await expect(page.getByText(/needs the AI service, which is not set up yet/)).toBeVisible();
 });
 
+test("jobs from a source that is searched are listed with their source and a link to the original", async ({ page }) => {
+  await open(page);
+  await page.getByLabel("Describe the search").fill("searchable Backend Engineer at Palantir");
+  await page.getByRole("button", { name: "Plan this search" }).click();
+  await expect(page.getByRole("heading", { name: "Jobs from the sources searched" })).toBeVisible();
+  const job = page.locator(".find__item", { hasText: "Backend Engineer" }).first();
+  await expect(job.getByText("Source: Lever postings")).toBeVisible();
+  await expect(job.getByRole("link", { name: /Open the original posting for Backend Engineer/ })).toHaveAttribute("href", "https://jobs.lever.co/palantir/1");
+  await expect(page.locator(".find__item", { hasText: "Data Analyst" })).toHaveCount(0);
+});
+
+test("a plan that searches nothing shows no job list and says how to add jobs", async ({ page }) => {
+  await open(page);
+  await page.getByLabel("Describe the search").fill("Backend engineer in India");
+  await page.getByRole("button", { name: "Plan this search" }).click();
+  await expect(page.getByRole("heading", { name: "Jobs from the sources searched" })).toHaveCount(0);
+  await expect(page.getByText(/You can import jobs yourself/)).toBeVisible();
+});
+
+test("the source list shows when a source last answered and how many jobs are kept", async ({ page }) => {
+  await open(page);
+  const lever = page.locator(".find__item", { hasText: "Lever postings" }).last();
+  await expect(lever.getByText("Healthy")).toBeVisible();
+  await expect(lever.getByText(/Last answered/)).toBeVisible();
+  await expect(lever.getByText(/2 open jobs kept/)).toBeVisible();
+});
+
 for (const theme of ["light", "dark"] as const) {
   test.describe(`axe (${theme})`, () => {
     test.beforeEach(async ({ page }) => {
@@ -79,6 +106,10 @@ for (const theme of ["light", "dark"] as const) {
       await page.getByLabel("Describe the search").fill("Tata jobs");
       await page.getByRole("button", { name: "Plan this search" }).click();
       await expect(page.getByRole("heading", { name: "Companies" })).toBeVisible();
+      await axe(page);
+      await page.getByLabel("Describe the search").fill("searchable Backend Engineer at Palantir");
+      await page.getByRole("button", { name: "Plan this search" }).click();
+      await expect(page.getByRole("heading", { name: "Jobs from the sources searched" })).toBeVisible();
       await axe(page);
     });
   });

@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-29 checkpoints in total. Thirteen are done and merged (1.1 to 1.9 and 2.1 to 2.4). Checkpoint 2.5 is built and awaiting merge. Fifteen remain after it. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
+29 checkpoints in total. Fourteen are done and merged (1.1 to 1.9 and 2.1 to 2.5). Checkpoint 2.6 is built and awaiting merge. Fourteen remain after it. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
 
 | Checkpoint | State |
 |---|---|
@@ -27,8 +27,9 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 2.2 | Done and merged |
 | 2.3 | Done and merged |
 | 2.4 | Done and merged |
-| 2.5 | Built on branch phase-2/checkpoint-2.5-source-verification, awaiting review and merge |
-| 2.6 to 2.13 | Not started |
+| 2.5 | Done and merged |
+| 2.6 | Built on branch phase-2/checkpoint-2.6-adapters-and-fetch-layer, awaiting review and merge |
+| 2.7 to 2.13 | Not started |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
@@ -74,7 +75,7 @@ Exit: critical test passes (start analysis, interrupt, kill worker, restart, ans
 | 2.3 | **Template library (24), links, more fonts and color themes, built on the canvas.** One layout engine and 24 template specs, a gallery with previews of your own words, Change template without losing words, an ATS-safe label that is measured, links in text and contacts (https, mailto, tel only), nine font families in twelve pairs, twelve color palettes | Design systems for documents, ATS parsing behavior, URL scheme allowlists |
 | 2.4 | **Resume tailoring** (W) with a deterministic grounding check: only confirmed requirements and cited evidence are used, every number, name and job keyword in a suggestion must be found in the old wording or the cited evidence, side by side diff with reason and evidence, accept (re-checked), reject, edit (re-checked), restore point on accept | Claim-level verification, why LLM judges are not enough |
 | 2.5 | **Source verification first.** Terms of every candidate source read and recorded (Greenhouse, Lever, Ashby, Remotive, Adzuna, and LinkedIn, Indeed, Wellfound, Naukri as import only), a source registry with every field of search-requirements.md and a database rule that no source is enabled unless verified and in date, a company registry, a deterministic resolver (search, import required, unavailable, with reasons), search intent parsing (L) with code cleaning, and a Find jobs screen. No fetching yet | Capability modeling, resolver design, compliance as data |
-| 2.6 | Adapters for the sources that pass verification, fetch layer with rate limits, polling intervals, circuit breakers, source health. Provider docs and compliance records completed per source first | Adapter pattern, API compliance, circuit breakers |
+| 2.6 | **Adapters, fetch layer and source health.** Pure parsers for Lever, Greenhouse and Ashby checked against real answers, one fetch module (https and allowed hosts only, no redirects, size and time limits, no cookies), a minimum poll interval per board, Retry-After obeyed, a circuit breaker per source, health words, a self-scheduling poll task, a fetch log, jobs shown only while their source is usable. Only Lever is verified, so only Lever can be switched on | Adapter pattern, API compliance, circuit breakers |
 | 2.7 | Deduplication with reversible links, private versus public visibility, sightings | Layered matching, data integrity |
 | 2.8 | CSV and XLSX import, URL import, SSRF-hardened fetch layer, paste, manual entry, import reports | SSRF, DNS rebinding, untrusted file parsing |
 | 2.9 | Opportunities workbench: table, filters (remote, hybrid, location, salary, seniority, employment type, company, source), saved views, keyboard flow, actions (save, dismiss, approve for prep, open original, mark applied), applications tracking, match state machine | Split state machines, TanStack Table, accessibility |
@@ -160,7 +161,7 @@ Every checkpoint is written and reviewed in this structure:
 | 2.3 | Template gallery with previews of your own words, ATS-safe labels, Change template, color themes, link editing |
 | 2.4 | Tailoring designed around human review: proposed changes, reasons, editing, claim verification, unsupported claims, approve and reject, error recovery |
 | 2.5 | Find jobs: the plan, sources searched and imported, company choice, where each source's terms were read |
-| 2.6 | Source health and fetch status as users see them |
+| 2.6 | Jobs from searched sources with source and original link, source health, last answer and jobs kept |
 | 2.7 | Duplicate opportunities, reversible links, private and public postings, source provenance |
 | 2.8 | Import workflow: URL, CSV and XLSX, validation, preview, errors, security rejection messages, retry and correction |
 | 2.9 | Opportunities workbench as a major feature: table, filters, sorting, search, keyboard navigation, save, dismiss, approve, applied tracking, bulk actions, state transitions, empty, loading and error states |

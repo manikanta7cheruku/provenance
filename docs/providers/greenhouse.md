@@ -15,7 +15,7 @@
 | Required attribution | None stated |
 | Data retention requirements | None stated |
 | Capability class | PUBLIC_DATA |
-| Current integration status | Recorded in the registry as `unverified`, not enabled, no adapter. Board `stripe` was confirmed to exist on 2026-11-02 |
+| Current integration status | Adapter built at 2.6 (`pv_domain.job_feed.parse_greenhouse`, checked against one real answer on 2026-11-02: descriptions are escaped HTML and a full board was 5.8 MB). Recorded in the registry as `unverified`, so it cannot be enabled or polled. Board `stripe` was confirmed to exist on 2026-11-02 |
 | Last reviewed date | 2026-11-02 |
 | Reviewed by | Build assistant, from the official documentation |
 | Next review due | When the owner reads the governing terms (carryover C-34), and at most every 180 days after |

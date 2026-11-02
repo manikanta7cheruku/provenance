@@ -15,7 +15,7 @@
 | Required attribution | None stated |
 | Data retention requirements | None stated |
 | Capability class | PUBLIC_DATA |
-| Current integration status | Recorded as `verified` and not enabled. No adapter yet. Board `palantir` was confirmed to exist on 2026-11-02 |
+| Current integration status | Adapter built at 2.6 (`parse_lever`, checked against one real answer on 2026-11-02). Recorded as `verified`, not enabled. Enabling it (after the owner confirms, C-34) starts polling at most once an hour per board. Board `palantir` was confirmed to exist on 2026-11-02 |
 | Last reviewed date | 2026-11-02 |
 | Reviewed by | Build assistant, from the official documentation and terms. Owner confirmation pending (carryover C-34) |
 | Next review due | 2027-04-30 (180 days) or on any change of the documentation |
