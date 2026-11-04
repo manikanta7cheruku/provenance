@@ -15,6 +15,9 @@ from pv_api.deps import CurrentUser, EngineDep, LimiterDep, SettingsDep, WriterU
 from pv_api.schemas import (
     AnalysisOut,
     AnswerIn,
+    DecisionIn,
+    DecisionOut,
+    DecisionResultOut,
     FeedbackIn,
     JobCreate,
     JobCreatedOut,
@@ -22,8 +25,16 @@ from pv_api.schemas import (
     JobManualIn,
     JobMatchesOut,
     JobSummaryOut,
+    NoteIn,
 )
-from pv_api.services import analysis_service, dedupe_service, import_service, job_service
+from pv_api.services import (
+    analysis_service,
+    dedupe_service,
+    import_service,
+    job_service,
+    workbench_service,
+)
+from pv_domain.pipeline import Action
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -98,6 +109,35 @@ def decide_match(
     return dedupe_service.decide(
         engine, settings, auth.user_id, job_id, group_id, verb, ip_hash_of(request, settings)
     )
+
+
+@router.post("/{job_id}/decision", response_model=DecisionResultOut)
+def decide(
+    job_id: uuid.UUID,
+    payload: DecisionIn,
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> DecisionResultOut:
+    limiter.check("decision_user", str(auth.user_id))
+    return workbench_service.decide(
+        engine,
+        auth.user_id,
+        job_id,
+        Action(payload.action),
+        payload.applied_on,
+        ip_hash_of(request, settings),
+    )
+
+
+@router.put("/{job_id}/note", response_model=DecisionOut)
+def save_note(
+    job_id: uuid.UUID, payload: NoteIn, auth: WriterUser, engine: EngineDep, limiter: LimiterDep
+) -> DecisionOut:
+    limiter.check("decision_user", str(auth.user_id))
+    return workbench_service.save_note(engine, auth.user_id, job_id, payload.note)
 
 
 @router.post("/{job_id}/reanalyze", response_model=JobDetailOut)

@@ -23,6 +23,7 @@ from pv_api.schemas import (
     JobSummaryOut,
     RequirementOut,
 )
+from pv_api.services.decision_view import decision_for_job
 from pv_domain.eligibility import EligibilityResult, evaluate_eligibility
 from pv_domain.failures import FailureClass
 from pv_domain.job import (
@@ -129,6 +130,7 @@ def _detail(db: Session, posting: JobPosting) -> JobDetailOut:
         },
         requirements=[_requirement(r) for r in requirements],
         eligibility_detail=_eligibility_out(result) if result else None,
+        decision=decision_for_job(db, posting),
         facts_dropped=posting.facts_dropped,
         requirements_dropped=posting.requirements_dropped,
         prompt_version=posting.prompt_version,

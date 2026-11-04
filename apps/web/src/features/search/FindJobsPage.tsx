@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../lib/api";
 import { fetchJobs, fetchSources, planSearch } from "../../lib/search-api";
+import { addToMyJobs } from "../../lib/workbench-api";
 import type { CompanyDecision, FetchedJob, IntentFields, SearchPlan, SourceDecision, SourceInfo } from "../../lib/search-api";
 import { useAsync } from "../../lib/useAsync";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
@@ -110,9 +111,23 @@ function Companies({ items, onPick }: { items: CompanyDecision[]; onPick: (query
   );
 }
 
+type Added = { state: "adding" } | { state: "added"; id: string } | { state: "failed"; message: string };
+
 function Jobs({ plan }: { plan: SearchPlan }) {
   const [jobs, setJobs] = useState<FetchedJob[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [added, setAdded] = useState<Record<string, Added>>({});
+
+  async function add(job: FetchedJob) {
+    setAdded((current) => ({ ...current, [job.id]: { state: "adding" } }));
+    try {
+      const result = await addToMyJobs(job.id);
+      setAdded((current) => ({ ...current, [job.id]: { state: "added", id: result.job.id } }));
+    } catch (caught) {
+      const message = caught instanceof ApiError ? caught.message : "It could not be added. Nothing was changed.";
+      setAdded((current) => ({ ...current, [job.id]: { state: "failed", message } }));
+    }
+  }
   const list = (key: string) => (Array.isArray(plan.intent[key]) ? (plan.intent[key] as string[]) : []);
   const searched = plan.sources.filter((d) => d.outcome === "search").map((d) => d.key);
   const companies = plan.companies.flatMap((c) => (c.company ? [c.company.key] : []));
@@ -180,6 +195,21 @@ function Jobs({ plan }: { plan: SearchPlan }) {
             <a href={job.url} target="_blank" rel="noopener noreferrer">
               Open the original posting<span className="visually-hidden"> for {job.title}</span>
             </a>
+          </p>
+          <p className="find__meta">
+            {added[job.id]?.state === "added" ? (
+              <>
+                Added to your jobs.{" "}
+                <Link to={`/opportunities/${(added[job.id] as { id: string }).id}`}>
+                  Open it<span className="visually-hidden">: {job.title}</span>
+                </Link>
+              </>
+            ) : (
+              <ActionButton disabled={added[job.id]?.state === "adding"} onClick={() => void add(job)}>
+                Add to my jobs<span className="visually-hidden">: {job.title}</span>
+              </ActionButton>
+            )}
+            {added[job.id]?.state === "failed" ? <span role="alert"> {(added[job.id] as { message: string }).message}</span> : null}
           </p>
         </li>
       ))}

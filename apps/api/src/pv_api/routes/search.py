@@ -5,13 +5,14 @@ unavailable and why. Sources and companies are shared reference data. Administra
 sources through the admin routes, each change audited.
 """
 
+import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request, Response
 
-from pv_api.deps import CurrentUser, EngineDep, LimiterDep, SettingsDep, WriterUser
-from pv_api.schemas import SearchPlanIn, SearchPlanOut, SourceJobOut, SourceOut
-from pv_api.services import search_service
+from pv_api.deps import CurrentUser, EngineDep, LimiterDep, SettingsDep, WriterUser, ip_hash_of
+from pv_api.schemas import JobCreatedOut, SearchPlanIn, SearchPlanOut, SourceJobOut, SourceOut
+from pv_api.services import search_service, workbench_service
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -50,3 +51,23 @@ def jobs(
         engine, settings, roles=roles or [], companies=companies or [], locations=locations or [],
         work_mode=work_mode, sources=sources or [], limit=limit, offset=offset,
     )  # fmt: skip
+
+
+@router.post("/jobs/{job_id}/add", response_model=JobCreatedOut, status_code=201)
+def add_to_my_jobs(
+    job_id: uuid.UUID,
+    request: Request,
+    response: Response,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> JobCreatedOut:
+    """Make a private posting from a job found on a source, so it can be read, saved and tracked."""
+    limiter.check("job_add_source_user", str(auth.user_id))
+    created = workbench_service.add_source_job(
+        engine, settings, auth.user_id, job_id, ip_hash_of(request, settings)
+    )
+    if created.duplicate:
+        response.status_code = 200
+    return created

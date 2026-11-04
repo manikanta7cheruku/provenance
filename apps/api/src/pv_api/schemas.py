@@ -530,6 +530,7 @@ class JobDetailOut(JobSummaryOut):
     facts: dict[str, FactOut]
     requirements: list[RequirementOut]
     eligibility_detail: EligibilityOut | None
+    decision: "DecisionOut | None" = None
     # How many things the reader suggested that were not in the posting, so were left out.
     facts_dropped: int
     requirements_dropped: int
@@ -1078,3 +1079,151 @@ class ImportBatchOut(BaseModel):
 
 class ImportDetailOut(ImportBatchOut):
     items: list[ImportItemOut]
+
+
+# ---- checkpoint 2.9: the workbench
+DecisionActionName = Literal[
+    "save",
+    "unsave",
+    "dismiss",
+    "undo_dismiss",
+    "approve",
+    "mark_applied",
+    "undo_applied",
+    "archive",
+]
+
+
+class ActionOut(BaseModel):
+    action: DecisionActionName
+    label: str
+
+
+class DecisionOut(BaseModel):
+    state: Literal["new", "saved", "dismissed", "approved_for_prep", "applied", "archived"]
+    state_label: str
+    # What the interface offers now, in order. The server decides, the browser only shows.
+    actions: list[ActionOut]
+    note: str
+    applied_at: datetime | None
+    updated_at: datetime | None
+
+
+class DecisionIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    action: DecisionActionName
+    # For mark_applied: the day the person applied. Not in the future. Today when left out.
+    applied_on: date | None = None
+
+
+class DecisionResultOut(BaseModel):
+    decision: DecisionOut
+    # The action that takes this one back, when it can be. The interface offers it as Undo.
+    undo: DecisionActionName | None
+    undo_label: str | None
+
+
+class NoteIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    note: str = Field(max_length=2000)
+
+
+class WorkRowOut(BaseModel):
+    id: uuid.UUID
+    title: str | None
+    company: str | None
+    source_name: str
+    acquisition_method: str
+    work_mode: str | None
+    location: str | None
+    employment_type: str | None
+    seniority: str | None
+    eligibility: str | None
+    band: str | None
+    reading: Literal["reading", "ready", "failed"]
+    decision: DecisionOut
+    has_note: bool
+    created_at: datetime
+
+
+class FacetsOut(BaseModel):
+    views: dict[str, int]
+    work_modes: dict[str, int]
+    eligibility: dict[str, int]
+    bands: dict[str, int]
+    employment_types: dict[str, int]
+    seniorities: dict[str, int]
+    sources: dict[str, int]
+
+
+class WorkbenchOut(BaseModel):
+    rows: list[WorkRowOut]
+    # Rows that match the filters, which may be more than the rows returned.
+    total: int
+    # The query as it was understood: unknown values are dropped, not guessed at.
+    query: dict[str, Any]
+    facets: FacetsOut
+    truncated: bool
+
+
+class BulkIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ids: list[uuid.UUID] = Field(min_length=1, max_length=100)
+    action: DecisionActionName
+
+    @field_validator("ids")
+    @classmethod
+    def _unique(cls, value: list[uuid.UUID]) -> list[uuid.UUID]:
+        if len(set(value)) != len(value):
+            raise ValueError("Each job may be listed once.")
+        return value
+
+
+class BulkItemOut(BaseModel):
+    id: uuid.UUID
+    ok: bool
+    state: str | None
+    message: str | None
+
+
+class BulkOut(BaseModel):
+    results: list[BulkItemOut]
+    done: int
+    skipped: int
+    undo: DecisionActionName | None
+    undo_label: str | None
+
+
+class ViewIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=60)
+    query: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("name")
+    @classmethod
+    def _clean_name(cls, value: str) -> str:
+        cleaned = " ".join(value.split())
+        if not cleaned:
+            raise ValueError("Give the view a name.")
+        return cleaned
+
+    @field_validator("query")
+    @classmethod
+    def _small_query(cls, value: dict[str, Any]) -> dict[str, Any]:
+        if len(json.dumps(value)) > 4000:
+            raise ValueError("This view has too many filters.")
+        return value
+
+
+class ViewOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    query: dict[str, Any]
+    created_at: datetime
+
+
+JobDetailOut.model_rebuild()

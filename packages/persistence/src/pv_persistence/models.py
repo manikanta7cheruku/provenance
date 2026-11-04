@@ -770,3 +770,48 @@ class ImportItem(Base):
         ForeignKey("job_postings.id", ondelete="SET NULL"), default=None
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 2.9: the workbench (migration 0014)
+
+
+class JobDecision(Base):
+    """What a person has decided about one posting. No row means new. Protected by RLS."""
+
+    __tablename__ = "job_decisions"
+
+    posting_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("job_postings.id", ondelete="CASCADE"), primary_key=True
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    state: Mapped[str] = mapped_column(Text, default="new")
+    note: Mapped[str] = mapped_column(Text, default="")
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class JobDecisionEvent(Base):
+    """One move of a decision. Holds no note text. Protected by RLS."""
+
+    __tablename__ = "job_decision_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    action: Mapped[str] = mapped_column(Text)
+    from_state: Mapped[str] = mapped_column(Text)
+    to_state: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class WorkbenchView(Base):
+    """A saved view: a name and a validated query. Protected by RLS."""
+
+    __tablename__ = "workbench_views"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(Text)
+    query: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
