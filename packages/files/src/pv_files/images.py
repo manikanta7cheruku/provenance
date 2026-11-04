@@ -96,12 +96,23 @@ def _has_alpha(image: Image.Image) -> bool:
     return "transparency" in image.info
 
 
+def _complete(data: bytes, kind: str) -> bool:
+    """True when the file reaches the end its own format says it has."""
+    if kind == "jpeg":
+        return data.rfind(b"\xff\xd9") >= 0
+    if kind == "png":
+        return data.rfind(b"IEND") >= 0
+    if kind == "webp":
+        return len(data) >= 12 and int.from_bytes(data[4:8], "little") + 8 <= len(data)
+    return True
+
+
 def process_image(data: bytes) -> ProcessedImage:
     """Check an uploaded picture and draw it again, or raise ImageRejected."""
     kind = check_header(data)
-    # A JPEG that never reaches its end marker was cut short. Some decoder builds fill in the rest
-    # with grey and say nothing, so the answer would depend on the machine. It is refused here.
-    if kind == "jpeg" and data.rfind(b"\xff\xd9") < 0:
+    # A picture cut short is refused here, by its own end marker, because some decoder builds
+    # fill in the rest and say nothing, so the answer would depend on the machine.
+    if not _complete(data, kind):
         raise ImageRejected(ImageErrorCode.CORRUPT)
     image = _open(data, kind)
     try:
