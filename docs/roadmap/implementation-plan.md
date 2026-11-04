@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-29 checkpoints in total. Seventeen are done and merged (1.1 to 1.9 and 2.1 to 2.8). Checkpoint 2.9 is built and awaiting merge. Eleven remain after it. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
+29 checkpoints in total. Eighteen are done and merged (1.1 to 1.9 and 2.1 to 2.9). Checkpoint 2.10 is built and awaiting merge. Ten remain after it. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
 
 | Checkpoint | State |
 |---|---|
@@ -31,8 +31,9 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 2.6 | Done and merged |
 | 2.7 | Done and merged |
 | 2.8 | Done and merged |
-| 2.9 | Built on branch phase-2/checkpoint-2.9-workbench, awaiting review and merge |
-| 2.10 to 2.13 | Not started |
+| 2.9 | Done and merged |
+| 2.10 | Built on branch phase-2/checkpoint-2.10-shortlist-and-drafts, awaiting review and merge |
+| 2.11 to 2.13 | Not started |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
@@ -82,7 +83,7 @@ Exit: critical test passes (start analysis, interrupt, kill worker, restart, ans
 | 2.7 | **Deduplication with reversible links, private and public jobs, sightings.** Layered matching with hard rules (same address, a repost, same company and title and place with agreeing text, a very close title with nearly the same text; different places, companies and levels are never linked), links as edges with groups computed from them so undo splits a group without losing anything, one job shown per group with where else it was seen, a pasted posting matched on read against public jobs with the person's decisions kept private, and sightings (first and last seen, how often) | Layered matching, data integrity, private versus public data |
 | 2.8 | **Imports and the hardened fetch.** A job typed in by hand, a CSV or XLSX list with a per-row report, and one web page read by the worker. Address rules, a name resolved once and checked, a connection to the checked address, every redirect checked again, size and time limits, no cookies. A minimal spreadsheet reader with zip, macro, entity and formula defences. Every way in ends as the same private posting | SSRF, DNS rebinding, untrusted file parsing |
 | 2.9 | **The opportunities workbench.** The person's half of the match lifecycle as a state machine in code (save, dismiss, approve for preparation, mark applied, archive, with unsave, undo dismiss and undo applied), a server-side list with six views, search, filters, sorting and facet counts, saved views, bulk actions with undo, a keyboard flow with a detail pane, private notes, applications tracking, and adding a job found on a source. The interface offers only what the server allows | Split state machines, server-side list rules, accessibility |
-| 2.10 | **Periodic shortlist email** (deterministic selection, templates, per-user schedule), **application text drafts** (cover note, answers to common questions, grounded in evidence, labelled as drafts), tracker polish | Scheduled workflows, grounded generation, notification design |
+| 2.10 | **The shortlist email and application drafts.** A per-person schedule on their own clock (daily or weekly, DST-safe), a deterministic selection with a reason for each job, a task that arranges its own next run and cannot send a time twice, plain text mail to a verified address only. Cover notes and answers written from the evidence that supported a checked job, every claim checked against that evidence and the job heading and the unsupported ones named, always labelled as drafts, never sent. Days since applied | Scheduled workflows, grounded generation, notification design |
 | 2.11 | **Images, photos and icons on the canvas.** Upload with type and size checks, re-encoding and metadata removal, private storage, crop and fit, an icon set, and PDF output that embeds them. ATS-safe templates stay text only | Untrusted image handling, EXIF removal, file storage |
 | 2.12 | **Touch and phone editing.** Pointer and touch gestures for select, move, resize and edit, a mobile layout for the canvas, larger targets, and the same keyboard and screen reader support | Touch events, gesture design, responsive editors |
 | 2.13 | **Saved themes and brand kit.** Save a set of fonts and colors for reuse across resumes, a per-user library, apply and update | Per-user settings, row level security for a new table |
@@ -168,7 +169,7 @@ Every checkpoint is written and reviewed in this structure:
 | 2.7 | Where else a job appears, why each match was made, same job and not the same job, also posted at in the job list |
 | 2.8 | Add a job in four ways, the import report with a reason for every row, security refusals in plain words, import again after fixing |
 | 2.9 | The workbench: views with counts, search, filters, sorting, saved views, keyboard flow, detail pane, notes, bulk actions with undo, apply confirmation, applications, empty, loading and error states |
-| 2.10 | Shortlist email design and preferences, application draft editor with clear draft labelling |
+| 2.10 | Shortlist email settings, preview and history; application draft editor with the draft label, claim warnings and evidence |
 | 2.11 | Image upload and crop, icon picker, image rejection messages |
 | 2.12 | Touch gestures, mobile canvas layout, target sizes |
 | 2.13 | Saving, naming and applying a theme |

@@ -100,6 +100,18 @@ The product runs end to end without a key and says so honestly. These items need
 | C-78 | 2.9 | A dismiss reason as feedback | The UX specification asks for an optional reason stored as feedback. The private note is used instead | Decide whether a reason list is worth it once there is something to learn from it | open |
 | C-79 | 2.9 | Approve for preparation does nothing yet | It records intent. Preparation arrives in Phase 3, and approval cannot be withdrawn except by dismissing | When preparation is built, decide whether approval can be withdrawn and what it starts | open |
 
+## K. The shortlist email and application drafts (added at 2.10)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-80 | 2.10 | Drafts from a real model | Cover notes and answers were proven with a stand-in. The prompt `draft-1` has not met a real model | After C-01, write 10 cover notes and answers for real checked jobs. Read each. Record invented facts, flat writing and anything that sounds like every other cover note, then tune the prompt with a test per case | open |
+| C-81 | 2.10 | The shortlist in a real inbox | Mail was proven with a stand-in server. Delivery, spam placement, SPF and DKIM and how it reads are untested, and there is no one-click unsubscribe (the email links to the settings page, which needs a sign-in) | At deployment (3.x) set up a sending domain with SPF and DKIM, send a few to your own inboxes and read them, and add a List-Unsubscribe header with a signed one-click link if it matters | open |
+| C-82 | 2.10 | Only jobs the person added are shortlisted | Jobs found by polling are not in the email unless the person adds them | After using it for a few weeks, decide whether found jobs that match your profile should be shortlisted too | open |
+| C-83 | 2.10 | A rare duplicate email | Delivery is at least once, so a crash between sending and recording can send one twice | Accept it, or record the mail provider message id and check it before sending | open |
+| C-84 | 2.10 | How good the claim check is on real drafts | It checks numbers, names and job words against the evidence and the job heading. It does not understand meaning, so a paraphrase that changes a fact is not caught, and an honest name that is not in the cited evidence is flagged | With real drafts (C-80) count how many honest drafts are flagged and how many false claims get through. Add a test for each and adjust `pv_domain/drafts.py` or `tailoring.py` | open |
+| C-85 | 2.10 | Drafts use only the evidence cited by the check | The resume and the rest of the profile are not used, so a draft can leave out something true | Decide whether to add the person's own resume text as a source after reading real drafts | open |
+| C-86 | 2.10 | More tracker features | Applications show days since applied. There are no follow-up reminders, interview stages or a timeline | Use the Applications view for a real search, then decide what to add | open |
+| C-87 | 2.10 | A shortlist across a real change of clocks | The next time is tested across the change for several zones, but no real email has been sent across one | Leave the email on across the next change of clocks in your zone and check the hour | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

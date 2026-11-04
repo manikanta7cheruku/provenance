@@ -43,5 +43,6 @@
 | [0039](0039-deduplication-links-and-visibility.md) | Deduplication with reversible links, private and public jobs, and sightings | Accepted |
 | [0040](0040-imports-and-the-ssrf-hardened-fetch.md) | Imports (typed, spreadsheet, web page) and the hardened fetch of an address a person typed | Accepted |
 | [0041](0041-workbench-decisions-and-server-side-list.md) | The workbench: a decision state machine, a server-side list, and saved views | Accepted |
+| [0042](0042-shortlist-email-and-application-drafts.md) | The shortlist email and application drafts | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

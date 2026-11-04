@@ -1,0 +1,22 @@
+/* The shortlist settings. Tokens only. */
+.settings__lead,
+.settings__next {
+  max-width: var(--measure);
+  margin-bottom: var(--space-3);
+  color: var(--color-text-secondary);
+}
+.settings__form {
+  max-width: 28rem;
+}
+.settings__form > * + * {
+  margin-top: var(--space-4);
+}
+.settings__preview {
+  margin-top: var(--space-4);
+}
+.settings__items {
+  padding-left: var(--space-5);
+}
+.settings__items li + li {
+  margin-top: var(--space-3);
+}
