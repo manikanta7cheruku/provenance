@@ -99,6 +99,10 @@ def _has_alpha(image: Image.Image) -> bool:
 def process_image(data: bytes) -> ProcessedImage:
     """Check an uploaded picture and draw it again, or raise ImageRejected."""
     kind = check_header(data)
+    # A JPEG that never reaches its end marker was cut short. Some decoder builds fill in the rest
+    # with grey and say nothing, so the answer would depend on the machine. It is refused here.
+    if kind == "jpeg" and data.rfind(b"\xff\xd9") < 0:
+        raise ImageRejected(ImageErrorCode.CORRUPT)
     image = _open(data, kind)
     try:
         width, height = image.size
