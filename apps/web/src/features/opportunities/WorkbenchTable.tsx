@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { formatDateTime } from "../../lib/format";
+import { daysAgo, formatDateTime } from "../../lib/format";
 import { describeBand, describeEligibility, describeJobState } from "../../lib/states";
 import type { Band } from "../../lib/states";
 import { decisionTone } from "../../lib/workbench-api";
@@ -106,7 +106,10 @@ export function WorkbenchTable({ rows, caption, selectedId, checked, dateOf, dat
               <td>
                 <Status tone={decisionTone(row.decision.state)} label={row.decision.state_label} />
               </td>
-              <td>{date ? formatDateTime(date) : ""}</td>
+              <td>
+                {date ? formatDateTime(date) : ""}
+                {row.decision.state === "applied" && date ? <span className="row-sub">{daysAgo(date)}</span> : null}
+              </td>
             </tr>
           );
         })}

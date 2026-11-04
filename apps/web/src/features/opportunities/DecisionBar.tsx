@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ApiError } from "../../lib/api";
+import { daysAgo } from "../../lib/format";
 import { ACTION_HELP, decideJob, decisionTone } from "../../lib/workbench-api";
 import type { Decision, DecisionAction, DecisionResult } from "../../lib/workbench-api";
 import { ActionButton, Notice, Status } from "../../ui";
@@ -47,7 +48,10 @@ export function DecisionBar({ job, decision, onDecided, ownUndo = false }: Decis
       <p className="decision__state" role="status">
         <Status tone={decisionTone(decision.state)} label={decision.state_label} />
         {decision.state === "applied" && decision.applied_at ? (
-          <span className="job__explanation"> on {new Date(decision.applied_at).toLocaleDateString()}</span>
+          <span className="job__explanation">
+            {" "}
+            on {new Date(decision.applied_at).toLocaleDateString()} ({daysAgo(decision.applied_at)})
+          </span>
         ) : null}
       </p>
       {problem ? (

@@ -117,6 +117,7 @@ WORKFLOW_LABELS = {
     "resume_export": "Making a resume PDF",
     "resume_tailoring": "Suggesting resume changes",
     "source_poll": "Fetching jobs from a source",
+    "application_draft": "Writing an application draft",
 }
 
 

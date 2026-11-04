@@ -815,3 +815,83 @@ class WorkbenchView(Base):
     name: Mapped[str] = mapped_column(Text)
     query: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 2.10: the shortlist email and application drafts (migration 0015)
+
+
+class ApplicationDraft(Base):
+    """A cover note or an answer for one posting, for the person to edit. Protected by RLS."""
+
+    __tablename__ = "application_drafts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(Text)
+    question: Mapped[str] = mapped_column(Text, default="")
+    question_key: Mapped[str] = mapped_column(Text, default="")
+    body: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    origin: Mapped[str] = mapped_column(Text, default="model")
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    seq: Mapped[int] = mapped_column(Integer, default=1)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workflow_runs.id", ondelete="SET NULL"), default=None
+    )
+    prompt_version: Mapped[str | None] = mapped_column(Text, default=None)
+    model_calls: Mapped[int] = mapped_column(Integer, default=0)
+    evidence: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    claims: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ShortlistSettings(Base):
+    """A person's shortlist email schedule. Off until they turn it on. Protected by RLS."""
+
+    __tablename__ = "shortlist_settings"
+
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    frequency: Mapped[str] = mapped_column(Text, default="weekly")
+    weekday: Mapped[int] = mapped_column(Integer, default=0)
+    hour: Mapped[int] = mapped_column(Integer, default=8)
+    timezone: Mapped[str] = mapped_column(Text, default="UTC")
+    max_items: Mapped[int] = mapped_column(Integer, default=5)
+    next_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ShortlistRun(Base):
+    """One due time of the shortlist and what came of it. Protected by RLS."""
+
+    __tablename__ = "shortlist_runs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    slot: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    manual: Mapped[bool] = mapped_column(Boolean, default=False)
+    outcome: Mapped[str] = mapped_column(Text)
+    item_count: Mapped[int] = mapped_column(Integer, default=0)
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ShortlistItem(Base):
+    """A job that was in a shortlist email, so it is never sent twice. Protected by RLS."""
+
+    __tablename__ = "shortlist_items"
+
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("shortlist_runs.id", ondelete="CASCADE"), primary_key=True
+    )
+    posting_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("job_postings.id", ondelete="CASCADE"), primary_key=True
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    position: Mapped[int] = mapped_column(Integer)

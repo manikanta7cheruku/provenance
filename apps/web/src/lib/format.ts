@@ -36,3 +36,13 @@ export function formatCost(usd: number): string {
 export function formatNumber(value: number): string {
   return value.toLocaleString();
 }
+
+/** How long ago a day was, in words: "today", "1 day ago", "9 days ago". Never throws. */
+export function daysAgo(value: string | null | undefined, now: Date = new Date()): string {
+  if (!value) return "";
+  const then = new Date(value);
+  if (Number.isNaN(then.getTime())) return "";
+  const days = Math.floor((now.getTime() - then.getTime()) / 86_400_000);
+  if (days <= 0) return "today";
+  return days === 1 ? "1 day ago" : `${days} days ago`;
+}

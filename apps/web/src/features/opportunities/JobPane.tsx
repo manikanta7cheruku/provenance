@@ -56,6 +56,7 @@ export function JobPane({
       <NoteBox jobId={row.id} note={row.decision.note} onSaved={onNoteSaved} />
       <p>
         <Link to={`/opportunities/${row.id}`}>Open the full job</Link>
+        <span className="row-sub">There you can write a cover note or answers as drafts.</span>
       </p>
     </aside>
   );
