@@ -41,6 +41,7 @@ The product runs end to end without a key and says so honestly. These items need
 ## D. Features asked for and scheduled
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|
+| C-29 | 2.3 | **Redesign the resume templates properly.** The 24 templates are variations of one layout engine and do not look professional. Owner feedback on 2026-11-04: they look like a mini project. Scope: real type scale and spacing, stronger header designs, fewer and better templates instead of many similar ones, previews checked by eye with real content, a review of each template by the owner, then the PDF checked for every one | open (done after the main build, by owner decision) |
 | C-30 | 2.11 | Images, photos and icons on the canvas | scheduled |
 | C-31 | 2.12 | Touch and phone editing | scheduled |
 | C-32 | 2.13 | Saved themes and brand kit | scheduled |
@@ -66,6 +67,16 @@ The product runs end to end without a key and says so honestly. These items need
 | C-54 | 2.6 | Behavior over days | Intervals, the breaker and chaining were tested with a fake clock | Leave Lever enabled for a few days. Read the log for skips, failures and breaker events | open |
 | C-55 | 2.6 | Remotive and Adzuna adapters | Waiting for the owner decisions in C-35 | After the decisions, build an adapter for each source that stays | open |
 | C-56 | 2.6 | The shape fixtures age | They are one day's real answers (2026-11-02) | When a source reports `bad_response`, read a fresh answer, update the fixture and the parser | open |
+
+## H. Duplicates and links (added at 2.7)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-60 | 2.7 | Matching thresholds on real data | The thresholds (text agreement 0.35, 0.6, 0.9, title closeness 0.82) were chosen and tested on constructed jobs | After two sources are polled and you have pasted real jobs, review `GET /admin/job-links` and your matches. Record wrong links and missed duplicates, then adjust `pv_domain/dedupe.py` with a test for each | open |
+| C-61 | 2.7 | Cross-source matching on live data | Only Lever can be switched on, so there is one live source | After C-34 confirms Greenhouse or Ashby, poll two sources for one company and look at the links | open |
+| C-62 | 2.7 | Company name variants | Companies match after case, punctuation and legal suffixes only. Google LLC and Alphabet are different | Add aliases to `registry_data/companies.json` for the companies you care about, and use the registry canonical name for matching | open |
+| C-63 | 2.7 | Place name variants | Places are compared by words and country names. Bengaluru and Bangalore are different | Add a small place alias list (India first) with tests | open |
+| C-64 | 2.7 | A screen to review suggested links | Administrators have an API only | Build a small admin page if suggested links turn out to be common | open |
+| C-65 | 2.7 | Many candidates for one company | Candidates are capped at 400 per comparison | If a company has more open jobs than that, compare by title first | open |
 
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |

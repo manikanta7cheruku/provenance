@@ -30,6 +30,7 @@ from sqlalchemy.orm import Session
 from pv_domain.fetching import MIN_GAP_SECONDS, breaker_open, poll_due, retry_after
 from pv_domain.job_feed import ADAPTERS, Adapter, FeedError, board_url
 from pv_domain.sources import unavailable_reason
+from pv_persistence.dedupe import link_jobs
 from pv_persistence.models import CompanyRow, JobSource
 from pv_persistence.registry import to_record
 from pv_persistence.source_jobs import (
@@ -254,9 +255,21 @@ def _poll_board(
         return True
     now = clock()
     with Session(engine) as db, db.begin():
+        company = db.execute(
+            select(CompanyRow.canonical_name).where(
+                CompanyRow.ats_platform == source_key, CompanyRow.ats_board_id == board
+            )
+        ).scalar_one_or_none()
         counts: StoreCounts = store_listing(
-            db, source_key, board, parsed.jobs, now, complete=adapter.complete_listing
+            db,
+            source_key,
+            board,
+            parsed.jobs,
+            now,
+            complete=adapter.complete_listing,
+            default_company=company,
         )
+        link_jobs(db, counts.touched)
         mark_target(db, source_key, board, "ok", now, jobs_open=count_open(db, source_key, board))
         record_success(db, source_key, now)
         log_fetch(

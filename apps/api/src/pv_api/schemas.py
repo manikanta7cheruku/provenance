@@ -926,6 +926,22 @@ class SourceUpdateIn(BaseModel):
 # ---- checkpoint 2.6: fetched jobs and source health
 
 
+class SightingOut(BaseModel):
+    """One place a job was seen: the copy a person pasted, or a posting fetched from a source."""
+
+    kind: str
+    source_name: str
+    board_id: str | None
+    title: str
+    location: str
+    url: str | None
+    first_seen_at: datetime
+    last_seen_at: datetime
+    seen_count: int
+    closed: bool
+    how: str
+
+
 class SourceJobOut(BaseModel):
     id: uuid.UUID
     title: str
@@ -941,6 +957,7 @@ class SourceJobOut(BaseModel):
     attribution_text: str
     posted_at: datetime | None
     first_seen_at: datetime
+    also_seen: list[SightingOut] = []
 
 
 class FetchLogOut(BaseModel):
@@ -959,3 +976,46 @@ class FetchLogOut(BaseModel):
 
 class PollQueuedOut(BaseModel):
     message: str
+
+
+# ---- checkpoint 2.7: duplicates, links and sightings
+
+
+class PostingMatchOut(BaseModel):
+    group_id: uuid.UUID
+    title: str
+    company_name: str | None
+    location: str
+    source_name: str
+    url: str
+    method: str
+    score: float
+    reason: str
+    state: str
+    sightings: list[SightingOut]
+
+
+class JobMatchesOut(BaseModel):
+    note: str | None
+    sightings: list[SightingOut]
+    matches: list[PostingMatchOut]
+
+
+class LinkedJobOut(BaseModel):
+    title: str
+    company_name: str | None
+    location: str
+    source_key: str
+    url: str
+
+
+class AdminLinkOut(BaseModel):
+    id: uuid.UUID
+    state: str
+    method: str
+    score: float
+    reason: str
+    created_at: datetime
+    decided_at: datetime | None
+    first: LinkedJobOut
+    second: LinkedJobOut

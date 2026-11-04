@@ -8,13 +8,15 @@ enabled, verified and in date. Switching a source off, or letting its review exp
 at once without deleting them.
 """
 
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import case, delete, func, or_, select
 from sqlalchemy.orm import Session
 
+from pv_domain.dedupe import normalize_company, normalize_title
 from pv_domain.fetching import after_failure, health_for
 from pv_domain.job_feed import FeedJob
 from pv_domain.tasks import TASK_POLL_SOURCE
@@ -31,6 +33,8 @@ class StoreCounts:
     new: int
     changed: int
     closed: int
+    # Jobs that are new or changed in this listing, to be compared with others for duplicates.
+    touched: tuple[uuid.UUID, ...] = ()
 
 
 def get_targets(db: Session, source_key: str) -> dict[str, SourceTarget]:
@@ -72,9 +76,11 @@ def store_listing(
     now: datetime,
     *,
     complete: bool,
+    default_company: str | None = None,
 ) -> StoreCounts:
-    """Save one board's jobs. A job already known is touched, or updated if its content changed.
-    When the listing is complete, jobs it no longer holds are closed (never deleted)."""
+    """Save one board's jobs. A job already known is touched (and counted as seen once more), or
+    updated if its content changed. When the listing is complete, jobs it no longer holds are closed
+    (never deleted). `default_company` names the board's company for sources that do not say."""
     existing = {
         j.external_id: j
         for j in db.execute(
@@ -85,13 +91,15 @@ def store_listing(
     }
     new = changed = 0
     seen_ids: set[str] = set()
+    touched: list[uuid.UUID] = []
     for job in jobs:
         seen_ids.add(job.external_id)
         row = existing.get(job.external_id)
+        company = job.company_name or default_company
         fields: dict[str, Any] = {
             "url": job.url,
             "title": job.title,
-            "company_name": job.company_name,
+            "company_name": company,
             "location": job.location,
             "workplace": job.workplace,
             "employment_type": job.employment_type,
@@ -100,26 +108,37 @@ def store_listing(
             "posted_at": job.posted_at,
             "source_updated_at": job.updated_at,
             "content_hash": job.content_hash,
+            "company_norm": normalize_company(company) or None,
+            "title_norm": normalize_title(job.title) or None,
         }
         if row is None:
-            db.add(
-                SourceJob(
-                    source_key=source_key,
-                    board_id=board_id,
-                    external_id=job.external_id,
-                    first_seen_at=now,
-                    last_seen_at=now,
-                    **fields,
-                )
+            row = SourceJob(
+                id=uuid.uuid4(),
+                source_key=source_key,
+                board_id=board_id,
+                external_id=job.external_id,
+                first_seen_at=now,
+                last_seen_at=now,
+                seen_count=1,
+                **fields,
             )
+            row.group_id = row.id
+            db.add(row)
+            touched.append(row.id)
             new += 1
             continue
-        if row.content_hash != job.content_hash:
+        content_changed = row.content_hash != job.content_hash
+        if content_changed or row.company_norm is None:
             for name, value in fields.items():
                 setattr(row, name, value)
-            changed += 1
+            if content_changed:
+                changed += 1
+            touched.append(row.id)
         row.last_seen_at = now
+        row.seen_count += 1
         row.closed_at = None
+        if row.group_id is None:
+            row.group_id = row.id
     closed = 0
     if complete:
         for external_id, row in existing.items():
@@ -127,7 +146,7 @@ def store_listing(
                 row.closed_at = now
                 closed += 1
     db.flush()
-    return StoreCounts(len(jobs), new, changed, closed)
+    return StoreCounts(len(jobs), new, changed, closed, tuple(touched))
 
 
 def count_open(db: Session, source_key: str, board_id: str) -> int:
@@ -225,6 +244,22 @@ def record_failure(
     return until
 
 
+def usable_where(today: date, window_days: int) -> list[Any]:
+    """Conditions for a job that may be shown: its source is enabled, verified and in date."""
+    oldest = today - timedelta(days=window_days)
+    return [
+        JobSource.enabled.is_(True),
+        JobSource.compliance_status == "verified",
+        JobSource.terms_checked_at.is_not(None),
+        JobSource.terms_checked_at >= oldest,
+    ]
+
+
+def _like(column: Any, words: list[str]) -> Any:
+    escaped = [w.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") for w in words]
+    return or_(*[column.ilike(f"%{w}%", escape="\\") for w in escaped])
+
+
 def search_jobs(
     db: Session,
     *,
@@ -238,44 +273,76 @@ def search_jobs(
     limit: int,
     offset: int,
 ) -> list[tuple[SourceJob, JobSource]]:
-    """Open jobs from sources that may be used right now. Filters are SQL, never the model."""
-    oldest = today - timedelta(days=window_days)
-    stmt = (
-        select(SourceJob, JobSource)
-        .join(JobSource, JobSource.key == SourceJob.source_key)
-        .where(
-            SourceJob.closed_at.is_(None),
-            JobSource.enabled.is_(True),
-            JobSource.compliance_status == "verified",
-            JobSource.terms_checked_at.is_not(None),
-            JobSource.terms_checked_at >= oldest,
-        )
-    )
+    """Open jobs from sources that may be used right now, one per group of duplicates.
 
-    def like(column: Any, words: list[str]) -> Any:
-        escaped = [w.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") for w in words]
-        return or_(*[column.ilike(f"%{w}%", escape="\\") for w in escaped])
-
+    Filters are SQL, never the model. The job shown for a group is the one from the company own
+    career system if there is one, otherwise the one seen first."""
+    filters: list[Any] = [SourceJob.closed_at.is_(None), *usable_where(today, window_days)]
     if roles:
-        stmt = stmt.where(or_(like(SourceJob.title, roles), like(SourceJob.department, roles)))
+        filters.append(or_(_like(SourceJob.title, roles), _like(SourceJob.department, roles)))
     if companies:
-        stmt = stmt.where(
-            or_(like(SourceJob.company_name, companies), SourceJob.board_id.in_(companies))
+        filters.append(
+            or_(_like(SourceJob.company_name, companies), SourceJob.board_id.in_(companies))
         )
     if locations:
-        stmt = stmt.where(like(SourceJob.location, locations))
+        filters.append(_like(SourceJob.location, locations))
     if work_mode and work_mode != "any":
-        stmt = stmt.where(SourceJob.workplace == work_mode)
+        filters.append(SourceJob.workplace == work_mode)
     if sources:
-        stmt = stmt.where(SourceJob.source_key.in_(sources))
-    stmt = (
-        stmt.order_by(
-            func.coalesce(SourceJob.posted_at, SourceJob.first_seen_at).desc(), SourceJob.id
+        filters.append(SourceJob.source_key.in_(sources))
+    group = func.coalesce(SourceJob.group_id, SourceJob.id)
+    rank = (
+        func.row_number()
+        .over(
+            partition_by=group,
+            order_by=(
+                case((JobSource.source_type == "ats_board", 0), else_=1),
+                SourceJob.first_seen_at,
+                SourceJob.id,
+            ),
         )
+        .label("rank")
+    )
+    inner = (
+        select(SourceJob.id.label("job_id"), rank)
+        .join(JobSource, JobSource.key == SourceJob.source_key)
+        .where(*filters)
+        .subquery()
+    )
+    stmt = (
+        select(SourceJob, JobSource)
+        .join(inner, inner.c.job_id == SourceJob.id)
+        .join(JobSource, JobSource.key == SourceJob.source_key)
+        .where(inner.c.rank == 1)
+        .order_by(func.coalesce(SourceJob.posted_at, SourceJob.first_seen_at).desc(), SourceJob.id)
         .limit(min(limit, MAX_PAGE))
         .offset(max(offset, 0))
     )
     return [(job, src) for job, src in db.execute(stmt).all()]
+
+
+def also_seen(
+    db: Session, shown: list[SourceJob], today: date, window_days: int
+) -> dict[uuid.UUID, list[tuple[SourceJob, JobSource]]]:
+    """For each job shown, the other jobs in its group that may be shown (their source is usable)."""
+    groups = {j.group_id or j.id: j.id for j in shown}
+    if not groups:
+        return {}
+    rows = db.execute(
+        select(SourceJob, JobSource)
+        .join(JobSource, JobSource.key == SourceJob.source_key)
+        .where(
+            func.coalesce(SourceJob.group_id, SourceJob.id).in_(list(groups)),
+            SourceJob.id.not_in([j.id for j in shown]),
+            SourceJob.closed_at.is_(None),
+            *usable_where(today, window_days),
+        )
+        .order_by(SourceJob.first_seen_at)
+    ).all()
+    out: dict[uuid.UUID, list[tuple[SourceJob, JobSource]]] = {}
+    for job, src in rows:
+        out.setdefault(groups[job.group_id or job.id], []).append((job, src))
+    return out
 
 
 def source_counts(db: Session) -> dict[str, int]:

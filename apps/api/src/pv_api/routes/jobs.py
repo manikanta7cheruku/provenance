@@ -7,6 +7,7 @@ stored as text and shown as a link, and is never requested by the server.
 """
 
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, Request, Response
 
@@ -18,9 +19,10 @@ from pv_api.schemas import (
     JobCreate,
     JobCreatedOut,
     JobDetailOut,
+    JobMatchesOut,
     JobSummaryOut,
 )
-from pv_api.services import analysis_service, job_service
+from pv_api.services import analysis_service, dedupe_service, job_service
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -52,6 +54,30 @@ def list_jobs(auth: CurrentUser, engine: EngineDep) -> list[JobSummaryOut]:
 @router.get("/{job_id}", response_model=JobDetailOut)
 def get_job(job_id: uuid.UUID, auth: CurrentUser, engine: EngineDep) -> JobDetailOut:
     return job_service.get_job(engine, auth.user_id, job_id)
+
+
+@router.get("/{job_id}/matches", response_model=JobMatchesOut)
+def job_matches(
+    job_id: uuid.UUID, auth: CurrentUser, engine: EngineDep, settings: SettingsDep
+) -> JobMatchesOut:
+    return dedupe_service.matches(engine, settings, auth.user_id, job_id)
+
+
+@router.post("/{job_id}/matches/{group_id}/{verb}", response_model=JobMatchesOut)
+def decide_match(
+    job_id: uuid.UUID,
+    group_id: uuid.UUID,
+    verb: Literal["confirm", "undo", "reset"],
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> JobMatchesOut:
+    limiter.check("job_match_user", str(auth.user_id))
+    return dedupe_service.decide(
+        engine, settings, auth.user_id, job_id, group_id, verb, ip_hash_of(request, settings)
+    )
 
 
 @router.post("/{job_id}/reanalyze", response_model=JobDetailOut)

@@ -55,6 +55,20 @@ export interface SourceInfo {
   jobs_open: number;
 }
 
+export interface Sighting {
+  kind: string;
+  source_name: string;
+  board_id: string | null;
+  title: string;
+  location: string;
+  url: string | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  seen_count: number;
+  closed: boolean;
+  how: string;
+}
+
 export interface FetchedJob {
   id: string;
   title: string;
@@ -70,6 +84,7 @@ export interface FetchedJob {
   attribution_text: string;
   posted_at: string | null;
   first_seen_at: string;
+  also_seen: Sighting[];
 }
 
 export interface IntentFields {

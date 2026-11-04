@@ -651,6 +651,10 @@ class SourceJob(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    company_norm: Mapped[str | None] = mapped_column(Text, default=None)
+    title_norm: Mapped[str | None] = mapped_column(Text, default=None)
+    group_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), default=None)
+    seen_count: Mapped[int] = mapped_column(Integer, default=1)
 
 
 class SourceTarget(Base):
@@ -683,3 +687,41 @@ class FetchLog(Base):
     jobs_closed: Mapped[int] = mapped_column(Integer, default=0)
     jobs_skipped: Mapped[int] = mapped_column(Integer, default=0)
     error_class: Mapped[str | None] = mapped_column(Text, default=None)
+
+
+# ---- checkpoint 2.7: duplicate detection (migration 0012)
+
+
+class SourceJobLink(Base):
+    """An edge between two fetched jobs believed to be the same job. Shared reference data."""
+
+    __tablename__ = "source_job_links"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_a: Mapped[uuid.UUID] = mapped_column(ForeignKey("source_jobs.id", ondelete="CASCADE"))
+    job_b: Mapped[uuid.UUID] = mapped_column(ForeignKey("source_jobs.id", ondelete="CASCADE"))
+    method: Mapped[str] = mapped_column(Text)
+    score: Mapped[Decimal] = mapped_column(Numeric(4, 3))
+    reason: Mapped[str] = mapped_column(Text, default="")
+    state: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    decided_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), default=None
+    )
+
+
+class PostingLink(Base):
+    """A person decision about a public job and a posting they pasted. Protected by RLS."""
+
+    __tablename__ = "posting_links"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    source_job_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("source_jobs.id", ondelete="CASCADE")
+    )
+    state: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    decided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
