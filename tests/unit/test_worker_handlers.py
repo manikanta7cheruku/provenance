@@ -60,6 +60,8 @@ def test_registry_knows_the_task_types() -> None:
         "poll_source",
         "import_file",
         "import_url",
+        "draft_application",
+        "send_shortlist",
     }
 
 

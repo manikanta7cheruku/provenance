@@ -95,8 +95,8 @@ IDs are stable. "Phase" is the release in which the requirement is delivered.
 | FR-EXP-1 | Server-side CSV, XLSX, DOCX exports generated from structured data (resume PDF export arrives with the resume studio in 2.1) | 3 |
 | FR-RES-1 | Resume studio: create and edit resumes with a structured editor, live preview, 20 or more templates, professional PDF export. Details in [resume-studio-requirements.md](resume-studio-requirements.md) | 2 |
 | FR-RES-8 | Free plan includes one resume with rate-limited exports. Plans and limits later | 2 basic, 3 enforced |
-| FR-APP-1 | Application text drafts (cover note, answers to common questions) grounded in the user's evidence, labelled as drafts. The user edits and submits them. The product never submits | 2 |
-| FR-SHL-1 | Periodic shortlist email of the few opportunities worth the user's time, each with its reason. Selection is deterministic | 2 |
+| FR-APP-1 | Application text drafts (cover note, answers to common questions) grounded in the user's evidence, labelled as drafts. The user edits and submits them. The product never submits. Built in 2.10: every claim is checked against the evidence and the job heading and the unsupported ones are shown | 2 |
+| FR-SHL-1 | Periodic shortlist email of the few opportunities worth the user's time, each with its reason. Selection is deterministic. Built in 2.10: opt in, the person's own schedule and time zone, a verified address, plain text | 2 |
 | FR-GAP-1 | Gap-to-qualify plan for near-miss jobs: the missing evidence, what would count as proof, suggested learning or project work | 1 basic, 3 deeper |
 | FR-FBK-1 | Built in 1.9. Verdict feedback ("was this right?") stored as labels with version information, for evaluation (ADR-0026) | 1 |
 | FR-PRP-2 | Outreach and referral drafts. The user sends them | 3 |

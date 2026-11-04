@@ -18,6 +18,10 @@ from pv_api.schemas import (
     DecisionIn,
     DecisionOut,
     DecisionResultOut,
+    DraftEditIn,
+    DraftOut,
+    DraftsOut,
+    DraftStartIn,
     FeedbackIn,
     JobCreate,
     JobCreatedOut,
@@ -30,6 +34,7 @@ from pv_api.schemas import (
 from pv_api.services import (
     analysis_service,
     dedupe_service,
+    drafts_service,
     import_service,
     job_service,
     workbench_service,
@@ -138,6 +143,56 @@ def save_note(
 ) -> DecisionOut:
     limiter.check("decision_user", str(auth.user_id))
     return workbench_service.save_note(engine, auth.user_id, job_id, payload.note)
+
+
+@router.get("/{job_id}/drafts", response_model=DraftsOut)
+def get_drafts(job_id: uuid.UUID, auth: CurrentUser, engine: EngineDep) -> DraftsOut:
+    return drafts_service.view(engine, auth.user_id, job_id)
+
+
+@router.post("/{job_id}/drafts", response_model=DraftsOut, status_code=202)
+def start_draft(
+    job_id: uuid.UUID,
+    payload: DraftStartIn,
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> DraftsOut:
+    limiter.check("draft_start_user", str(auth.user_id))
+    return drafts_service.start(
+        engine, auth.user_id, job_id, payload, ip_hash_of(request, settings)
+    )
+
+
+@router.put("/{job_id}/drafts/{draft_id}", response_model=DraftOut)
+def edit_draft(
+    job_id: uuid.UUID,
+    draft_id: uuid.UUID,
+    payload: DraftEditIn,
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> DraftOut:
+    limiter.check("draft_edit_user", str(auth.user_id))
+    return drafts_service.edit(
+        engine, auth.user_id, job_id, draft_id, payload.body, ip_hash_of(request, settings)
+    )
+
+
+@router.delete("/{job_id}/drafts/{draft_id}", status_code=204)
+def delete_draft(
+    job_id: uuid.UUID,
+    draft_id: uuid.UUID,
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+) -> None:
+    drafts_service.remove(engine, auth.user_id, job_id, draft_id, ip_hash_of(request, settings))
 
 
 @router.post("/{job_id}/reanalyze", response_model=JobDetailOut)

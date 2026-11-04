@@ -402,7 +402,46 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   importReads: Record<string, number>;
   /** Saved views, and what the last workbench request asked for. */
   views: { id: string; name: string; query: Record<string, any>; created_at: string }[];
-  asked: string[] }
+  asked: string[];
+  /** Application drafts per job. Each is working for two reads, then ready. */
+  drafts: Record<string, FakeDraft[]>;
+  /** Whether the evidence check of every job is complete, so drafts can be written. */
+  checked: boolean;
+  /** The shortlist email: the person's settings, the runs, and whether the address is verified. */
+  shortlist: { enabled: boolean; frequency: string; weekday: number; hour: number; timezone: string; max_items: number; next_run_at: string | null; last_run_at: string | null };
+  runs: { outcome: string; outcome_text: string; item_count: number; manual: boolean; at: string }[];
+  verified: boolean }
+
+export interface FakeDraft { id: string; kind: "cover_note" | "answer"; question: string; body: string; origin: "model" | "edited"; reads: number; failed?: boolean }
+
+const COVER_BODY = "I built 30 REST endpoints with FastAPI and PostgreSQL for a placement portal, and I led a team of 4.";
+const ANSWER_BODY = "I built 30 REST endpoints with FastAPI. I also run Kubernetes clusters for 400 users.";
+
+function claimsOf(body: string) {
+  const list: { text: string; kind: string; supported: boolean; source: string | null }[] = [{ text: "30", kind: "number", supported: true, source: "evidence" }, { text: "fastapi", kind: "name", supported: true, source: "evidence" }];
+  if (/kubernetes/i.test(body)) list.push({ text: "kubernetes", kind: "name", supported: false, source: null });
+  if (/\b400\b/.test(body)) list.push({ text: "400", kind: "number", supported: false, source: null });
+  return list;
+}
+
+export function draftBody(d: FakeDraft) {
+  const working = d.reads < 2;
+  const claims = working ? [] : claimsOf(d.body);
+  return {
+    id: d.id, kind: d.kind, question: d.question, body: working ? "" : d.body, ui_state: d.failed ? "failed" : working ? "working" : "ready", origin: d.origin,
+    error_message: d.failed ? "The writing service did not answer. Try again in a few minutes." : null, claims,
+    unsupported_count: claims.filter((c) => !c.supported).length, word_count: d.body.split(/\s+/).filter(Boolean).length,
+    evidence: working ? [] : [{ text: "Built 30 REST endpoints with FastAPI and PostgreSQL for a student placement portal.", source: "profile", cited: true }],
+    updated_at: NOW,
+  };
+}
+
+export const QUESTIONS = [
+  { key: "why_role", text: "Why are you interested in this role?" },
+  { key: "why_company", text: "Why do you want to work here?" },
+  { key: "strength", text: "What is your strongest skill for this role?" },
+];
+
 
 export interface FakeImport { id: string; kind: "csv" | "xlsx" | "url"; label: string; source: string; fail?: string; rows?: any[] }
 
@@ -426,7 +465,8 @@ export function importBody(fake: Fake, batch: FakeImport) {
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], drafts: {}, checked: true, runs: [], verified: true,
+    shortlist: { enabled: false, frequency: "weekly", weekday: 0, hour: 8, timezone: "UTC", max_items: 5, next_run_at: null, last_run_at: null }, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
@@ -525,6 +565,55 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       fake.jobs.unshift(job);
       fake.jobReads[job.id] = 0;
       return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    const draftsMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)\/drafts(?:\/([^/]+))?$/);
+    if (draftsMatch) {
+      const jobId = draftsMatch[1] as string;
+      const list = (fake.drafts[jobId] ??= []);
+      if (!fake.jobs.find((j) => j.id === jobId)) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      const view = () => ({
+        drafts: list.map((d) => { if (d.reads < 2) d.reads += 0; return draftBody(d); }), can_write: fake.checked,
+        blocker: fake.checked ? null : "Check this job against your evidence first. A draft can only use what the check found.",
+        questions: QUESTIONS, max_drafts: 8, label: "Draft. Written by AI from your own evidence. Check every line. Nothing is sent anywhere.",
+      });
+      if (!draftsMatch[2] && method === "GET") { list.forEach((d) => { if (d.reads < 2) d.reads += 1; }); return json(view()); }
+      if (!draftsMatch[2] && method === "POST") {
+        const body = request.postDataJSON() as { kind: "cover_note" | "answer"; question: string; replace?: boolean };
+        if (!fake.checked) return json({ code: "ANALYSIS_NEEDED", message: "Check this job against your evidence first. A draft can only use what the check found." }, 409);
+        if (body.kind === "answer" && body.question.trim().length < 8) return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { question: "Write the question you want to answer, or choose one from the list." } }, 422);
+        const existing = list.find((d) => d.kind === body.kind && d.question.toLowerCase() === body.question.trim().toLowerCase());
+        if (existing && existing.origin === "edited" && !body.replace) return json({ code: "EDITED_DRAFT", message: "You edited this draft. Writing it again replaces your edits. Confirm to go ahead." }, 409);
+        const text = body.kind === "cover_note" ? COVER_BODY : ANSWER_BODY;
+        if (existing) { existing.body = text; existing.origin = "model"; existing.reads = 0; existing.failed = false; }
+        else list.push({ id: `draft-${fake.nextId++}`, kind: body.kind, question: body.kind === "answer" ? body.question.trim() : "", body: text, origin: "model", reads: 0, failed: body.question.includes("FAIL") });
+        return json(view(), 202);
+      }
+      const draft = list.find((d) => d.id === draftsMatch[2]);
+      if (!draft) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      if (method === "PUT") { draft.body = (request.postDataJSON() as { body: string }).body.trim(); draft.origin = "edited"; draft.failed = false; return json(draftBody(draft)); }
+      if (method === "DELETE") { fake.drafts[jobId] = list.filter((d) => d.id !== draft.id); return route.fulfill({ status: 204 }); }
+    }
+    const shortlistBody = () => ({
+      settings: { ...fake.shortlist, schedule_text: fake.shortlist.frequency === "daily" ? `Every day at ${String(fake.shortlist.hour).padStart(2, "0")}:00 (${fake.shortlist.timezone})` : `Every Monday at ${String(fake.shortlist.hour).padStart(2, "0")}:00 (${fake.shortlist.timezone})` },
+      runs: fake.runs, email_verified: fake.verified, blocker: fake.verified ? null : "Verify your email address first. The shortlist is only sent to a verified address.",
+      delivery_note: "Development mode: email is not sent. It is written to the worker log (docker compose logs worker).",
+    });
+    if (path === "/api/v1/shortlist" && method === "GET") return json(shortlistBody());
+    if (path === "/api/v1/shortlist" && method === "PUT") {
+      const body = request.postDataJSON() as typeof fake.shortlist;
+      if (body.enabled && !fake.verified) return json({ code: "EMAIL_NOT_VERIFIED", message: "Verify your email address first. The shortlist is only sent to a verified address." }, 409);
+      if (body.timezone === "Mars/Base") return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { timezone: "Choose a time zone from the list." } }, 422);
+      fake.shortlist = { ...body, next_run_at: body.enabled ? "2026-11-09T02:30:00Z" : null, last_run_at: fake.shortlist.last_run_at };
+      return json(shortlistBody());
+    }
+    if (path === "/api/v1/shortlist/preview" && method === "GET") {
+      const items = fake.jobs.filter((j) => j.state === "ready" && (j.dstate ?? "new") === "new" && (j.band === "strong" || j.band === "good")).map((j) => ({ id: j.id, title: j.title ?? null, company: j.company ?? null, location: j.place ?? null, band: j.band ?? null, eligibility: j.elig ?? null, reason: `${j.band === "strong" ? "Strong" : "Good"} match: 9 of 11 required requirements supported (8 fully, 1 partly). Nothing stands in your way.` }));
+      return json({ items, note: items.length ? "These are the jobs that would be in an email now." : "Nothing would be sent now. A job needs a finished evidence check, a Strong or Good fit, nothing in the way, and not to have been in an earlier email." });
+    }
+    if (path === "/api/v1/shortlist/send" && method === "POST") {
+      if (!fake.verified) return json({ code: "EMAIL_NOT_VERIFIED", message: "Verify your email address first. The shortlist is only sent to a verified address." }, 409);
+      fake.runs.unshift({ outcome: "sent", outcome_text: "Sent", item_count: 1, manual: true, at: NOW });
+      return json({ queued: true, message: "Queued. If anything is worth a look it will arrive shortly. If not, the list below says so." }, 202);
     }
     if (path === "/api/v1/workbench" && method === "GET") {
       const q = url.searchParams;

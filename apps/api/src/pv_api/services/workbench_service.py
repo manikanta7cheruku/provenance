@@ -31,10 +31,7 @@ from pv_api.schemas import (
 from pv_api.services import job_service
 from pv_api.services.decision_view import decision_out, eligibility_state
 from pv_config import Settings
-from pv_domain.eligibility import evaluate_eligibility
 from pv_domain.failures import FailureClass
-from pv_domain.job import JobParseStatus, job_ui_state
-from pv_domain.job_facts import posting_facts_from_record
 from pv_domain.job_import import ACQUISITION_SOURCE, build_draft
 from pv_domain.pipeline import (
     ACTION_LABELS,
@@ -54,7 +51,7 @@ from pv_domain.pipeline import (
     select as select_rows,
 )
 from pv_persistence.audit import record_audit
-from pv_persistence.jobs import get_posting, list_postings, load_seeker
+from pv_persistence.jobs import get_posting
 from pv_persistence.models import JobDecision, JobPosting, JobSource, SourceJob
 from pv_persistence.source_jobs import usable_where
 from pv_persistence.tenancy import tenant_session
@@ -62,7 +59,6 @@ from pv_persistence.workbench import (
     ViewError,
     create_view,
     decisions_for,
-    fit_bands,
     get_decision,
     get_view,
     list_views,
@@ -71,46 +67,13 @@ from pv_persistence.workbench import (
     set_note,
     state_of,
 )
+from pv_persistence.workrows import load_rows
 
 MAX_ROWS = 500
 
 
-def _row(
-    posting: JobPosting, decision: JobDecision | None, eligibility: str | None, band: str | None
-) -> WorkRow:
-    return WorkRow(
-        id=str(posting.id),
-        title=posting.title or "",
-        company=posting.company or "",
-        source_name=posting.source_name,
-        acquisition_method=posting.acquisition_method,
-        work_mode=job_service._fact_value(posting, "work_mode"),
-        location=job_service._fact_value(posting, "location") or "",
-        employment_type=job_service._fact_value(posting, "employment_type"),
-        seniority=job_service._fact_value(posting, "seniority"),
-        eligibility=eligibility,
-        band=band,
-        reading=job_ui_state(posting.parse_status).value,
-        state=state_of(decision).value,
-        created_at=posting.created_at,
-        applied_at=decision.applied_at if decision else None,
-        note=decision.note if decision else "",
-    )
-
-
 def _load(db: Session, owner: uuid.UUID) -> tuple[list[JobPosting], list[WorkRow]]:
-    postings = list_postings(db, owner, limit=MAX_ROWS + 1)[: MAX_ROWS + 1]
-    decisions = decisions_for(db, owner)
-    prefs, years = load_seeker(db, owner)
-    eligibility: dict[uuid.UUID, str] = {}
-    for posting in postings:
-        if posting.parse_status == JobParseStatus.EXTRACTED:
-            facts = posting_facts_from_record(
-                posting.raw_text, posting.title, posting.company, posting.facts
-            )
-            eligibility[posting.id] = evaluate_eligibility(facts, prefs, years).state.value
-    bands = fit_bands(db, owner, {p: s != "not_eligible" for p, s in eligibility.items()})
-    rows = [_row(p, decisions.get(p.id), eligibility.get(p.id), bands.get(p.id)) for p in postings]
+    postings, rows, _reasons = load_rows(db, owner, MAX_ROWS + 1)
     return postings, rows
 
 

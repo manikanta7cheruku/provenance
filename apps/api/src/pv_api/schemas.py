@@ -1227,3 +1227,123 @@ class ViewOut(BaseModel):
 
 
 JobDetailOut.model_rebuild()
+
+
+# ---- checkpoint 2.10: application drafts and the shortlist email
+class DraftClaimOut(BaseModel):
+    text: str
+    kind: str
+    supported: bool
+    source: str | None
+
+
+class DraftEvidenceOut(BaseModel):
+    text: str
+    source: str
+    cited: bool
+
+
+class DraftOut(BaseModel):
+    id: uuid.UUID
+    kind: Literal["cover_note", "answer"]
+    question: str
+    body: str
+    # queued and working are both "working" to the person
+    ui_state: Literal["working", "ready", "failed"]
+    origin: Literal["model", "edited"]
+    error_message: str | None
+    claims: list[DraftClaimOut]
+    unsupported_count: int
+    word_count: int
+    evidence: list[DraftEvidenceOut]
+    updated_at: datetime
+
+
+class DraftQuestionOut(BaseModel):
+    key: str
+    text: str
+
+
+class DraftsOut(BaseModel):
+    drafts: list[DraftOut]
+    can_write: bool
+    blocker: str | None
+    questions: list[DraftQuestionOut]
+    max_drafts: int
+    # Said every time a draft is shown. The product never sends a draft and never applies.
+    label: str
+
+
+class DraftStartIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["cover_note", "answer"]
+    question: str = Field(default="", max_length=600)
+    # The draft was edited. Starting again throws the edits away, so it must be asked for.
+    replace: bool = False
+
+
+class DraftEditIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    body: str = Field(min_length=1, max_length=9000)
+
+
+class ShortlistSettingsIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
+    frequency: Literal["daily", "weekly"]
+    weekday: int = Field(default=0, ge=0, le=6)
+    hour: int = Field(ge=0, le=23)
+    timezone: str = Field(min_length=1, max_length=64)
+    max_items: int = Field(default=5, ge=1, le=10)
+
+
+class ShortlistSettingsOut(BaseModel):
+    enabled: bool
+    frequency: Literal["daily", "weekly"]
+    weekday: int
+    hour: int
+    timezone: str
+    max_items: int
+    schedule_text: str
+    next_run_at: datetime | None
+    last_run_at: datetime | None
+
+
+class ShortlistRunOut(BaseModel):
+    outcome: Literal["sent", "nothing", "skipped", "failed"]
+    outcome_text: str
+    item_count: int
+    manual: bool
+    at: datetime
+
+
+class ShortlistOut(BaseModel):
+    settings: ShortlistSettingsOut
+    runs: list[ShortlistRunOut]
+    email_verified: bool
+    # Why the email cannot be turned on yet, when it cannot.
+    blocker: str | None
+    delivery_note: str
+
+
+class ShortlistItemOut(BaseModel):
+    id: uuid.UUID
+    title: str | None
+    company: str | None
+    location: str | None
+    band: str | None
+    eligibility: str | None
+    reason: str
+
+
+class ShortlistPreviewOut(BaseModel):
+    items: list[ShortlistItemOut]
+    note: str
+
+
+class ShortlistSendOut(BaseModel):
+    queued: bool
+    message: str

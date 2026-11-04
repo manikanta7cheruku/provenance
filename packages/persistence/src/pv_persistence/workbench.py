@@ -13,7 +13,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from pv_domain.analysis import GATE_CATEGORIES, AnalysisStatus, Verdict, score_analysis
+from pv_domain.analysis import (
+    GATE_CATEGORIES,
+    AnalysisStatus,
+    ScoreResult,
+    Verdict,
+    score_analysis,
+)
 from pv_domain.pipeline import MAX_VIEWS, Action, DecisionState
 from pv_persistence.models import (
     JobAnalysis,
@@ -117,11 +123,11 @@ def set_note(db: Session, owner_id: uuid.UUID, posting_id: uuid.UUID, note: str)
     return decision
 
 
-def fit_bands(
+def fit_scores(
     db: Session, owner_id: uuid.UUID, eligible: dict[uuid.UUID, bool]
-) -> dict[uuid.UUID, str]:
-    """The fit band of each posting whose evidence check is complete, worked out the same way the
-    job page does (pv_domain.analysis.score_analysis), in three queries for the whole list.
+) -> dict[uuid.UUID, ScoreResult]:
+    """The score of each posting whose evidence check is complete, worked out the same way the job
+    page does (pv_domain.analysis.score_analysis), in three queries for the whole list.
 
     eligible maps posting id to whether the person may be scored (no hard rule stands in the way).
     Postings with no complete check are left out."""
@@ -164,11 +170,16 @@ def fit_bands(
             (req.kind, verdicts.get(req.id, Verdict.NOT_VERIFIED.value))
         )
     return {
-        posting: score_analysis(
-            items, eligible=eligible.get(posting, True), eligibility_note=""
-        ).band.value
+        posting: score_analysis(items, eligible=eligible.get(posting, True), eligibility_note="")
         for posting, items in by_posting.items()
     }
+
+
+def fit_bands(
+    db: Session, owner_id: uuid.UUID, eligible: dict[uuid.UUID, bool]
+) -> dict[uuid.UUID, str]:
+    """The fit band of each posting whose evidence check is complete. See fit_scores."""
+    return {p: s.band.value for p, s in fit_scores(db, owner_id, eligible).items()}
 
 
 # ---- saved views
