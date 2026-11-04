@@ -124,6 +124,15 @@ The product runs end to end without a key and says so honestly. These items need
 | C-94 | 2.11 | A screen reader pass of the picture screens | Axe passes. The dialogs and the properties have not been used with a screen reader | Do it at 3.7 with NVDA and VoiceOver | open |
 | C-95 | 2.11 | Decode pictures in a separate process | The decoder runs in the API process behind size and pixel limits | At deployment (3.x) run `process_image` in a short-lived sandboxed process or in the worker with a memory and time limit | open |
 
+## M. Touch and phone editing (added at 2.12)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-96 | 2.12 | Try it on a real phone and tablet | The tests emulate touch events in a desktop browser | Open the studio on your phone and tablet. Drag, pinch, double tap, use the selection bar and the properties. Note anything awkward | open |
+| C-97 | 2.12 | iOS Safari | Touch handling differs in Safari (pinch and scroll rules) | Test on an iPhone and an iPad | open |
+| C-98 | 2.12 | Pick several elements by touch | The selection box is a mouse tool because it competes with scrolling | Decide whether a select mode or a long press is worth it | open |
+| C-99 | 2.12 | Screen reader on a phone | Axe passes. TalkBack and VoiceOver were not used | Do it at 3.7 | open |
+| C-100 | 2.12 | Drag to resize on small elements | The 44 pixel handle targets overlap on very small elements | Use it for a week. If it bites, add a resize mode or bigger minimum handles | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

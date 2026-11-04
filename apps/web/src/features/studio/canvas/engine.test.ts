@@ -26,7 +26,7 @@ import {
   ungroupElements,
   updateElement,
 } from "./edit";
-import { alignBoxes, bounds, clampDelta, distributeBoxes, resizeBox, snapMove, snapTargets } from "./geometry";
+import { alignBoxes, bounds, clampDelta, distributeBoxes, pinchZoom, resizeBox, snapMove, snapTargets } from "./geometry";
 import { History } from "./history";
 import { allElements, findElement } from "./types";
 import type { CanvasDoc, CanvasElement, CanvasStyle, TextElement } from "./types";
@@ -340,5 +340,21 @@ describe("ATS check", () => {
 
   it("ignores empty text boxes", () => {
     expect(analyzeAts(doc(text("a", 20, 20, 80, 20, { body: null }), text("b", 30, 25, 80, 20, { body: null }))).issues).toEqual([]);
+  });
+});
+
+describe("pinch zoom", () => {
+  it("scales the starting zoom by how far the fingers moved", () => {
+    expect(pinchZoom(1, 100, 200)).toBe(2);
+    expect(pinchZoom(1, 200, 100)).toBe(0.5);
+    expect(pinchZoom(1.5, 120, 120)).toBe(1.5);
+  });
+  it("stays inside the zoom limits", () => {
+    expect(pinchZoom(1, 10, 1000)).toBe(3);
+    expect(pinchZoom(1, 1000, 10)).toBe(0.25);
+  });
+  it("ignores a gesture with no distance", () => {
+    expect(pinchZoom(1.25, 0, 100)).toBe(1.25);
+    expect(pinchZoom(1.25, 100, 0)).toBe(1.25);
   });
 });

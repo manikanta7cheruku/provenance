@@ -1,10 +1,10 @@
 import type { Editor } from "@tiptap/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { RichDoc } from "../../../lib/studio-api";
 import { mm } from "./css";
 import { ElementView } from "./ElementView";
-import { bounds, clampDelta, resizeBox, snapMove, snapTargets, snapValues } from "./geometry";
+import { bounds, clampDelta, pinchZoom, resizeBox, snapMove, snapTargets, snapValues } from "./geometry";
 import type { Box, Guide, Handle } from "./geometry";
 import { expandSelection, setBoxes } from "./edit";
 import { LIMITS, allElements, pageSize } from "./types";
@@ -36,6 +36,8 @@ interface StageProps {
   onEditor: (editor: Editor | null) => void;
   onEdit: (id: string | null) => void;
   onMoved: (ids: string[], box: Box) => void;
+  /** Two fingers on the pages change the zoom. */
+  onPinch: (zoom: number) => void;
 }
 
 type Drag =
@@ -51,14 +53,33 @@ let dragCounter = 0;
  * converted with the zoom. Keyboard control lives one level up, in the editor.
  */
 export function Stage(props: StageProps) {
-  const { doc, selection, editing, zoom, showMargins, readOnly, onSelect, onApply, onBody, onHeight, onEditor, onEdit, onMoved } = props;
+  const { doc, selection, editing, zoom, showMargins, readOnly, onSelect, onApply, onBody, onHeight, onEditor, onEdit, onMoved, onPinch } = props;
   const [guides, setGuides] = useState<{ page: number; lines: Guide[] } | null>(null);
   const [marquee, setMarquee] = useState<{ page: number; box: Box } | null>(null);
   const drag = useRef<Drag | null>(null);
   const lastDown = useRef<{ id: string; at: number; x: number; y: number } | null>(null);
   const root = useRef<HTMLDivElement>(null);
+  // Fingers down right now, for the pinch. Only touch pointers are tracked.
+  const fingers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ startZoom: number; startDistance: number } | null>(null);
   const [pw, ph] = pageSize(doc.style);
   const pxPerMm = CSS_PX_PER_MM * zoom;
+
+  // Two fingers are a pinch, never a scroll. The browser decides to scroll on the first move, so
+  // the touch events must be cancelled there, and React attaches its listeners as passive.
+  useEffect(() => {
+    const node = root.current;
+    if (!node) return;
+    const stop = (event: TouchEvent) => {
+      if (event.touches.length >= 2 && event.cancelable) event.preventDefault();
+    };
+    node.addEventListener("touchstart", stop, { passive: false });
+    node.addEventListener("touchmove", stop, { passive: false });
+    return () => {
+      node.removeEventListener("touchstart", stop);
+      node.removeEventListener("touchmove", stop);
+    };
+  }, []);
 
   const pageOf = (id: string) => doc.pages.findIndex((p) => p.elements.some((e) => e.id === id));
 
@@ -69,8 +90,25 @@ export function Stage(props: StageProps) {
     return { x: (clientX - rect.left) / pxPerMm, y: (clientY - rect.top) / pxPerMm };
   }
 
+  function fingerDistance(): number {
+    const [a, b] = [...fingers.current.values()];
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  }
+
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (readOnly || event.button !== 0) return;
+    if (event.pointerType === "touch") {
+      fingers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (fingers.current.size === 2) {
+        // A second finger turns whatever was happening into a pinch. Nothing is moved by it.
+        drag.current = null;
+        setGuides(null);
+        setMarquee(null);
+        pinch.current = { startZoom: zoom, startDistance: fingerDistance() };
+        return;
+      }
+      if (fingers.current.size > 2) return;
+    }
     const target = event.target as HTMLElement;
     if (editing && target.closest(".cv-el.is-editing")) return;
     const handleNode = target.closest<HTMLElement>("[data-handle]");
@@ -105,7 +143,9 @@ export function Stage(props: StageProps) {
       // double-click event is retargeted to the stage while the pointer is captured.
       const previous = lastDown.current;
       lastDown.current = { id, at: event.timeStamp, x: event.clientX, y: event.clientY };
-      if (previous && previous.id === id && event.timeStamp - previous.at < 450 && Math.hypot(event.clientX - previous.x, event.clientY - previous.y) < 6) {
+      // A finger is less exact than a mouse, so a double tap gets more time and more room.
+      const touch = event.pointerType === "touch";
+      if (previous && previous.id === id && event.timeStamp - previous.at < (touch ? 600 : 450) && Math.hypot(event.clientX - previous.x, event.clientY - previous.y) < (touch ? 24 : 6)) {
         const target = allElements(doc).find((e) => e.id === id);
         if (target && target.kind === "text" && !target.locked && !event.shiftKey) {
           lastDown.current = null;
@@ -140,6 +180,11 @@ export function Stage(props: StageProps) {
     }
 
     const pageNode = target.closest<HTMLElement>("[data-page]");
+    if (pageNode && event.pointerType === "touch") {
+      // On a phone an empty press must stay free to scroll the page, so it only clears the selection.
+      onSelect([]);
+      return;
+    }
     if (pageNode) {
       const page = Number(pageNode.dataset.page);
       const p = pageMm(page, event.clientX, event.clientY);
@@ -152,6 +197,13 @@ export function Stage(props: StageProps) {
   }
 
   function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch" && fingers.current.has(event.pointerId)) {
+      fingers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pinch.current) {
+        onPinch(pinchZoom(pinch.current.startZoom, pinch.current.startDistance, fingerDistance()));
+        return;
+      }
+    }
     const d = drag.current;
     if (!d) return;
 
@@ -245,6 +297,10 @@ export function Stage(props: StageProps) {
   }
 
   function endDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch") {
+      fingers.current.delete(event.pointerId);
+      if (fingers.current.size < 2) pinch.current = null;
+    }
     const d = drag.current;
     drag.current = null;
     setGuides(null);
