@@ -10,7 +10,6 @@ import uuid
 from typing import Any
 
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from pv_api.errors import ApiError
@@ -37,11 +36,12 @@ from pv_domain.job import (
     posting_content_hash,
 )
 from pv_domain.job_facts import posting_facts_from_record
+from pv_domain.job_import import PostingDraft
 from pv_persistence.analysis import delete_analysis
 from pv_persistence.audit import record_audit
+from pv_persistence.imports import store_draft
 from pv_persistence.jobs import (
     cancel_waiting_tasks,
-    find_by_hash,
     get_posting,
     list_postings,
     list_requirements,
@@ -163,38 +163,44 @@ def paste(
             failure_class=FailureClass.VALIDATION_FAILED,
             fields={"text": problem},
         )
-    digest = posting_content_hash(text)
-    created = False
-    try:
-        with tenant_session(engine, user_id) as db:
-            posting = find_by_hash(db, user_id, digest)
-            if posting is None:
-                posting = JobPosting(
-                    owner_user_id=user_id,
-                    source_name=payload.source_name,
-                    acquisition_method=ACQUISITION_USER_PASTE,
-                    source_url=payload.source_url,
-                    raw_text=text,
-                    content_hash=digest,
-                )
-                db.add(posting)
-                db.flush()
-                start_extraction(db, posting, reanalyze=False)
-                db.flush()
-                created = True
-            out = _detail(db, posting)
-    except IntegrityError:
-        # Two identical pastes at once: the other one won. Show it.
-        with tenant_session(engine, user_id) as db:
-            existing = find_by_hash(db, user_id, digest)
-            if existing is None:
-                raise
-            out = _detail(db, existing)
+    draft = PostingDraft(
+        title=None,
+        company=None,
+        location=None,
+        link=payload.source_url,
+        source_name=payload.source_name,
+        text=text,
+        content_hash=posting_content_hash(text),
+    )
+    return create_from_draft(
+        engine,
+        user_id=user_id,
+        draft=draft,
+        acquisition=ACQUISITION_USER_PASTE,
+        audit_action="job.pasted",
+        ip_hash=ip_hash,
+    )
+
+
+def create_from_draft(
+    engine: Engine,
+    *,
+    user_id: uuid.UUID,
+    draft: PostingDraft,
+    acquisition: str,
+    audit_action: str,
+    ip_hash: str | None,
+) -> JobCreatedOut:
+    """Save one job as a private posting and queue its reading. The same text saved before is shown
+    as it is and nothing new is made. Used for a paste and for a job typed in by hand."""
+    with tenant_session(engine, user_id) as db:
+        posting, created = store_draft(db, owner_id=user_id, draft=draft, acquisition=acquisition)
+        out = _detail(db, posting)
     if created:
         record_audit(
-            engine, category="audit", action="job.pasted", actor_user_id=user_id,
+            engine, category="audit", action=audit_action, actor_user_id=user_id,
             target_type="job_posting", target_id=str(out.id), ip_hash=ip_hash,
-            metadata={"source": payload.source_name, "characters": len(text)},
+            metadata={"source": draft.source_name, "characters": len(draft.text)},
         )  # fmt: skip
     return JobCreatedOut(job=out, duplicate=not created)
 

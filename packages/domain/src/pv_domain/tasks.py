@@ -9,6 +9,8 @@ TASK_ANALYZE_JOB = "analyze_job"
 TASK_RENDER_RESUME = "render_resume_pdf"
 TASK_TAILOR_RESUME = "tailor_resume"
 TASK_POLL_SOURCE = "poll_source"
+TASK_IMPORT_FILE = "import_file"
+TASK_IMPORT_URL = "import_url"
 
 # These carry a one-time secret (a link token) that is erased when the task finishes
 # or dead-letters, so replaying them is impossible. The user must ask for a new link.

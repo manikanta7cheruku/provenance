@@ -19,10 +19,11 @@ from pv_api.schemas import (
     JobCreate,
     JobCreatedOut,
     JobDetailOut,
+    JobManualIn,
     JobMatchesOut,
     JobSummaryOut,
 )
-from pv_api.services import analysis_service, dedupe_service, job_service
+from pv_api.services import analysis_service, dedupe_service, import_service, job_service
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -43,6 +44,25 @@ def paste(
     )
     if created.duplicate:
         response.status_code = 200  # the same posting again: nothing new was made
+    return created
+
+
+@router.post("/manual", response_model=JobCreatedOut, status_code=201)
+def enter_manually(
+    payload: JobManualIn,
+    request: Request,
+    response: Response,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> JobCreatedOut:
+    limiter.check("job_manual_user", str(auth.user_id))
+    created = import_service.manual(
+        engine, user_id=auth.user_id, payload=payload, ip_hash=ip_hash_of(request, settings)
+    )
+    if created.duplicate:
+        response.status_code = 200
     return created
 
 

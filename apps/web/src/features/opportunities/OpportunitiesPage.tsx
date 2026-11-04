@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { fetchImports, isImportBusy } from "../../lib/imports-api";
 import { fetchJobs } from "../../lib/jobs-api";
 import type { JobSummary } from "../../lib/jobs-api";
 import { formatDateTime } from "../../lib/format";
@@ -7,7 +8,8 @@ import { describeEligibility, describeJobState, isJobBusy } from "../../lib/stat
 import { useAsync } from "../../lib/useAsync";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { ActionButton, DataTable, EmptyState, Notice, PageHeader, Section, Skeleton, Status } from "../../ui";
-import { PasteJobForm } from "./PasteJobForm";
+import { AddJob } from "./AddJob";
+import { RecentImports } from "./RecentImports";
 import { acquisitionLabel, workLine } from "./labels";
 import "./opportunities.css";
 
@@ -25,22 +27,35 @@ function JobStatus({ job }: { job: JobSummary }) {
 export function OpportunitiesPage() {
   useDocumentTitle("Opportunities");
   const jobs = useAsync((signal) => fetchJobs(signal), []);
-  const busy = jobs.data?.some((job) => isJobBusy(job.ui_state)) ?? false;
+  const imports = useAsync((signal) => fetchImports(signal), []);
+  const importing = imports.data?.some(isImportBusy) ?? false;
+  const busy = (jobs.data?.some((job) => isJobBusy(job.ui_state)) ?? false) || importing;
+  const { reload: reloadJobs } = jobs;
+  const { reload: reloadImports } = imports;
 
-  // While a posting is being read, keep asking. Stops by itself when everything settled.
+  // While a posting is being read or an import is running, keep asking. Stops by itself.
   useEffect(() => {
     if (!busy) return;
-    const timer = window.setInterval(jobs.reload, REFRESH_MS);
+    const timer = window.setInterval(() => {
+      reloadJobs();
+      reloadImports();
+    }, REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [busy, jobs.reload]);
+  }, [busy, reloadJobs, reloadImports]);
+
+  function onChanged() {
+    reloadJobs();
+    reloadImports();
+  }
 
   return (
     <>
       <PageHeader
         title="Opportunities"
-        description="Jobs you have pasted, with whether you can take them and what each one asks for."
+        description="Jobs you have added, with whether you can take them and what each one asks for."
       />
-      <PasteJobForm onPasted={jobs.reload} />
+      <AddJob onChanged={onChanged} />
+      {imports.data ? <RecentImports batches={imports.data} /> : null}
 
       <Section title="Your jobs">
         {jobs.error ? (
@@ -56,7 +71,7 @@ export function OpportunitiesPage() {
           <EmptyState
             title="No jobs yet"
             why="Each job you paste is read for what it asks for and checked against your answers, so you can skip the ones that are not for you."
-            next="Paste a job description above."
+            next="Add a job above: paste it, type it in, give a link or bring a spreadsheet."
           />
         ) : (
           <DataTable caption={`Your jobs, ${jobs.data.length} saved`}>

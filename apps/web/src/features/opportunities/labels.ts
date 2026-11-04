@@ -42,8 +42,16 @@ export const CATEGORY_LABELS: Record<string, string> = {
 };
 
 /** How the text reached us, said plainly. Never "searched": the person pasted it. */
+const ACQUISITION: Record<string, string> = {
+  user_paste: "Pasted by you",
+  manual_entry: "Typed in by you",
+  csv_import: "From your CSV file",
+  xlsx_import: "From your Excel file",
+  url_import: "Read from a link you gave",
+};
+
 export function acquisitionLabel(method: string): string {
-  return method === "user_paste" ? "Pasted by you" : method;
+  return ACQUISITION[method] ?? method;
 }
 
 export function workLine(job: Pick<JobSummary, "work_mode" | "location">): string {

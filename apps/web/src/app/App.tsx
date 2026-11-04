@@ -16,7 +16,7 @@ import {
   VerifyEmailPage,
 } from "../features/auth";
 import { NotFoundPage } from "../features/notfound";
-import { JobDetailPage, OpportunitiesPage } from "../features/opportunities";
+import { ImportReportPage, JobDetailPage, OpportunitiesPage } from "../features/opportunities";
 import { PlannedPage } from "../features/planned";
 import { ProfilePage } from "../features/profile";
 import { RunDetailPage, RunsPage } from "../features/runs";
@@ -67,6 +67,7 @@ function ProductApp() {
                 <Route key={item.path} path={item.path} element={<PlannedPage path={item.path} />} />
               ))}
               <Route path="/opportunities" element={<OpportunitiesPage />} />
+              <Route path="/opportunities/imports/:batchId" element={<ImportReportPage />} />
               <Route path="/opportunities/:jobId" element={<JobDetailPage />} />
               <Route path="/find" element={<FindJobsPage />} />
               <Route path="/profile" element={<ProfilePage />} />

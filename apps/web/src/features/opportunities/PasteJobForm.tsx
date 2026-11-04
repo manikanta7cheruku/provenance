@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { pasteJob, POSTING_MAX_CHARS, POSTING_MIN_CHARS, SOURCE_NAMES } from "../../lib/jobs-api";
 import { useFormSubmit } from "../../lib/useFormSubmit";
-import { Button, Notice, Section, Select, TextArea, TextField } from "../../ui";
+import { Button, Notice, Select, TextArea, TextField } from "../../ui";
 
 /** Paste a posting. The text is stored as you pasted it. We never visit a link you give us. */
 export function PasteJobForm({ onPasted }: { onPasted: () => void }) {
@@ -31,7 +31,7 @@ export function PasteJobForm({ onPasted }: { onPasted: () => void }) {
   }
 
   return (
-    <Section title="Paste a job">
+    <>
       <p className="jobs__lead">
         Copy a job description from anywhere and paste it here. We read what it asks for and tell
         you whether anything stands in your way. The text stays private to you. We never visit the
@@ -72,6 +72,6 @@ export function PasteJobForm({ onPasted }: { onPasted: () => void }) {
           Read this job
         </Button>
       </form>
-    </Section>
+    </>
   );
 }

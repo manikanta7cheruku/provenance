@@ -339,11 +339,34 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   analyses: Record<string, FakeAnalysis>;
   studio: FakeStudio;
   /** Public jobs that may be the pasted posting. */
-  matches: FakeMatch[] }
+  matches: FakeMatch[];
+  /** Imports started in this session. Each one reads for two polls, then ends. */
+  imports: FakeImport[];
+  importReads: Record<string, number> }
+
+export interface FakeImport { id: string; kind: "csv" | "xlsx" | "url"; label: string; source: string; fail?: string; rows?: any[] }
+
+export function importBody(fake: Fake, batch: FakeImport) {
+  const reads = fake.importReads[batch.id] ?? 0;
+  const done = reads >= 2;
+  const items = done && !batch.fail ? (batch.rows ?? [
+    { row_number: 2, status: "created", code: null, message: null, title: "Backend engineer", source_url: null, posting_id: "job-1" },
+    { row_number: 3, status: "rejected", code: "bad_link", message: "The link is not a web address that starts with http:// or https://.", title: "Broken link", source_url: null, posting_id: null },
+  ]) : [];
+  return {
+    id: batch.id, kind: batch.kind, label: batch.label, default_source: batch.source,
+    status: !done ? (reads === 0 ? "queued" : "running") : batch.fail ? "failed" : "done",
+    error_message: done && batch.fail ? batch.fail : null,
+    total_rows: items.length, created_count: items.filter((i: any) => i.status === "created").length,
+    duplicate_count: items.filter((i: any) => i.status === "duplicate").length,
+    rejected_count: items.filter((i: any) => i.status === "rejected").length,
+    ignored_columns: done && !batch.fail && batch.kind !== "url" ? ["Salary"] : [], created_at: NOW, finished_at: done ? NOW : null, items,
+  };
+}
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
@@ -441,6 +464,44 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       fake.jobs.unshift(job);
       fake.jobReads[job.id] = 0;
       return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    if (path === "/api/v1/jobs/manual" && method === "POST") {
+      const body = request.postDataJSON() as { title: string; description: string; source_name: string; source_url: string | null };
+      if (body.title.length + body.description.length < 100) return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { description: "The description is under 100 characters. Paste the whole posting." } }, 422);
+      const job: FakeJob = { id: `job-${fake.nextId++}`, text: `Title: ${body.title}
+
+${body.description}`, source: body.source_name, url: body.source_url, state: "reading" };
+      fake.jobs.unshift(job);
+      fake.jobReads[job.id] = 0;
+      return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    if (path === "/api/v1/imports" && method === "GET") {
+      return json(fake.imports.map((b) => { const { items, ...summary } = importBody(fake, b); void items; return summary; }));
+    }
+    if (path === "/api/v1/imports/url" && method === "POST") {
+      const body = request.postDataJSON() as { url: string; source_name: string };
+      const refusal = !body.url.startsWith("https://") ? "Only secure (https) addresses are used."
+        : /linkedin\.com/.test(body.url) ? "This site does not allow automated reading. Open the posting yourself, copy the description and paste it instead."
+        : /localhost|127\.0\.0\.1/.test(body.url) ? "That address is not on the public internet." : null;
+      if (refusal) return json({ code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { url: refusal } }, 422);
+      const batch: FakeImport = { id: `imp-${fake.nextId++}`, kind: "url", label: new URL(body.url).hostname, source: body.source_name,
+        rows: [{ row_number: 1, status: "created", code: null, message: null, title: "Backend engineer", source_url: body.url, posting_id: "job-1" }] };
+      fake.imports.unshift(batch); fake.importReads[batch.id] = 0;
+      return json(importBody(fake, batch), 202);
+    }
+    if (path === "/api/v1/imports/file" && method === "POST") {
+      const name = decodeURIComponent(request.headers()["x-filename"] ?? "jobs.csv");
+      const batch: FakeImport = { id: `imp-${fake.nextId++}`, kind: name.endsWith(".xlsx") ? "xlsx" : "csv", label: name, source: decodeURIComponent(request.headers()["x-source-name"] ?? "Other"),
+        ...(name.startsWith("bad") ? { fail: "No column holds the job description. Name one of the columns Description, Job description, Details, Posting or Text." } : {}) };
+      fake.imports.unshift(batch); fake.importReads[batch.id] = 0;
+      return json(importBody(fake, batch), 202);
+    }
+    const importMatch = path.match(/^\/api\/v1\/imports\/([^/]+)$/);
+    if (importMatch && method === "GET") {
+      const batch = fake.imports.find((b) => b.id === importMatch[1]);
+      if (!batch) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      fake.importReads[batch.id] = (fake.importReads[batch.id] ?? 0) + 1;
+      return json(importBody(fake, batch));
     }
     const fontMatch = path.match(/^\/api\/v1\/studio\/fonts\/([\w.-]+\.woff)$/);
     if (fontMatch) {

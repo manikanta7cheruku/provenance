@@ -58,6 +58,8 @@ def test_registry_knows_the_task_types() -> None:
         "render_resume_pdf",
         "tailor_resume",
         "poll_source",
+        "import_file",
+        "import_url",
     }
 
 

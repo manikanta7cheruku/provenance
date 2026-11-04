@@ -8,8 +8,10 @@ from pv_files.storage import (
     StorageError,
     build_storage,
     new_export_key,
+    new_import_key,
     new_resume_key,
 )
+from pv_files.tabular import check_table_upload, read_table, sniff_table_kind
 
 __all__ = [
     "ExtractedText",
@@ -20,11 +22,15 @@ __all__ = [
     "RenderedPdf",
     "StorageError",
     "build_storage",
+    "check_table_upload",
     "check_upload",
     "extract_text",
     "font_file",
     "fonts_dir",
     "html_to_pdf",
     "new_export_key",
+    "new_import_key",
     "new_resume_key",
+    "read_table",
+    "sniff_table_kind",
 ]

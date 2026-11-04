@@ -5,6 +5,8 @@ from pv_domain.tasks import (
     TASK_DEMO,
     TASK_EMBED_EVIDENCE,
     TASK_EXTRACT_JOB,
+    TASK_IMPORT_FILE,
+    TASK_IMPORT_URL,
     TASK_PARSE_RESUME,
     TASK_POLL_SOURCE,
     TASK_RENDER_RESUME,
@@ -16,6 +18,8 @@ from pv_worker.handlers.analyze_job import handle_analyze_job
 from pv_worker.handlers.demo import handle_demo
 from pv_worker.handlers.embed_evidence import handle_embed_evidence
 from pv_worker.handlers.extract_job import handle_extract_job
+from pv_worker.handlers.import_file import handle_import_file
+from pv_worker.handlers.import_url import handle_import_url
 from pv_worker.handlers.parse_resume import handle_parse_resume
 from pv_worker.handlers.poll_source import handle_poll_source
 from pv_worker.handlers.render_resume import handle_render_resume
@@ -34,4 +38,6 @@ def build_registry() -> dict[str, Handler]:
         TASK_RENDER_RESUME: handle_render_resume,
         TASK_TAILOR_RESUME: handle_tailor_resume,
         TASK_POLL_SOURCE: handle_poll_source,
+        TASK_IMPORT_FILE: handle_import_file,
+        TASK_IMPORT_URL: handle_import_url,
     }

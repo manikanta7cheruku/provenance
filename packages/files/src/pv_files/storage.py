@@ -36,6 +36,10 @@ def new_resume_key() -> str:
     return f"resumes/{uuid.uuid4().hex}"
 
 
+def new_import_key() -> str:
+    return f"imports/{uuid.uuid4().hex}"
+
+
 def new_export_key() -> str:
     return f"exports/{uuid.uuid4().hex}"
 
