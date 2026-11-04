@@ -60,6 +60,7 @@ export interface JobRequirement {
 }
 
 export interface JobDetail extends JobSummary {
+  decision: import("./workbench-api").Decision;
   source_url: string | null;
   visibility: string;
   facts: Record<string, JobFact>;

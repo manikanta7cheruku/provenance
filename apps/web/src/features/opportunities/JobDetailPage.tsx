@@ -8,7 +8,9 @@ import { describeEligibility, describeJobState, isJobBusy } from "../../lib/stat
 import { useAsync } from "../../lib/useAsync";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { ActionButton, ConfirmDialog, Notice, PageHeader, Section, Skeleton, Status } from "../../ui";
+import { DecisionBar } from "./DecisionBar";
 import { EvidenceCheck } from "./EvidenceCheck";
+import { NoteBox } from "./NoteBox";
 import { Sightings } from "./Sightings";
 import { acquisitionLabel, CATEGORY_LABELS, FACT_LABELS, factText, workLine } from "./labels";
 import "./opportunities.css";
@@ -218,6 +220,11 @@ export function JobDetailPage() {
         <Status tone={state.tone} label={state.label} />
         <span className="job__explanation">{state.explanation}</span>
       </p>
+
+      <Section title="Your decision">
+        <DecisionBar job={data} decision={data.decision} onDecided={() => job.reload()} ownUndo />
+        <NoteBox jobId={data.id} note={data.decision.note} onSaved={() => job.reload()} />
+      </Section>
 
       {data.ui_state === "reading" ? <Skeleton label="Reading the posting" lines={4} /> : null}
       {data.ui_state === "failed" ? (

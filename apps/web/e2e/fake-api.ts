@@ -49,7 +49,63 @@ export function resumeBody(uiState: string, extra: Record<string, unknown> = {})
 }
 
 
-export interface FakeJob { id: string; text: string; source: string; url: string | null; state: "reading" | "ready" | "failed" }
+export interface FakeJob {
+  id: string; text: string; source: string; url: string | null; state: "reading" | "ready" | "failed";
+  /** Workbench fields. Left out, a ready job looks like the sample data analyst posting. */
+  title?: string; company?: string; mode?: string; place?: string; elig?: string; band?: string | null;
+  dstate?: string; note?: string; appliedAt?: string | null; added?: string; acquisition?: string;
+}
+
+const OFFER: Record<string, string[]> = {
+  new: ["save", "approve", "mark_applied", "dismiss"], saved: ["unsave", "approve", "mark_applied", "dismiss"],
+  approved_for_prep: ["mark_applied", "dismiss"], dismissed: ["undo_dismiss", "archive"], applied: ["undo_applied", "archive"], archived: [],
+};
+const ACTION_LABEL: Record<string, string> = {
+  save: "Save", unsave: "Unsave", dismiss: "Dismiss", undo_dismiss: "Undo dismiss", approve: "Approve for preparation",
+  mark_applied: "Mark applied", undo_applied: "Undo applied", archive: "Archive",
+};
+const STATE_LABEL: Record<string, string> = {
+  new: "New", saved: "Saved", dismissed: "Dismissed", approved_for_prep: "Approved for preparation", applied: "Applied", archived: "Archived",
+};
+const TARGET: Record<string, string> = {
+  save: "saved", unsave: "new", dismiss: "dismissed", undo_dismiss: "new", approve: "approved_for_prep", mark_applied: "applied", undo_applied: "new", archive: "archived",
+};
+const REVERSE: Record<string, string> = { save: "unsave", dismiss: "undo_dismiss", mark_applied: "undo_applied" };
+const VIEW_STATES: Record<string, string[]> = {
+  active: ["new", "saved", "approved_for_prep"], saved: ["saved", "approved_for_prep"], applications: ["applied"],
+  dismissed: ["dismissed"], archived: ["archived"], all: ["new", "saved", "dismissed", "approved_for_prep", "applied", "archived"],
+};
+
+export function decisionBody(job: FakeJob) {
+  const state = job.dstate ?? "new";
+  const eligible = (job.elig ?? "requires_user_input") !== "not_eligible";
+  return {
+    state, state_label: STATE_LABEL[state],
+    actions: (OFFER[state] ?? []).filter((a) => a !== "approve" || eligible).map((a) => ({ action: a, label: ACTION_LABEL[a] })),
+    note: job.note ?? "", applied_at: job.appliedAt ?? null, updated_at: null,
+  };
+}
+
+/** The same rules as the server, so the screens can be driven without it. Returns a refusal or null. */
+export function moveJob(job: FakeJob, action: string): string | null {
+  const state = job.dstate ?? "new";
+  if (!(OFFER[state] ?? []).includes(action)) return `${ACTION_LABEL[action] ?? action} is not available for a job that is ${(STATE_LABEL[state] ?? state).toLowerCase()}.`;
+  if (action === "approve" && (job.elig ?? "") === "not_eligible") return "A hard requirement stands in the way of this job, so it cannot be approved for preparation. You can still save it or dismiss it.";
+  job.dstate = TARGET[action];
+  job.appliedAt = action === "mark_applied" ? NOW : action === "undo_applied" ? null : job.appliedAt ?? null;
+  return null;
+}
+
+export function workRow(job: FakeJob) {
+  const ready = job.state === "ready";
+  return {
+    id: job.id, title: job.title ?? (ready ? "Data Analyst, Early Careers" : null), company: job.company ?? (ready ? "Fernlight Systems" : null),
+    source_name: job.source, acquisition_method: job.acquisition ?? "user_paste", work_mode: ready ? job.mode ?? "hybrid" : null,
+    location: ready ? job.place ?? "Bengaluru, India" : null, employment_type: ready ? "full_time" : null, seniority: ready ? "entry" : null,
+    eligibility: ready ? job.elig ?? "requires_user_input" : null, band: ready ? job.band ?? null : null, reading: job.state,
+    decision: decisionBody(job), has_note: Boolean(job.note), created_at: job.added ?? NOW,
+  };
+}
 
 const POSTING_TEXT = [
   "Data Analyst, Early Careers",
@@ -62,10 +118,11 @@ const POSTING_TEXT = [
 export function jobBody(job: FakeJob) {
   const ready = job.state === "ready";
   return {
-    id: job.id, title: ready ? "Data Analyst, Early Careers" : null, company: ready ? "Fernlight Systems" : null,
-    source_name: job.source, acquisition_method: "user_paste", ui_state: job.state, can_retry: job.state !== "reading",
+    id: job.id, title: job.title ?? (ready ? "Data Analyst, Early Careers" : null), company: job.company ?? (ready ? "Fernlight Systems" : null),
+    decision: decisionBody(job),
+    source_name: job.source, acquisition_method: job.acquisition ?? "user_paste", ui_state: job.state, can_retry: job.state !== "reading",
     error_message: job.state === "failed" ? "The reading service did not answer. Your posting is saved. Try again in a few minutes." : null,
-    eligibility: ready ? "requires_user_input" : null, work_mode: ready ? "hybrid" : null, location: ready ? "Bengaluru, India" : null,
+    eligibility: ready ? job.elig ?? "requires_user_input" : null, work_mode: ready ? job.mode ?? "hybrid" : null, location: ready ? job.place ?? "Bengaluru, India" : null,
     requirement_count: ready ? 2 : 0, created_at: NOW, source_url: job.url, visibility: "private",
     facts: ready ? {
       work_mode: { value: "hybrid", quote: "Bengaluru, India (Hybrid)" },
@@ -342,7 +399,10 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   matches: FakeMatch[];
   /** Imports started in this session. Each one reads for two polls, then ends. */
   imports: FakeImport[];
-  importReads: Record<string, number> }
+  importReads: Record<string, number>;
+  /** Saved views, and what the last workbench request asked for. */
+  views: { id: string; name: string; query: Record<string, any>; created_at: string }[];
+  asked: string[] }
 
 export interface FakeImport { id: string; kind: "csv" | "xlsx" | "url"; label: string; source: string; fail?: string; rows?: any[] }
 
@@ -366,14 +426,15 @@ export function importBody(fake: Fake, batch: FakeImport) {
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
   };
   await page.route("**/api/v1/**", async (route: Route) => {
     const request = route.request();
-    const path = new URL(request.url()).pathname;
+    const url = new URL(request.url());
+    const path = url.pathname;
     const method = request.method();
     const json = (body: unknown, status = 200) => route.fulfill({ status, json: body });
     if (path === "/api/v1/status") return json({ service: "api", version: "0", environment: "test", ready: true, checks: { database: "ok", migrations: "ok" } });
@@ -461,6 +522,82 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       const existing = fake.jobs.find((j) => j.text.trim().toLowerCase() === body.text.trim().toLowerCase());
       if (existing) return json({ job: jobBody(existing), duplicate: true }, 200);
       const job: FakeJob = { id: `job-${fake.nextId++}`, text: body.text, source: body.source_name, url: body.source_url, state: "reading" };
+      fake.jobs.unshift(job);
+      fake.jobReads[job.id] = 0;
+      return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    if (path === "/api/v1/workbench" && method === "GET") {
+      const q = url.searchParams;
+      fake.asked.push(url.search);
+      const view = q.get("view") && VIEW_STATES[q.get("view") as string] ? (q.get("view") as string) : "active";
+      const text = (q.get("q") ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+      const all = fake.jobs.map(workRow);
+      const inView = all.filter((r) => (VIEW_STATES[view] ?? []).includes(r.decision.state));
+      const list = (k: string) => q.getAll(k);
+      let rows = inView.filter((r) => {
+        const hay = `${r.title ?? ""} ${r.company ?? ""} ${r.location ?? ""} ${r.source_name} ${fake.jobs.find((j) => j.id === r.id)?.note ?? ""}`.toLowerCase();
+        if (!text.every((w) => hay.includes(w))) return false;
+        if (list("work_mode").length && !list("work_mode").includes(r.work_mode ?? "")) return false;
+        if (list("eligibility").length && !list("eligibility").includes(r.eligibility ?? "")) return false;
+        if (list("band").length && !list("band").includes(r.band ?? "")) return false;
+        if (list("source").length && !list("source").includes(r.source_name)) return false;
+        if (q.get("company") && !(r.company ?? "").toLowerCase().includes((q.get("company") as string).toLowerCase())) return false;
+        if (q.get("location") && !(r.location ?? "").toLowerCase().includes((q.get("location") as string).toLowerCase())) return false;
+        return true;
+      });
+      const sort = q.get("sort") ?? "added";
+      const natural = sort === "added" || sort === "applied";
+      const desc = q.get("desc") === null ? natural : q.get("desc") === "true";
+      const key = (r: (typeof rows)[number]) => (sort === "title" ? (r.title ?? "").toLowerCase() : sort === "company" ? (r.company ?? "").toLowerCase() : r.created_at);
+      rows = [...rows].sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0) * (desc ? -1 : 1));
+      const count = (get: (r: (typeof all)[number]) => string | null) => inView.reduce<Record<string, number>>((m, r) => { const v = get(r); if (v) m[v] = (m[v] ?? 0) + 1; return m; }, {});
+      const stored: Record<string, any> = { view, sort };
+      return json({
+        rows, total: rows.length, query: stored, truncated: false,
+        facets: {
+          views: Object.fromEntries(Object.entries(VIEW_STATES).map(([name, states]) => [name, all.filter((r) => states.includes(r.decision.state)).length])),
+          work_modes: count((r) => r.work_mode), eligibility: count((r) => r.eligibility), bands: count((r) => r.band),
+          employment_types: count((r) => r.employment_type), seniorities: count((r) => r.seniority), sources: count((r) => r.source_name),
+        },
+      });
+    }
+    if (path === "/api/v1/workbench/bulk" && method === "POST") {
+      const body = request.postDataJSON() as { ids: string[]; action: string };
+      const results = body.ids.map((id) => {
+        const job = fake.jobs.find((j) => j.id === id);
+        if (!job) return { id, ok: false, state: null, message: "Not found." };
+        const refusal = moveJob(job, body.action);
+        return { id, ok: refusal === null, state: job.dstate ?? "new", message: refusal };
+      });
+      const done = results.filter((r) => r.ok).length;
+      const reverse = REVERSE[body.action];
+      return json({ results, done, skipped: results.length - done, undo: reverse && done ? reverse : null, undo_label: reverse && done ? ACTION_LABEL[reverse] : null });
+    }
+    if (path === "/api/v1/workbench/views" && method === "GET") return json(fake.views);
+    if (path === "/api/v1/workbench/views" && method === "POST") {
+      const body = request.postDataJSON() as { name: string; query: Record<string, any> };
+      if (fake.views.some((v) => v.name.toLowerCase() === body.name.trim().toLowerCase())) return json({ code: "VIEW_NAME_TAKEN", message: "You already have a saved view with that name.", fields: { name: "You already have a saved view with that name." } }, 409);
+      const view = { id: `view-${fake.nextId++}`, name: body.name.trim(), query: body.query, created_at: NOW };
+      fake.views.push(view);
+      return json(view, 201);
+    }
+    const viewMatch = path.match(/^\/api\/v1\/workbench\/views\/([^/]+)$/);
+    if (viewMatch && method === "DELETE") { fake.views = fake.views.filter((v) => v.id !== viewMatch[1]); return route.fulfill({ status: 204 }); }
+    const decisionMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)\/(decision|note)$/);
+    if (decisionMatch) {
+      const job = fake.jobs.find((j) => j.id === decisionMatch[1]);
+      if (!job) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      if (decisionMatch[2] === "note") { job.note = (request.postDataJSON() as { note: string }).note.trim(); return json(decisionBody(job)); }
+      const body = request.postDataJSON() as { action: string; applied_on?: string };
+      const refusal = moveJob(job, body.action);
+      if (refusal) return json({ code: "DECISION_NOT_ALLOWED", message: refusal }, 409);
+      if (body.action === "mark_applied" && body.applied_on) job.appliedAt = `${body.applied_on}T12:00:00Z`;
+      const reverse = REVERSE[body.action];
+      return json({ decision: decisionBody(job), undo: reverse ?? null, undo_label: reverse ? ACTION_LABEL[reverse] : null });
+    }
+    const addMatch = path.match(/^\/api\/v1\/search\/jobs\/([^/]+)\/add$/);
+    if (addMatch && method === "POST") {
+      const job: FakeJob = { id: `job-${fake.nextId++}`, text: "Backend Engineer at Palantir. Build data systems used by governments and companies.", source: "Company career page", url: "https://jobs.lever.co/palantir/1", state: "reading", acquisition: "source_job" };
       fake.jobs.unshift(job);
       fake.jobReads[job.id] = 0;
       return json({ job: jobBody(job), duplicate: false }, 201);

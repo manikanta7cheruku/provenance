@@ -69,6 +69,17 @@ function job(overrides: Partial<JobDetail> = {}): JobDetail {
     run_id: "run1",
     extracted_at: "2026-10-30T09:00:00Z",
     text: "You will write SQL",
+    decision: {
+      state: "new",
+      state_label: "New",
+      actions: [
+        { action: "save", label: "Save" },
+        { action: "dismiss", label: "Dismiss" },
+      ],
+      note: "",
+      applied_at: null,
+      updated_at: null,
+    },
     ...overrides,
   } as JobDetail;
 }

@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-29 checkpoints in total. Sixteen are done and merged (1.1 to 1.9 and 2.1 to 2.7). Checkpoint 2.8 is built and awaiting merge. Twelve remain after it. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
+29 checkpoints in total. Seventeen are done and merged (1.1 to 1.9 and 2.1 to 2.8). Checkpoint 2.9 is built and awaiting merge. Eleven remain after it. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
 
 | Checkpoint | State |
 |---|---|
@@ -30,8 +30,9 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 2.5 | Done and merged |
 | 2.6 | Done and merged |
 | 2.7 | Done and merged |
-| 2.8 | Built on branch phase-2/checkpoint-2.8-import, awaiting review and merge |
-| 2.9 to 2.13 | Not started |
+| 2.8 | Done and merged |
+| 2.9 | Built on branch phase-2/checkpoint-2.9-workbench, awaiting review and merge |
+| 2.10 to 2.13 | Not started |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
@@ -80,7 +81,7 @@ Exit: critical test passes (start analysis, interrupt, kill worker, restart, ans
 | 2.6 | **Adapters, fetch layer and source health.** Pure parsers for Lever, Greenhouse and Ashby checked against real answers, one fetch module (https and allowed hosts only, no redirects, size and time limits, no cookies), a minimum poll interval per board, Retry-After obeyed, a circuit breaker per source, health words, a self-scheduling poll task, a fetch log, jobs shown only while their source is usable. Only Lever is verified, so only Lever can be switched on | Adapter pattern, API compliance, circuit breakers |
 | 2.7 | **Deduplication with reversible links, private and public jobs, sightings.** Layered matching with hard rules (same address, a repost, same company and title and place with agreeing text, a very close title with nearly the same text; different places, companies and levels are never linked), links as edges with groups computed from them so undo splits a group without losing anything, one job shown per group with where else it was seen, a pasted posting matched on read against public jobs with the person's decisions kept private, and sightings (first and last seen, how often) | Layered matching, data integrity, private versus public data |
 | 2.8 | **Imports and the hardened fetch.** A job typed in by hand, a CSV or XLSX list with a per-row report, and one web page read by the worker. Address rules, a name resolved once and checked, a connection to the checked address, every redirect checked again, size and time limits, no cookies. A minimal spreadsheet reader with zip, macro, entity and formula defences. Every way in ends as the same private posting | SSRF, DNS rebinding, untrusted file parsing |
-| 2.9 | Opportunities workbench: table, filters (remote, hybrid, location, salary, seniority, employment type, company, source), saved views, keyboard flow, actions (save, dismiss, approve for prep, open original, mark applied), applications tracking, match state machine | Split state machines, TanStack Table, accessibility |
+| 2.9 | **The opportunities workbench.** The person's half of the match lifecycle as a state machine in code (save, dismiss, approve for preparation, mark applied, archive, with unsave, undo dismiss and undo applied), a server-side list with six views, search, filters, sorting and facet counts, saved views, bulk actions with undo, a keyboard flow with a detail pane, private notes, applications tracking, and adding a job found on a source. The interface offers only what the server allows | Split state machines, server-side list rules, accessibility |
 | 2.10 | **Periodic shortlist email** (deterministic selection, templates, per-user schedule), **application text drafts** (cover note, answers to common questions, grounded in evidence, labelled as drafts), tracker polish | Scheduled workflows, grounded generation, notification design |
 | 2.11 | **Images, photos and icons on the canvas.** Upload with type and size checks, re-encoding and metadata removal, private storage, crop and fit, an icon set, and PDF output that embeds them. ATS-safe templates stay text only | Untrusted image handling, EXIF removal, file storage |
 | 2.12 | **Touch and phone editing.** Pointer and touch gestures for select, move, resize and edit, a mobile layout for the canvas, larger targets, and the same keyboard and screen reader support | Touch events, gesture design, responsive editors |
@@ -166,7 +167,7 @@ Every checkpoint is written and reviewed in this structure:
 | 2.6 | Jobs from searched sources with source and original link, source health, last answer and jobs kept |
 | 2.7 | Where else a job appears, why each match was made, same job and not the same job, also posted at in the job list |
 | 2.8 | Add a job in four ways, the import report with a reason for every row, security refusals in plain words, import again after fixing |
-| 2.9 | Opportunities workbench as a major feature: table, filters, sorting, search, keyboard navigation, save, dismiss, approve, applied tracking, bulk actions, state transitions, empty, loading and error states |
+| 2.9 | The workbench: views with counts, search, filters, sorting, saved views, keyboard flow, detail pane, notes, bulk actions with undo, apply confirmation, applications, empty, loading and error states |
 | 2.10 | Shortlist email design and preferences, application draft editor with clear draft labelling |
 | 2.11 | Image upload and crop, icon picker, image rejection messages |
 | 2.12 | Touch gestures, mobile canvas layout, target sizes |

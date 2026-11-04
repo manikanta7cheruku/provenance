@@ -70,6 +70,7 @@ known-first-party = [
 "packages/domain/src/pv_domain/url_safety.py" = ["E501"]
 "packages/domain/src/pv_domain/job_import.py" = ["E501"]
 "packages/domain/src/pv_domain/job_page.py" = ["E501"]
+"packages/domain/src/pv_domain/pipeline.py" = ["E501"]
 "packages/files/src/pv_files/tabular.py" = ["E501"]
 "apps/worker/src/pv_worker/safe_fetch.py" = ["E501"]
 "apps/worker/src/pv_worker/handlers/poll_source.py" = ["E501"]

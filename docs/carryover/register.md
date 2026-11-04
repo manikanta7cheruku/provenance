@@ -89,6 +89,17 @@ The product runs end to end without a key and says so honestly. These items need
 | C-71 | 2.8 | Preview before importing | The report is shown after the import, not before | If people want to check rows first, add a dry run that returns the report without saving | open |
 | C-72 | 2.8 | Importing on a phone | Not tried on a phone | Try the four ways on a phone during real use (2.12 covers touch editing, not this) | open |
 
+## J. The workbench (added at 2.9)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-73 | 2.9 | A salary filter | The reader does not extract salary yet, so there is nothing to filter on | When a real model is set up (C-01), add salary to the extraction prompt and facts with a quote check, then add the filter | open |
+| C-74 | 2.9 | Fit for jobs that have not been checked | Fit shows "Not checked yet" until the evidence check runs on a job | Use the workbench for a week with a real model. If the blank column is annoying, offer "Check these jobs" as a bulk action | open |
+| C-75 | 2.9 | Drawer at medium width and structured rows on compact | Below the wide width the job page opens instead of a drawer, and the table scrolls inside its region | Try the workbench on a tablet and a phone, then build the drawer and compact rows from the UX specification | open |
+| C-76 | 2.9 | Screen reader and keyboard pass of the workbench | Axe and keyboard tests pass. No screen reader has been used on it | Do the manual pass at 3.7 with NVDA and VoiceOver on the list, the pane, bulk actions and the dialogs | open |
+| C-77 | 2.9 | Lists past 500 jobs | The list is cut at 500 and loads everything for the person on each request | If a real list grows past a few hundred, add paging and move the filters into SQL | open |
+| C-78 | 2.9 | A dismiss reason as feedback | The UX specification asks for an optional reason stored as feedback. The private note is used instead | Decide whether a reason list is worth it once there is something to learn from it | open |
+| C-79 | 2.9 | Approve for preparation does nothing yet | It records intent. Preparation arrives in Phase 3, and approval cannot be withdrawn except by dismissing | When preparation is built, decide whether approval can be withdrawn and what it starts | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

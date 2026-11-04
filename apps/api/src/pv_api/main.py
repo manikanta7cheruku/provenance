@@ -33,6 +33,7 @@ from pv_api.routes import (
     search,
     studio,
     v1,
+    workbench,
 )
 from pv_api.security.middleware import body_limit, origin_guard, security_headers
 from pv_config import Settings, get_settings
@@ -154,6 +155,7 @@ def create_app(
     app.include_router(evidence.router, prefix="/api/v1")
     app.include_router(jobs.router, prefix="/api/v1")
     app.include_router(imports.router, prefix="/api/v1")
+    app.include_router(workbench.router, prefix="/api/v1")
     app.include_router(studio.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")
     app.include_router(search.router, prefix="/api/v1")
