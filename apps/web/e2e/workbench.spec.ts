@@ -54,7 +54,9 @@ test("search and filters narrow the list, show counts, and a link keeps them", a
   await expect(rowOf(page, "Platform engineer")).toBeVisible();
   await expect(rowOf(page, "Data analyst")).toHaveCount(0);
   await page.getByText("Filters", { exact: true }).click();
-  await page.getByLabel(/^Remote \(/).check();
+  // The choice lives in the address, so the box settles after the page re-renders: click, then wait for it.
+  await page.getByLabel(/^Remote \(/).click();
+  await expect(page.getByLabel(/^Remote \(/)).toBeChecked();
   await expect(page).toHaveURL(/work_mode=remote/);
   await expect(rowOf(page, "Staff engineer")).toBeVisible();
   await expect(rowOf(page, "Platform engineer")).toHaveCount(0);
@@ -174,7 +176,9 @@ test("a bulk move says what it could not do", async ({ page }) => {
 test("saved views: keep a view with its filters, apply it later, delete it", async ({ page }) => {
   await open(page);
   await page.getByText("Filters", { exact: true }).click();
-  await page.getByLabel(/^Remote \(/).check();
+  // The choice lives in the address, so the box settles after the page re-renders: click, then wait for it.
+  await page.getByLabel(/^Remote \(/).click();
+  await expect(page.getByLabel(/^Remote \(/)).toBeChecked();
   await page.getByRole("button", { name: "Save this view" }).click();
   await page.getByLabel("Name this view").fill("Remote roles");
   await page.getByRole("button", { name: "Save view" }).click();
