@@ -1,5 +1,9 @@
 /* The free canvas editor. Tokens only. The page itself is paper: always white, whatever the theme. */
 
+.cv-editor {
+  min-width: 0;
+  max-width: 100%;
+}
 .cv-editor > * + * {
   margin-top: var(--space-3);
 }
@@ -123,10 +127,16 @@
   gap: var(--space-4);
   min-width: min-content;
   user-select: none;
-  touch-action: none;
+  /* A finger on empty paper scrolls. A finger on an element or a handle drags it (below).
+     Pinch is not allowed to the browser, because the stage handles it as a zoom. */
+  touch-action: pan-x pan-y;
 }
 .cv-stage.is-readonly {
   touch-action: auto;
+}
+.cv-el,
+.cv-handle {
+  touch-action: none;
 }
 .cv-pagewrap {
   position: relative;
@@ -489,4 +499,55 @@
 }
 .cv-icons__button:hover {
   background: var(--color-accent-subtle);
+}
+
+/* Tools for a finger */
+.cv-selbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+.cv-selbar__pad {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+@media (pointer: coarse) {
+  .cv-btn,
+  .cv-selbar button {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+  .cv-toolbar {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    position: relative; /* so hidden helper text inside it is clipped with it */
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+  }
+  .cv-group {
+    flex-wrap: nowrap;
+    flex: none;
+  }
+  /* The handle stays small to look at and gets a 44 pixel target around it. */
+  .cv-handle::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  .cv-inspector input,
+  .cv-inspector select,
+  .cv-inspector textarea {
+    font-size: 1rem;
+    min-height: 2.75rem;
+  }
 }
