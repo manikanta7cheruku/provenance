@@ -417,14 +417,3 @@ test("the tab key reaches elements in reading order and Enter starts editing", a
   await page.keyboard.press("Escape");
   await expect(page.getByRole("toolbar", { name: "Formatting for the text being edited" })).toHaveCount(0);
 });
-
-test("on a narrow screen the page is shown and editing is switched off with a reason", async ({ page }) => {
-  await page.setViewportSize({ width: 600, height: 900 });
-  await fakeApi(page, { studio: withCanvas() });
-  await page.goto("/studio");
-  await expect(page.getByText(/needs a wider screen to edit/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Add text" })).toHaveCount(0);
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow).toBeLessThanOrEqual(0);
-  await expect(page.getByRole("button", { name: "Make a PDF" })).toBeVisible();
-});

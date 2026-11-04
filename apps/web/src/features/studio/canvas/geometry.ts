@@ -150,3 +150,13 @@ export function distributeBoxes(boxes: readonly Box[], axis: "x" | "y"): Box[] {
 export function snapValues(values: readonly number[], targets: readonly number[], threshold: number): { delta: number; at: number } | null {
   return nearest([...values], [...targets], threshold);
 }
+
+export const MIN_ZOOM = 0.25;
+export const MAX_ZOOM = 3;
+
+/** The zoom after a two-finger pinch: the starting zoom scaled by how far the fingers moved apart. */
+export function pinchZoom(startZoom: number, startDistance: number, distance: number): number {
+  if (!(startDistance > 0) || !(distance > 0)) return startZoom;
+  const z = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom * (distance / startDistance)));
+  return Math.round(z * 100) / 100;
+}

@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-29 checkpoints in total. Nineteen are done and merged (1.1 to 1.9 and 2.1 to 2.10). Checkpoint 2.11 is built and awaiting merge. Nine remain after it. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
+29 checkpoints in total. Nineteen are done and merged (1.1 to 1.9 and 2.1 to 2.10). Checkpoints 2.11 and 2.12 are built and awaiting merge. Eight remain after them. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
 
 | Checkpoint | State |
 |---|---|
@@ -34,7 +34,8 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 2.9 | Done and merged |
 | 2.10 | Done and merged |
 | 2.11 | Built on branch phase-2/checkpoint-2.11-images-and-icons, awaiting review and merge |
-| 2.12 to 2.13 | Not started |
+| 2.12 | Built on branch phase-2/checkpoint-2.12-touch-editing, awaiting review and merge |
+| 2.13 | Not started |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
