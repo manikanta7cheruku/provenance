@@ -3,7 +3,9 @@ import type { Editor } from "@tiptap/react";
 import { memo, useEffect, useLayoutEffect, useRef } from "react";
 import type { RichDoc } from "../../../lib/studio-api";
 import { richExtensions } from "../RichToolbar";
-import { elementCss, reactStyle } from "./css";
+import { imageUrl } from "../../../lib/images-api";
+import { elementCss, imageCss, reactStyle } from "./css";
+import { iconSvg } from "./icons";
 import { RichView, richText } from "./rich";
 import type { CanvasElement, CanvasStyle, TextElement } from "./types";
 
@@ -28,6 +30,10 @@ function describe(el: CanvasElement): string {
     const text = richText(el.body).replace(/\s+/g, " ").trim();
     return `${el.name}. Text${text ? `: ${text.slice(0, 60)}` : ", empty"}. ${where}.${el.locked ? " Locked." : ""}`;
   }
+  if (el.kind === "image") {
+    return `${el.name}. Picture${el.decorative ? ", decorative" : el.alt ? `: ${el.alt.slice(0, 60)}` : ", no description yet"}. ${where}.${el.locked ? " Locked." : ""}`;
+  }
+  if (el.kind === "icon") return `${el.name}. Icon: ${el.icon}. ${where}.${el.locked ? " Locked." : ""}`;
   return `${el.name}. Shape. ${where}.${el.locked ? " Locked." : ""}`;
 }
 
@@ -104,13 +110,29 @@ function ElementViewBase({ el, style, z, selected, editing, readOnly, onBody, on
     "data-el": el.id,
     role: "group" as const,
     "aria-label": `${describe(el)}${selected ? " Selected." : ""}`,
-    "aria-roledescription": el.kind === "text" ? "text box" : "shape",
+    "aria-roledescription": el.kind === "text" ? "text box" : el.kind === "image" ? "picture" : el.kind === "icon" ? "icon" : "shape",
     tabIndex: readOnly ? -1 : 0,
     className: `cv-el cv-el--${el.kind}${selected ? " is-selected" : ""}${el.locked ? " is-locked" : ""}${editing ? " is-editing" : ""}`,
     style: css,
   };
 
   if (el.kind === "shape") return <div {...common} />;
+  if (el.kind === "image") {
+    return (
+      <div {...common}>
+        <img
+          src={imageUrl(el.image_id)}
+          alt=""
+          draggable={false}
+          style={reactStyle(imageCss(el))}
+        />
+      </div>
+    );
+  }
+  if (el.kind === "icon") {
+    // The shapes come from our own table (icons.ts), never from a person or a file.
+    return <div {...common} dangerouslySetInnerHTML={{ __html: iconSvg(el.icon, el.weight) }} />;
+  }
   return (
     <div {...common}>
       <div ref={inner} className="cv-wrap">

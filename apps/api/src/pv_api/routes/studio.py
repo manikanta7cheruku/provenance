@@ -141,12 +141,17 @@ def save(
 def preview(
     doc_id: uuid.UUID,
     payload: ResumePreview,
+    request: Request,
     auth: WriterUser,
     engine: EngineDep,
     limiter: LimiterDep,
 ) -> PreviewOut:
     limiter.check("studio_preview_user", str(auth.user_id))
-    return PreviewOut(html=studio_service.preview(engine, auth.user_id, doc_id, payload.content))
+    return PreviewOut(
+        html=studio_service.preview(
+            engine, get_storage(request), auth.user_id, doc_id, payload.content
+        )
+    )
 
 
 @router.get("/resumes/{doc_id}/versions", response_model=list[VersionOut])

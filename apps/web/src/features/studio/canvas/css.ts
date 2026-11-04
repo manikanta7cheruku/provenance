@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { CanvasElement, CanvasStyle } from "./types";
+import type { CanvasElement, CanvasStyle, ImageElement } from "./types";
 
 /**
  * The CSS of one element. The server writes the same declarations for the PDF
@@ -75,6 +75,20 @@ export function mm(value: number): string {
   return `${text === "" ? "0" : text}mm`;
 }
 
+/** The corner radius of a rounded picture, in millimetres. The server has the same number. */
+export const ROUNDED_MM = 3;
+
+/** The CSS of the picture inside its box. The server writes the same declarations. */
+export function imageCss(el: ImageElement): Record<string, string> {
+  return {
+    display: "block",
+    width: "100%",
+    height: "100%",
+    "object-fit": el.fit,
+    "object-position": `${el.focus_x}% ${el.focus_y}%`,
+  };
+}
+
 export function elementCss(el: CanvasElement, style: CanvasStyle, z: number): Record<string, string> {
   const css: Record<string, string> = {
     position: "absolute",
@@ -95,6 +109,17 @@ export function elementCss(el: CanvasElement, style: CanvasStyle, z: number): Re
       css["text-transform"] = "uppercase";
       css["letter-spacing"] = "0.06em";
     }
+  } else if (el.kind === "image") {
+    css.height = mm(el.h);
+    css.overflow = "hidden";
+    if (el.shape === "circle") css["border-radius"] = "50%";
+    else if (el.shape === "rounded") css["border-radius"] = mm(ROUNDED_MM);
+    if (el.border !== "none" && el.border_pt > 0) {
+      css.border = `${el.border_pt}pt solid ${resolveColor(el.border, style)}`;
+    }
+  } else if (el.kind === "icon") {
+    css.height = mm(el.h);
+    css.color = resolveColor(el.color, style);
   } else {
     css.height = mm(el.h);
     css.background = resolveColor(el.fill, style);

@@ -39,6 +39,29 @@ def shape_el(el_id: str, x: float, y: float, w: float, h: float, **extra: Any) -
     return base
 
 
+IMAGE_ID = "3f1c2a54-6b7d-4e0a-9c11-5a2b7d8e9f01"
+
+
+def image_el(el_id: str, x: float, y: float, w: float, h: float, **extra: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {
+        "id": el_id, "kind": "image", "name": el_id, "x": x, "y": y, "w": w, "h": h, "locked": False,
+        "group": None, "image_id": IMAGE_ID, "alt": "A photo of the applicant", "decorative": False,
+        "fit": "cover", "shape": "rect", "focus_x": 50.0, "focus_y": 50.0, "border": "none",
+        "border_pt": 0.0,
+    }  # fmt: skip
+    base.update(extra)
+    return base
+
+
+def icon_el(el_id: str, x: float, y: float, w: float, h: float, **extra: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {
+        "id": el_id, "kind": "icon", "name": el_id, "x": x, "y": y, "w": w, "h": h, "locked": False,
+        "group": None, "icon": "mail", "weight": 2, "color": "accent", "alt": "",
+    }  # fmt: skip
+    base.update(extra)
+    return base
+
+
 def canvas(*elements: dict[str, Any], pages: int = 1, **style: Any) -> dict[str, Any]:
     st = default_canvas_style()
     st.update(style)

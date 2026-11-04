@@ -8,7 +8,16 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from canvas_helpers import canvas, rich, sample_canvas, shape_el, text_el
+from canvas_helpers import (
+    IMAGE_ID,
+    canvas,
+    icon_el,
+    image_el,
+    rich,
+    sample_canvas,
+    shape_el,
+    text_el,
+)
 
 from pv_domain.resume_canvas import (
     MAX_ELEMENTS,
@@ -16,15 +25,19 @@ from pv_domain.resume_canvas import (
     blank_canvas,
     canvas_text,
     element_css,
+    image_css,
     paint_order,
     reading_order,
     render_canvas_html,
     validate_canvas,
 )
 from pv_domain.resume_doc import ResumeDocError, document_text, validate_document
+from pv_domain.resume_icons import ICON_DATA, ICON_NAMES, WEIGHTS, icon_svg
+from pv_domain.resume_images import ImageInfo
 from pv_domain.resume_render import FONT_FILES, render_html
 
 GOLDEN = Path(__file__).parent.parent / "fixtures" / "canvas_css_golden.json"
+ICONS_GOLDEN = Path(__file__).parent.parent / "fixtures" / "canvas_icons_golden.json"
 
 
 def problems_of(raw: Any) -> dict[str, str]:
@@ -124,7 +137,7 @@ class TestValidation:
     def test_an_unknown_element_kind_is_refused(self) -> None:
         raw = canvas(text_el("a", 10, 10, 50, 8))
         raw["pages"][0]["elements"].append(
-            {"kind": "image", "x": 1, "y": 1, "w": 5, "h": 5, "src": "http://x"}
+            {"kind": "video", "x": 1, "y": 1, "w": 5, "h": 5, "src": "http://x"}
         )
         assert problems_of(raw)["pages.0.elements.1.kind"]
 
@@ -321,6 +334,26 @@ class TestSharedCss:
             ),
         ),
         ("shape, rule", shape_el("s1", 16, 52, 178, 0.4)),
+        ("image, photo", image_el("i1", 150, 12, 40, 50)),
+        (
+            "image, circle with outline",
+            image_el(
+                "i2",
+                150,
+                12,
+                36,
+                36,
+                shape="circle",
+                fit="contain",
+                focus_x=30.5,
+                focus_y=70,
+                border="accent",
+                border_pt=1.5,
+            ),
+        ),
+        ("image, rounded", image_el("i3", 20, 60, 30, 30, shape="rounded")),
+        ("icon, accent", icon_el("c1", 16, 40, 4, 4)),
+        ("icon, hex heavy", icon_el("c2", 30, 40, 5, 5, icon="phone", weight=3, color="#7a1f3d")),
         (
             "shape, outline and radius",
             shape_el("s2", 20, 100, 60, 30, fill="none", stroke="ink", stroke_pt=1.5, radius=3),
@@ -347,21 +380,25 @@ class TestSharedCss:
     def build(self) -> list[dict[str, Any]]:
         style = validate_canvas(canvas(text_el("a", 1, 1, 5, 5)))["style"]
         styled = validate_canvas(canvas(text_el("a", 1, 1, 5, 5), **self.PALETTE))["style"]
+        mine = {IMAGE_ID: ImageInfo(IMAGE_ID, 800, 1000, "image/jpeg")}
         cases = [(n, e, style) for n, e in self.CASES] + [(n, e, styled) for n, e in self.STYLED]
         out = []
         for index, (name, el, style) in enumerate(cases, start=1):
             cleaned = validate_canvas(
-                canvas(el, **{k: style[k] for k in style if k != "template"})
+                canvas(el, **{k: style[k] for k in style if k != "template"}), mine
             )["pages"][0]["elements"][0]
-            out.append(
-                {
-                    "name": name,
-                    "style": style,
-                    "element": cleaned,
-                    "z": index,
-                    "css": element_css(cleaned, style, index),
-                }
-            )
+            case: dict[str, Any] = {
+                "name": name,
+                "style": style,
+                "element": cleaned,
+                "z": index,
+                "css": element_css(cleaned, style, index),
+            }
+            if cleaned["kind"] == "image":
+                case["inner"] = image_css(cleaned)
+            if cleaned["kind"] == "icon":
+                case["svg"] = icon_svg(cleaned["icon"], cleaned["weight"])
+            out.append(case)
         return out
 
     def test_the_golden_file_matches_what_the_server_produces(self) -> None:
@@ -369,3 +406,18 @@ class TestSharedCss:
             "css.ts and the server must agree. If this change is intended, regenerate "
             "tests/fixtures/canvas_css_golden.json with scripts/write_canvas_golden.py and update css.ts."
         )
+
+
+def build_icons_golden() -> dict[str, Any]:
+    """Every icon: its shapes, and the SVG drawn at each weight. icons.ts must produce the same."""
+    return {
+        name: {"shapes": ICON_DATA[name], "svg": {str(w): icon_svg(name, w) for w in WEIGHTS}}
+        for name in ICON_NAMES
+    }
+
+
+def test_the_icons_golden_file_matches_what_the_server_produces() -> None:
+    assert json.loads(ICONS_GOLDEN.read_text(encoding="utf-8")) == build_icons_golden(), (
+        "icons.ts and the server must agree. If this change is intended, regenerate "
+        "tests/fixtures/canvas_icons_golden.json with scripts/write_canvas_golden.py."
+    )

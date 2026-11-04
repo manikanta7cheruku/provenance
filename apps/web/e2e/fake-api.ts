@@ -403,6 +403,8 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   /** Saved views, and what the last workbench request asked for. */
   views: { id: string; name: string; query: Record<string, any>; created_at: string }[];
   asked: string[];
+  /** Pictures the person has uploaded. */
+  images: FakeImage[];
   /** Application drafts per job. Each is working for two reads, then ready. */
   drafts: Record<string, FakeDraft[]>;
   /** Whether the evidence check of every job is complete, so drafts can be written. */
@@ -411,6 +413,15 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   shortlist: { enabled: boolean; frequency: string; weekday: number; hour: number; timezone: string; max_items: number; next_run_at: string | null; last_run_at: string | null };
   runs: { outcome: string; outcome_text: string; item_count: number; manual: boolean; at: string }[];
   verified: boolean }
+
+export interface FakeImage { id: string; name: string; width: number; height: number; used?: boolean }
+
+// A 2 by 2 pixel PNG, so a picture can be shown without a real file.
+export const TINY_PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP4z8Dwn4GBgQGM/zMAAB4OAwFQhU1LAAAAAElFTkSuQmCC", "base64");
+
+export function imageBody(i: FakeImage) {
+  return { id: i.id, width: i.width, height: i.height, mime: "image/png", size_bytes: 1200, original_name: i.name, created_at: NOW, used: Boolean(i.used), url: `/api/v1/studio/images/${i.id}/file` };
+}
 
 export interface FakeDraft { id: string; kind: "cover_note" | "answer"; question: string; body: string; origin: "model" | "edited"; reads: number; failed?: boolean }
 
@@ -465,7 +476,7 @@ export function importBody(fake: Fake, batch: FakeImport) {
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], drafts: {}, checked: true, runs: [], verified: true,
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], images: [], drafts: {}, checked: true, runs: [], verified: true,
     shortlist: { enabled: false, frequency: "weekly", weekday: 0, hour: 8, timezone: "UTC", max_items: 5, next_run_at: null, last_run_at: null }, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
@@ -565,6 +576,27 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       fake.jobs.unshift(job);
       fake.jobReads[job.id] = 0;
       return json({ job: jobBody(job), duplicate: false }, 201);
+    }
+    if (path === "/api/v1/studio/images" && method === "GET") {
+      return json({ images: fake.images.map(imageBody), count: fake.images.length, max_images: 20, max_bytes: 12582912, used_bytes: fake.images.length * 1200, accepted: ["JPEG", "PNG", "WebP"] });
+    }
+    if (path === "/api/v1/studio/images" && method === "POST") {
+      const name = decodeURIComponent(request.headers()["x-filename"] ?? "picture.png");
+      if (/\.svg$/i.test(name)) return json({ code: "IMAGE_REJECTED", message: "This kind of picture is not accepted. Choose a JPEG, PNG or WebP image. SVG, GIF, HEIC and other types are not used, because they can carry more than a picture." }, 422);
+      if (/huge/i.test(name)) return json({ code: "IMAGE_REJECTED", message: "This picture is much larger than a resume needs. Choose one under 24 megapixels, or resize it first." }, 422);
+      const image: FakeImage = { id: `img-${fake.nextId++}`, name, width: 800, height: 1000 };
+      fake.images.unshift(image);
+      return json(imageBody(image), 201);
+    }
+    const imageFile = path.match(/^\/api\/v1\/studio\/images\/([^/]+)\/file$/);
+    if (imageFile && method === "GET") return route.fulfill({ status: 200, contentType: "image/png", body: TINY_PNG });
+    const imageOne = path.match(/^\/api\/v1\/studio\/images\/([^/]+)$/);
+    if (imageOne && method === "DELETE") {
+      const image = fake.images.find((i) => i.id === imageOne[1]);
+      if (!image) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      if (image.used) return json({ code: "IMAGE_LIMIT", message: "This picture is used in one of your resumes, or in a saved version of one. Remove it from there first, or delete that resume." }, 409);
+      fake.images = fake.images.filter((i) => i.id !== image.id);
+      return route.fulfill({ status: 204 });
     }
     const draftsMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)\/drafts(?:\/([^/]+))?$/);
     if (draftsMatch) {

@@ -24,6 +24,7 @@ from pv_api.routes import (
     admin,
     auth,
     evidence,
+    images,
     imports,
     jobs,
     ops,
@@ -159,6 +160,7 @@ def create_app(
     app.include_router(workbench.router, prefix="/api/v1")
     app.include_router(shortlist.router, prefix="/api/v1")
     app.include_router(studio.router, prefix="/api/v1")
+    app.include_router(images.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")
     app.include_router(search.router, prefix="/api/v1")
     app.include_router(admin.router, prefix="/api/v1")

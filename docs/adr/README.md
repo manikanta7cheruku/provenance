@@ -44,5 +44,6 @@
 | [0040](0040-imports-and-the-ssrf-hardened-fetch.md) | Imports (typed, spreadsheet, web page) and the hardened fetch of an address a person typed | Accepted |
 | [0041](0041-workbench-decisions-and-server-side-list.md) | The workbench: a decision state machine, a server-side list, and saved views | Accepted |
 | [0042](0042-shortlist-email-and-application-drafts.md) | The shortlist email and application drafts | Accepted |
+| [0043](0043-pictures-and-icons-on-the-resume.md) | Pictures and icons on the resume | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

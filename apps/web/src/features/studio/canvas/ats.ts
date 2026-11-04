@@ -10,7 +10,7 @@ import type { CanvasDoc, CanvasElement, TextElement } from "./types";
  * makes parsers lose order or skip text: columns, text over text, text on a filled shape.
  */
 
-export type AtsIssueKind = "columns" | "overlap" | "on_shape" | "small_text" | "edge" | "contrast";
+export type AtsIssueKind = "columns" | "overlap" | "on_shape" | "small_text" | "edge" | "contrast" | "picture" | "alt";
 
 export interface AtsIssue {
   kind: AtsIssueKind;
@@ -54,6 +54,26 @@ export function analyzeAts(doc: CanvasDoc): AtsReport {
       issues.push(issue);
     }
   };
+
+  const pictures = doc.pages.flatMap((p) => p.elements).filter((e) => e.kind === "image");
+  if (pictures.length > 0) {
+    add({
+      kind: "picture",
+      blocks: false,
+      message:
+        "This resume has a picture. Many employers advise against photos, and some hiring systems ignore pictures. Nothing a reader needs should be only in a picture.",
+      ids: pictures.map((e) => e.id),
+    });
+  }
+  const missingAlt = pictures.filter((e) => e.kind === "image" && !e.decorative && !e.alt.trim());
+  if (missingAlt.length > 0) {
+    add({
+      kind: "alt",
+      blocks: false,
+      message: `${missingAlt.length === 1 ? "A picture has" : `${missingAlt.length} pictures have`} no description. Describe it in a few words, or mark it as decorative, so a screen reader and a PDF reader know what it is.`,
+      ids: missingAlt.map((e) => e.id),
+    });
+  }
 
   doc.pages.forEach((page, pi) => {
     const label = doc.pages.length > 1 ? ` on page ${pi + 1}` : "";

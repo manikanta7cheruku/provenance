@@ -27,6 +27,7 @@ from pv_files import (
     build_storage,
     fonts_dir,
     html_to_pdf,
+    load_pictures,
     new_export_key,
 )
 from pv_persistence.models import ResumeDocument, ResumeExport
@@ -100,6 +101,7 @@ def run_render(ctx: TaskContext, *, storage: FileStorage) -> None:
         item.status = "rendering"
         item.revision = document.revision  # the PDF shows exactly what was saved when it ran
         content = dict(document.content)
+        pictures = load_pictures(db, owner, content, storage)
         if ctx.run_id is not None:
             set_run_state(db, ctx.run_id, RunState.RUNNING)
     _step(ctx, 1, "load_resume", StepState.SUCCEEDED, started)
@@ -107,8 +109,8 @@ def run_render(ctx: TaskContext, *, storage: FileStorage) -> None:
 
     started = time.perf_counter()
     try:
-        clean = validate_document(content)
-        html = render_html(clean, font_base=fonts_dir().as_uri() + "/")
+        clean = validate_document(content, pictures.infos)
+        html = render_html(clean, font_base=fonts_dir().as_uri() + "/", blobs=pictures.blobs)
         pdf = html_to_pdf(html)
     except (ResumeDocError, RenderError):
         _step(ctx, 2, "render_pdf", StepState.FAILED, started)

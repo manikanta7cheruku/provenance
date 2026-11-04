@@ -9,6 +9,7 @@ by this module. The only link is a validated web, mail or phone address, and the
 with no positioning tricks, so the PDF text comes out in the order a person reads it.
 """
 
+from collections.abc import Mapping
 from html import escape
 from typing import Any
 
@@ -187,13 +188,19 @@ def render_body(body: dict[str, Any] | None) -> str:
     return '<div class="body">' + "".join(_block(n) for n in body.get("content", [])) + "</div>"
 
 
-def render_html(doc: dict[str, Any], *, font_base: str, preview: bool = False) -> str:
+def render_html(
+    doc: dict[str, Any],
+    *,
+    font_base: str,
+    preview: bool = False,
+    blobs: Mapping[str, Any] | None = None,
+) -> str:
     """The whole page. `font_base` ends with a slash: a web path for the preview, a file path for
     the PDF. The document must already have passed validate_document."""
     if doc.get("version") == 2:
         from pv_domain.resume_canvas import render_canvas_html
 
-        return render_canvas_html(doc, font_base=font_base, preview=preview)
+        return render_canvas_html(doc, font_base=font_base, preview=preview, blobs=blobs)
     header = doc["header"]
     style = doc["style"]
     parts = ['<main class="resume">']

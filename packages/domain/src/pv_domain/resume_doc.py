@@ -11,6 +11,7 @@ margins, an accent color that must be readable on white, a divider style and a p
 
 import re
 import uuid
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
@@ -350,15 +351,16 @@ def _clean_style(raw: Any, problems: dict[str, str]) -> dict[str, Any]:
     return style
 
 
-def validate_document(raw: Any) -> dict[str, Any]:
+def validate_document(raw: Any, images: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Return a clean copy of a document, or raise ResumeDocError naming what is wrong.
 
-    Version 2 is the free canvas (resume_canvas). Anything else is the flowing document.
+    Version 2 is the free canvas (resume_canvas), which may carry pictures: `images` holds the ones
+    the person owns. Anything else is the flowing document.
     """
     if isinstance(raw, dict) and raw.get("version") == 2:
         from pv_domain.resume_canvas import validate_canvas
 
-        return validate_canvas(raw)
+        return validate_canvas(raw, images)
     problems: dict[str, str] = {}
     if not isinstance(raw, dict):
         raise ResumeDocError({"document": "The resume is not valid."})

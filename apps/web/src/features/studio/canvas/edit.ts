@@ -2,7 +2,7 @@ import { newId } from "../doc-ops";
 import { alignBoxes, bounds, clampDelta, distributeBoxes, round1 } from "./geometry";
 import type { AlignMode, Box } from "./geometry";
 import { LIMITS, allElements, findElement, pageSize } from "./types";
-import type { CanvasDoc, CanvasElement, CanvasStyle, ShapeElement, TextElement } from "./types";
+import type { CanvasDoc, CanvasElement, CanvasStyle, IconElement, ImageElement, ShapeElement, TextElement } from "./types";
 
 /** Every edit of a canvas document as a pure function. Each returns a new document. */
 
@@ -276,6 +276,68 @@ export function makeRule(doc: CanvasDoc): ShapeElement {
   const [pw] = pageSize(doc.style);
   const margin = doc.style.margin_mm;
   return makeShape(doc, { name: uniqueName(doc, "Rule"), x: margin, y: margin + 20, w: pw - 2 * margin, h: 0.4, fill: "accent" });
+}
+
+/** A stored picture, as the editor knows it. */
+export interface PictureRef {
+  id: string;
+  width: number;
+  height: number;
+  name: string;
+}
+
+/** A picture box that keeps the picture's shape: as wide as a quarter of the page, never off it. */
+export function makeImage(doc: CanvasDoc, picture: PictureRef, overrides: Partial<ImageElement> = {}): ImageElement {
+  const [pw, ph] = pageSize(doc.style);
+  const margin = doc.style.margin_mm;
+  const aspect = picture.height > 0 ? picture.width / picture.height : 1;
+  const w = Math.min(40, pw - 2 * margin);
+  const h = Math.min(Math.round((w / aspect) * 10) / 10, ph - 2 * margin);
+  return {
+    id: newId(),
+    kind: "image",
+    name: uniqueName(doc, "Picture"),
+    x: Math.max(margin, pw - margin - w),
+    y: margin,
+    w,
+    h,
+    locked: false,
+    group: null,
+    image_id: picture.id,
+    alt: "",
+    decorative: false,
+    fit: "cover",
+    shape: "rect",
+    focus_x: 50,
+    focus_y: 50,
+    border: "none",
+    border_pt: 0,
+    ...overrides,
+  };
+}
+
+export function makeIcon(doc: CanvasDoc, icon: string, overrides: Partial<IconElement> = {}): IconElement {
+  const margin = doc.style.margin_mm;
+  return {
+    id: newId(),
+    kind: "icon",
+    name: uniqueName(doc, "Icon"),
+    x: margin,
+    y: margin + 20,
+    w: 5,
+    h: 5,
+    locked: false,
+    group: null,
+    icon,
+    weight: 2,
+    color: "accent",
+    alt: "",
+    ...overrides,
+  };
+}
+
+export function pictureCount(doc: CanvasDoc): number {
+  return allElements(doc).filter((e) => e.kind === "image").length;
 }
 
 export function elementCount(doc: CanvasDoc): number {

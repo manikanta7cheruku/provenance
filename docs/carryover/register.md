@@ -112,6 +112,18 @@ The product runs end to end without a key and says so honestly. These items need
 | C-86 | 2.10 | More tracker features | Applications show days since applied. There are no follow-up reminders, interview stages or a timeline | Use the Applications view for a real search, then decide what to add | open |
 | C-87 | 2.10 | A shortlist across a real change of clocks | The next time is tested across the change for several zones, but no real email has been sent across one | Leave the email on across the next change of clocks in your zone and check the hour | open |
 
+## L. Pictures and icons (added at 2.11)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-88 | 2.11 | Photos from a real phone | Pictures were tested with files made in the tests. HEIC (an iPhone default) is refused, and orientation and color profiles from real phones are untested | Upload five real photos from your phone and a camera. Check orientation and color. Decide whether HEIC should be accepted (it would need a decoder) or the message is enough | open |
+| C-89 | 2.11 | A real PDF with a picture | The PDF tests stand in for the engine, and the PDF tests that need WeasyPrint run only in Docker | Export a resume with a picture and an icon. Open it in two PDF readers. Run it through a free applicant tracking checker and see what it reads | open |
+| C-90 | 2.11 | Crop and rotate by dragging | Crop is two position numbers and there is no rotate | Use it for a week and decide whether drag-to-crop and rotate are worth building | open |
+| C-91 | 2.11 | Templates with a picture slot | No template uses a picture, they are added by hand | Decide whether one or two templates should have a photo or logo slot, keeping the ATS-safe ones text only | open |
+| C-92 | 2.11 | Pictures stuck in old versions | A picture in a saved version cannot be deleted until its resume is deleted | If people want to remove an old photo, add a way to remove it from old versions or to purge old versions | open |
+| C-93 | 2.11 | More icons | Sixteen icons, no search, no brand marks | Add icons people ask for, each with a golden test | open |
+| C-94 | 2.11 | A screen reader pass of the picture screens | Axe passes. The dialogs and the properties have not been used with a screen reader | Do it at 3.7 with NVDA and VoiceOver | open |
+| C-95 | 2.11 | Decode pictures in a separate process | The decoder runs in the API process behind size and pixel limits | At deployment (3.x) run `process_image` in a short-lived sandboxed process or in the worker with a memory and time limit | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

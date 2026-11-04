@@ -5,11 +5,12 @@ import { OPTION_LABELS } from "../labels";
 import { RichField } from "../RichField";
 import { ColorField, NumberField } from "./fields";
 import { contrastOnWhite, contrastRatio } from "./css";
+import { ICON_LABELS, ICON_NAMES, WEIGHT_LABELS } from "./icons";
 import { LayersPanel } from "./LayersPanel";
 import { matchingPalette, PALETTES } from "./templates/palettes";
 import type { Order } from "./edit";
 import { LIMITS, pageSize } from "./types";
-import type { CanvasDoc, CanvasElement, CanvasStyle, ShapeElement, TextElement } from "./types";
+import type { CanvasDoc, CanvasElement, CanvasStyle, IconElement, ImageElement, ShapeElement, TextElement } from "./types";
 import type { StudioOptions } from "../../../lib/studio-api";
 
 interface InspectorProps {
@@ -103,6 +104,99 @@ function ShapeProps({ el, onPatch, onBox, doc }: { el: ShapeElement } & Pick<Ins
           <NumberField label="Down" unit="mm" value={el.y} min={0} max={ph} disabled={el.locked} onCommit={(y) => onBox({ y }, `y-${el.id}`)} />
           <NumberField label="Width" unit="mm" value={el.w} min={0.2} max={pw} step={0.5} disabled={el.locked} onCommit={(w) => onBox({ w }, `w-${el.id}`)} />
           <NumberField label="Height" unit="mm" value={el.h} min={0.2} max={ph} step={0.1} disabled={el.locked} onCommit={(h) => onPatch({ h }, `h-${el.id}`)} />
+        </div>
+      </fieldset>
+    </>
+  );
+}
+
+function ImageProps({ el, onPatch, onBox, doc }: { el: ImageElement } & Pick<InspectorProps, "onPatch" | "onBox" | "doc">) {
+  const [pw, ph] = pageSize(doc.style);
+  const needsAlt = !el.decorative && !el.alt.trim();
+  return (
+    <>
+      <TextField label="Name in the layers list" value={el.name} maxLength={LIMITS.maxName} onChange={(e) => onPatch({ name: e.target.value }, `name-${el.id}`)} />
+      <fieldset className="cv-fields">
+        <legend className="group__title">Picture</legend>
+        <TextField
+          label="Description of the picture"
+          hint="A few words for someone who cannot see it, and for a PDF reader. Leave it empty only if the picture is decorative."
+          value={el.alt}
+          maxLength={LIMITS.maxAlt}
+          error={needsAlt ? "This picture has no description yet." : undefined}
+          onChange={(e) => onPatch({ alt: e.target.value }, `alt-${el.id}`)}
+        />
+        <label className="cv-check">
+          <input type="checkbox" checked={el.decorative} onChange={(e) => onPatch({ decorative: e.target.checked }, `decorative-${el.id}`)} />
+          <span>Decorative: it adds nothing a reader needs</span>
+        </label>
+        <div className="cv-grid">
+          <Select label="Shape" value={el.shape} onChange={(e) => onPatch({ shape: e.target.value as ImageElement["shape"] }, `shape-${el.id}`)}>
+            <option value="rect">Rectangle</option>
+            <option value="rounded">Rounded corners</option>
+            <option value="circle">Circle</option>
+          </Select>
+          <Select label="Fit" value={el.fit} onChange={(e) => onPatch({ fit: e.target.value as ImageElement["fit"] }, `fit-${el.id}`)}>
+            <option value="cover">Fill the box and crop</option>
+            <option value="contain">Show the whole picture</option>
+          </Select>
+          <NumberField label="Crop across" unit="%" value={el.focus_x} min={0} max={100} step={5} onCommit={(focus_x) => onPatch({ focus_x }, `fx-${el.id}`)} />
+          <NumberField label="Crop down" unit="%" value={el.focus_y} min={0} max={100} step={5} onCommit={(focus_y) => onPatch({ focus_y }, `fy-${el.id}`)} />
+        </div>
+        <ColorField label="Outline" allowNone value={el.border} onChange={(border) => onPatch({ border, border_pt: el.border_pt || 1 }, `border-${el.id}`)} />
+        <NumberField label="Outline width" unit="pt" value={el.border_pt} min={0} max={6} step={0.25} onCommit={(border_pt) => onPatch({ border_pt }, `bw-${el.id}`)} />
+      </fieldset>
+      <fieldset className="cv-fields">
+        <legend className="group__title">Position and size</legend>
+        <div className="cv-grid">
+          <NumberField label="Across" unit="mm" value={el.x} min={0} max={pw} disabled={el.locked} onCommit={(x) => onBox({ x }, `x-${el.id}`)} />
+          <NumberField label="Down" unit="mm" value={el.y} min={0} max={ph} disabled={el.locked} onCommit={(y) => onBox({ y }, `y-${el.id}`)} />
+          <NumberField label="Width" unit="mm" value={el.w} min={2} max={pw} step={0.5} disabled={el.locked} onCommit={(w) => onBox({ w }, `w-${el.id}`)} />
+          <NumberField label="Height" unit="mm" value={el.h} min={2} max={ph} step={0.5} disabled={el.locked} onCommit={(h) => onPatch({ h }, `h-${el.id}`)} />
+        </div>
+      </fieldset>
+    </>
+  );
+}
+
+function IconProps({ el, onPatch, onBox, doc }: { el: IconElement } & Pick<InspectorProps, "onPatch" | "onBox" | "doc">) {
+  const [pw, ph] = pageSize(doc.style);
+  return (
+    <>
+      <TextField label="Name in the layers list" value={el.name} maxLength={LIMITS.maxName} onChange={(e) => onPatch({ name: e.target.value }, `name-${el.id}`)} />
+      <fieldset className="cv-fields">
+        <legend className="group__title">Icon</legend>
+        <div className="cv-grid">
+          <Select label="Icon" value={el.icon} onChange={(e) => onPatch({ icon: e.target.value }, `icon-${el.id}`)}>
+            {ICON_NAMES.map((name) => (
+              <option key={name} value={name}>
+                {ICON_LABELS[name]}
+              </option>
+            ))}
+          </Select>
+          <Select label="Line weight" value={String(el.weight)} onChange={(e) => onPatch({ weight: Number(e.target.value) }, `weight-${el.id}`)}>
+            {Object.entries(WEIGHT_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+          <NumberField label="Size" unit="mm" value={el.w} min={2} max={30} step={0.5} disabled={el.locked} onCommit={(size) => onPatch({ w: size, h: size }, `size-${el.id}`)} />
+        </div>
+        <ColorField label="Color" value={el.color} onChange={(color) => onPatch({ color }, `color-${el.id}`)} />
+        <TextField
+          label="Label for a screen reader (optional)"
+          hint="Leave empty when the words next to the icon say the same thing. The icon is then skipped by screen readers."
+          value={el.alt}
+          maxLength={LIMITS.maxIconAlt}
+          onChange={(e) => onPatch({ alt: e.target.value }, `ialt-${el.id}`)}
+        />
+      </fieldset>
+      <fieldset className="cv-fields">
+        <legend className="group__title">Position</legend>
+        <div className="cv-grid">
+          <NumberField label="Across" unit="mm" value={el.x} min={0} max={pw} disabled={el.locked} onCommit={(x) => onBox({ x }, `x-${el.id}`)} />
+          <NumberField label="Down" unit="mm" value={el.y} min={0} max={ph} disabled={el.locked} onCommit={(y) => onBox({ y }, `y-${el.id}`)} />
         </div>
       </fieldset>
     </>
@@ -289,6 +383,10 @@ export function Inspector(props: InspectorProps) {
         </label>
         {only.kind === "text" ? (
           <TextProps el={only} onPatch={onPatch} onBox={props.onBox} onBody={props.onBody} epoch={props.epoch} doc={doc} />
+        ) : only.kind === "image" ? (
+          <ImageProps el={only} onPatch={onPatch} onBox={props.onBox} doc={doc} />
+        ) : only.kind === "icon" ? (
+          <IconProps el={only} onPatch={onPatch} onBox={props.onBox} doc={doc} />
         ) : (
           <ShapeProps el={only} onPatch={onPatch} onBox={props.onBox} doc={doc} />
         )}
