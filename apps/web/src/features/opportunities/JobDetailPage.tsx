@@ -9,6 +9,7 @@ import { useAsync } from "../../lib/useAsync";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { ActionButton, ConfirmDialog, Notice, PageHeader, Section, Skeleton, Status } from "../../ui";
 import { EvidenceCheck } from "./EvidenceCheck";
+import { Sightings } from "./Sightings";
 import { acquisitionLabel, CATEGORY_LABELS, FACT_LABELS, factText, workLine } from "./labels";
 import "./opportunities.css";
 
@@ -227,6 +228,7 @@ export function JobDetailPage() {
       ) : null}
       {data.ui_state === "ready" ? <Ready job={data} /> : null}
       {data.ui_state === "ready" ? <EvidenceCheck jobId={data.id} /> : null}
+      {data.ui_state === "ready" ? <Sightings jobId={data.id} /> : null}
 
       <Section title="The posting">
         <details className="posting">

@@ -155,6 +155,25 @@ function Jobs({ plan }: { plan: SearchPlan }) {
             {[job.location, job.workplace, job.employment_type?.replace("_", " "), job.department].filter(Boolean).join(" | ")}
           </p>
           {job.excerpt ? <p>{job.excerpt}</p> : null}
+          {job.also_seen.length > 0 ? (
+            <p className="find__meta">
+              Also posted at:{" "}
+              {job.also_seen.map((o, i) => (
+                <span key={`${o.source_name}-${i}`}>
+                  {i > 0 ? ", " : ""}
+                  {o.url ? (
+                    <a href={o.url} target="_blank" rel="noopener noreferrer">
+                      {o.source_name}
+                      <span className="visually-hidden"> for {job.title}</span>
+                    </a>
+                  ) : (
+                    o.source_name
+                  )}
+                </span>
+              ))}
+              . Shown once.
+            </p>
+          ) : null}
           <p className="find__meta">
             Source: {job.source_name}
             {job.attribution_text ? `. ${job.attribution_text}` : ""}. Found {when(job.first_seen_at)}.{" "}

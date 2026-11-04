@@ -30,6 +30,7 @@ from pv_api.schemas import (
     SourceOut,
     SourceUpdateIn,
 )
+from pv_api.services.dedupe_service import public_sighting
 from pv_api.services.job_service import not_found
 from pv_config import Settings
 from pv_domain.company import Candidate, Company
@@ -58,6 +59,7 @@ from pv_persistence.registry import (
     update_source,
 )
 from pv_persistence.source_jobs import (
+    also_seen,
     queue_poll,
     recent_log,
     search_jobs,
@@ -367,6 +369,7 @@ def jobs(
             limit=max(1, min(limit, 50)),
             offset=max(0, offset),
         )
+        others = also_seen(db, [j for j, _ in rows], _today(), settings.source_review_window_days)
         return [
             SourceJobOut(
                 id=j.id, title=j.title, company_name=j.company_name, location=j.location,
@@ -374,6 +377,7 @@ def jobs(
                 url=j.url, excerpt=j.description[:300], source_key=s.key,
                 source_name=s.display_name, attribution_text=s.attribution_text,
                 posted_at=j.posted_at, first_seen_at=j.first_seen_at,
+                also_seen=[public_sighting(o, os) for o, os in others.get(j.id, [])],
             )
             for j, s in rows
         ]  # fmt: skip

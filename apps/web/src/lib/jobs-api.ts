@@ -100,3 +100,47 @@ export function reanalyzeJob(id: string): Promise<JobDetail> {
 export function deleteJob(id: string): Promise<void> {
   return request<void>("DELETE", `${BASE}/${encodeURIComponent(id)}`);
 }
+
+// ---- where else a pasted posting appears (checkpoint 2.7)
+
+export interface Sighting {
+  kind: "yours" | "public";
+  source_name: string;
+  board_id: string | null;
+  title: string;
+  location: string;
+  url: string | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  seen_count: number;
+  closed: boolean;
+  how: string;
+}
+
+export interface PostingMatch {
+  group_id: string;
+  title: string;
+  company_name: string | null;
+  location: string;
+  source_name: string;
+  url: string;
+  method: string;
+  score: number;
+  reason: string;
+  state: "auto" | "suggested" | "confirmed" | "undone";
+  sightings: Sighting[];
+}
+
+export interface JobMatches {
+  note: string | null;
+  sightings: Sighting[];
+  matches: PostingMatch[];
+}
+
+export function fetchMatches(id: string, signal?: AbortSignal): Promise<JobMatches> {
+  return request<JobMatches>("GET", `${BASE}/${encodeURIComponent(id)}/matches`, { signal });
+}
+
+export function decideMatch(id: string, groupId: string, verb: "confirm" | "undo" | "reset"): Promise<JobMatches> {
+  return request<JobMatches>("POST", `${BASE}/${encodeURIComponent(id)}/matches/${encodeURIComponent(groupId)}/${verb}`);
+}

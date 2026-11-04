@@ -212,9 +212,30 @@ export const SEARCH_SOURCES = [
   { key: "linkedin", display_name: "LinkedIn", source_type: "user_import_only", outcome: "import_required", message: "Automated search for LinkedIn is not available. Import jobs by URL, paste, or CSV/XLSX and we will analyze them.", reason: "Automated access to this platform is not permitted, so jobs from it are imported by you.", import_available: true, compliance_status: "prohibited", terms_checked_at: "2026-11-02", terms_url: "https://www.linkedin.com/legal/user-agreement", attribution_text: "", health_status: "unknown", last_success_at: null, jobs_open: 0 },
 ];
 
+export interface FakeMatch { group_id: string; state: string; auto: boolean; title: string; reason: string; sightings: any[] }
+
+const SIGHT = (name: string, url: string) => ({ kind: "public", source_name: name, board_id: "acme", title: "Data Engineer", location: "London, UK", url, first_seen_at: "2026-11-01T09:00:00Z", last_seen_at: "2026-11-04T09:00:00Z", seen_count: 4, closed: false, how: "Published by " + name });
+
+export const SAMPLE_MATCHES: FakeMatch[] = [
+  { group_id: "g1", state: "auto", auto: true, title: "Data Engineer", reason: "Same company, title and place, and 92% of the wording matches.", sightings: [SIGHT("Lever postings", "https://jobs.lever.co/acme/1"), SIGHT("Greenhouse job boards", "https://boards.greenhouse.io/acme/9")] },
+  { group_id: "g2", state: "suggested", auto: false, title: "Analytics Engineer", reason: "A close title in the same place, and 71% of the wording matches.", sightings: [SIGHT("Lever postings", "https://jobs.lever.co/acme/2")] },
+];
+
+export function matchesBody(fake: { matches: FakeMatch[] }) {
+  const linked = fake.matches.filter((m) => m.state === "auto" || m.state === "confirmed");
+  return {
+    note: fake.matches.length === 0 ? "No matching posting was found among the jobs fetched from permitted sources. That does not mean it is not posted elsewhere." : null,
+    sightings: [
+      { kind: "yours", source_name: "Wellfound", board_id: null, title: "Data Engineer", location: "", url: null, first_seen_at: "2026-11-03T09:00:00Z", last_seen_at: "2026-11-03T09:00:00Z", seen_count: 1, closed: false, how: "Pasted by you" },
+      ...linked.flatMap((m) => m.sightings),
+    ],
+    matches: fake.matches.map((m) => ({ group_id: m.group_id, title: m.title, company_name: "Acme", location: "London, UK", source_name: "Lever postings", url: "https://jobs.lever.co/acme/1", method: "same_company_title_place", score: 0.9, reason: m.reason, state: m.state, sightings: m.sightings })),
+  };
+}
+
 export const FETCHED_JOBS = [
-  { id: "j1", title: "Backend Engineer", company_name: "Palantir", location: "London, United Kingdom", workplace: "hybrid", employment_type: "full_time", department: "Engineering", url: "https://jobs.lever.co/palantir/1", excerpt: "Build data systems used by governments and companies.", source_key: "lever", source_name: "Lever postings", attribution_text: "", posted_at: "2026-11-01T09:00:00Z", first_seen_at: "2026-11-02T10:00:00Z" },
-  { id: "j2", title: "Data Analyst", company_name: "Palantir", location: "Remote", workplace: "remote", employment_type: "full_time", department: "Analytics", url: "https://jobs.lever.co/palantir/2", excerpt: "", source_key: "lever", source_name: "Lever postings", attribution_text: "", posted_at: null, first_seen_at: "2026-11-02T10:00:00Z" },
+  { id: "j1", title: "Backend Engineer", company_name: "Palantir", location: "London, United Kingdom", workplace: "hybrid", employment_type: "full_time", department: "Engineering", url: "https://jobs.lever.co/palantir/1", excerpt: "Build data systems used by governments and companies.", source_key: "lever", source_name: "Lever postings", attribution_text: "", posted_at: "2026-11-01T09:00:00Z", first_seen_at: "2026-11-02T10:00:00Z", also_seen: [{ kind: "public", source_name: "Greenhouse job boards", board_id: "palantir", title: "Backend Engineer", location: "London", url: "https://boards.greenhouse.io/palantir/9", first_seen_at: "2026-11-02T10:00:00Z", last_seen_at: "2026-11-04T10:00:00Z", seen_count: 3, closed: false, how: "Published by Greenhouse job boards" }] },
+  { id: "j2", title: "Data Analyst", company_name: "Palantir", location: "Remote", workplace: "remote", employment_type: "full_time", department: "Analytics", url: "https://jobs.lever.co/palantir/2", excerpt: "", source_key: "lever", source_name: "Lever postings", attribution_text: "", posted_at: null, first_seen_at: "2026-11-02T10:00:00Z", also_seen: [] },
 ];
 
 export function searchPlan(body: { query?: string; intent?: Record<string, any> }) {
@@ -316,11 +337,13 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   jobs: FakeJob[];
   jobReads: Record<string, number>;
   analyses: Record<string, FakeAnalysis>;
-  studio: FakeStudio }
+  studio: FakeStudio;
+  /** Public jobs that may be the pasted posting. */
+  matches: FakeMatch[] }
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), prefs: {
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
     }, ...initial,
@@ -542,6 +565,16 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
         if (a.reads >= 3) a.state = a.ends;
       }
       return json(analysisBody(a));
+    }
+    const matchRoute = path.match(/^\/api\/v1\/jobs\/([^/]+)\/matches(?:\/([^/]+)\/(confirm|undo|reset))?$/);
+    if (matchRoute) {
+      if (!fake.jobs.find((j) => j.id === matchRoute[1])) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      if (matchRoute[3]) {
+        const found = fake.matches.find((m) => m.group_id === matchRoute[2]);
+        if (!found) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+        found.state = matchRoute[3] === "confirm" ? "confirmed" : matchRoute[3] === "undo" ? "undone" : found.auto ? "auto" : "suggested";
+      }
+      return json(matchesBody(fake));
     }
     const jobMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)(\/reanalyze)?$/);
     if (jobMatch) {

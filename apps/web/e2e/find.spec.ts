@@ -78,6 +78,16 @@ test("jobs from a source that is searched are listed with their source and a lin
   await expect(page.locator(".find__item", { hasText: "Data Analyst" })).toHaveCount(0);
 });
 
+test("a job posted in two places is shown once with where else it was seen", async ({ page }) => {
+  await open(page);
+  await page.getByLabel("Describe the search").fill("searchable Backend Engineer at Palantir");
+  await page.getByRole("button", { name: "Plan this search" }).click();
+  const job = page.locator(".find__item", { hasText: "Backend Engineer" }).first();
+  await expect(job.getByText(/Also posted at:/)).toBeVisible();
+  await expect(job.getByRole("link", { name: /Greenhouse job boards for Backend Engineer/ })).toHaveAttribute("href", "https://boards.greenhouse.io/palantir/9");
+  await expect(job.getByText(/Shown once/)).toBeVisible();
+});
+
 test("a plan that searches nothing shows no job list and says how to add jobs", async ({ page }) => {
   await open(page);
   await page.getByLabel("Describe the search").fill("Backend engineer in India");

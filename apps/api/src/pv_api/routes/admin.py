@@ -14,6 +14,7 @@ from fastapi import APIRouter, Query, Request
 
 from pv_api.deps import AdminUser, AdminWriter, EngineDep, SettingsDep, ip_hash_of
 from pv_api.schemas import (
+    AdminLinkOut,
     AdminOverview,
     AdminSourceOut,
     AdminUserDetail,
@@ -28,7 +29,7 @@ from pv_api.schemas import (
     SourceUpdateIn,
     SystemOverview,
 )
-from pv_api.services import admin_service, search_service
+from pv_api.services import admin_service, dedupe_service, search_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -181,3 +182,27 @@ def poll_source(
 @router.get("/sources/{key}/log", response_model=list[FetchLogOut])
 def source_log(key: str, _: AdminUser, engine: EngineDep) -> list[FetchLogOut]:
     return search_service.fetch_log(engine, key)
+
+
+@router.get("/job-links", response_model=list[AdminLinkOut])
+def job_links(
+    _: AdminUser,
+    engine: EngineDep,
+    state: Annotated[str | None, Query(max_length=12)] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+) -> list[AdminLinkOut]:
+    return dedupe_service.admin_links(engine, state, limit)
+
+
+@router.post("/job-links/{link_id}/{verb}", response_model=AdminLinkOut)
+def decide_job_link(
+    link_id: uuid.UUID,
+    verb: Literal["confirm", "undo"],
+    request: Request,
+    actor: AdminWriter,
+    engine: EngineDep,
+    settings: SettingsDep,
+) -> AdminLinkOut:
+    return dedupe_service.admin_decide(
+        engine, actor.user_id, link_id, verb, ip_hash_of(request, settings)
+    )
