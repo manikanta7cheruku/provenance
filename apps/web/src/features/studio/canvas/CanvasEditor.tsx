@@ -16,9 +16,12 @@ import {
   expandSelection,
   groupElements,
   lockElements,
+  makeIcon,
+  makeImage,
   makeRule,
   makeShape,
   makeText,
+  pictureCount,
   moveElements,
   moveToPage,
   removePage,
@@ -29,11 +32,13 @@ import {
   updateElement,
 } from "./edit";
 import type { Order } from "./edit";
+import type { PictureRef } from "./edit";
 import type { AlignMode, Box } from "./geometry";
 import { History } from "./history";
 import { Inspector } from "./Inspector";
+import { IconsDialog, PicturesDialog } from "./PicturesDialog";
 import { Stage } from "./Stage";
-import { allElements, findElement, pageSize } from "./types";
+import { LIMITS, allElements, findElement, pageSize } from "./types";
 import type { CanvasDoc, CanvasElement, CanvasStyle } from "./types";
 import { fontFaceCss } from "./css";
 
@@ -84,6 +89,7 @@ export function CanvasEditor({ doc, onChange, options, epoch, announce }: Canvas
   const [fitted, setFitted] = useState(true);
   const [showMargins, setShowMargins] = useState(true);
   const [atsOpen, setAtsOpen] = useState(false);
+  const [dialog, setDialog] = useState<"pictures" | "icons" | null>(null);
   const [, force] = useState(0);
   const viewport = useRef<HTMLDivElement>(null);
   const announceTimer = useRef<number | null>(null);
@@ -225,6 +231,8 @@ export function CanvasEditor({ doc, onChange, options, epoch, announce }: Canvas
   const ids = selection;
   const actions: CanvasActions = {
     addText: () => addAndSelect((d) => makeText(d, pageOfSelection()), "Text box"),
+    addPicture: () => setDialog("pictures"),
+    addIcon: () => setDialog("icons"),
     addBox: () => addAndSelect((d) => makeShape(d), "Box"),
     addRule: () => addAndSelect((d) => makeRule(d), "Rule"),
     undo: () => {
@@ -321,9 +329,9 @@ export function CanvasEditor({ doc, onChange, options, epoch, announce }: Canvas
         const el = selectedEls[0]!;
         if (el.locked) return;
         const w = Math.max(5, el.w + ax * step);
-        const h = el.kind === "shape" ? Math.max(0.2, el.h + ay * step) : el.h;
+        const h = el.kind !== "text" ? Math.max(0.2, el.h + ay * step) : el.h;
         apply(setBoxes(docRef.current, { [el.id]: { x: el.x, y: el.y, w, h } }), "keysize");
-        say(`${el.name} is ${w.toFixed(1)} millimetres wide${el.kind === "shape" ? ` and ${h.toFixed(1)} tall` : ""}.`);
+        say(`${el.name} is ${w.toFixed(1)} millimetres wide${el.kind !== "text" ? ` and ${h.toFixed(1)} tall` : ""}.`);
         return;
       }
       const next = moveElements(docRef.current, ids, ax * step, ay * step);
@@ -467,6 +475,13 @@ export function CanvasEditor({ doc, onChange, options, epoch, announce }: Canvas
           />
         ) : null}
       </div>
+      <PicturesDialog
+        open={dialog === "pictures"}
+        onClose={() => setDialog(null)}
+        atLimit={pictureCount(doc) >= LIMITS.maxPictures}
+        onAdd={(picture: PictureRef) => addAndSelect((d) => makeImage(d, picture), "Picture")}
+      />
+      <IconsDialog open={dialog === "icons"} onClose={() => setDialog(null)} onAdd={(name) => addAndSelect((d) => makeIcon(d, name), "Icon")} />
     </div>
   );
 }

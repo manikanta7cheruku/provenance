@@ -55,7 +55,32 @@ export interface ShapeElement extends ElementBase {
   radius: number;
 }
 
-export type CanvasElement = TextElement | ShapeElement;
+export interface ImageElement extends ElementBase {
+  kind: "image";
+  /** The id of one of the person's stored pictures. */
+  image_id: string;
+  alt: string;
+  /** A picture that adds nothing a reader needs. It is skipped by screen readers. */
+  decorative: boolean;
+  fit: "cover" | "contain";
+  shape: "rect" | "rounded" | "circle";
+  /** Which part of a cropped picture stays in view, 0 to 100 across and down. */
+  focus_x: number;
+  focus_y: number;
+  border: string;
+  border_pt: number;
+}
+
+export interface IconElement extends ElementBase {
+  kind: "icon";
+  icon: string;
+  weight: number;
+  color: string;
+  /** A label for assistive technology. Empty means the icon is decoration. */
+  alt: string;
+}
+
+export type CanvasElement = TextElement | ShapeElement | ImageElement | IconElement;
 
 export interface CanvasPage {
   id: string;
@@ -80,6 +105,9 @@ export const LIMITS = {
   sizePt: [5, 72] as const,
   lineHeight: [0.9, 2.5] as const,
   maxName: 60,
+  maxAlt: 200,
+  maxIconAlt: 80,
+  maxPictures: 5,
 };
 
 export const INK = "#1b1b1b";

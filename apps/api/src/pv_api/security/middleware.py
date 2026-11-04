@@ -13,6 +13,7 @@ from pv_domain.auth import keyed_hash
 from pv_domain.failures import FailureClass
 from pv_domain.job_import import MAX_IMPORT_BYTES
 from pv_domain.resume import MAX_UPLOAD_BYTES
+from pv_domain.resume_images import MAX_UPLOAD_BYTES as MAX_IMAGE_BYTES
 from pv_persistence.audit import record_audit
 
 CallNext = Callable[[Request], Awaitable[Response]]
@@ -20,8 +21,8 @@ CallNext = Callable[[Request], Awaitable[Response]]
 MAX_BODY_BYTES = 1_048_576  # 1 MiB for ordinary JSON requests.
 # The resume upload and the spreadsheet import carry a file. Each route also enforces its own cap
 # while reading the stream.
-UPLOAD_PATHS = frozenset({"/api/v1/resume", "/api/v1/imports/file"})
-MAX_UPLOAD_REQUEST_BYTES = max(MAX_UPLOAD_BYTES, MAX_IMPORT_BYTES) + 16_384
+UPLOAD_PATHS = frozenset({"/api/v1/resume", "/api/v1/imports/file", "/api/v1/studio/images"})
+MAX_UPLOAD_REQUEST_BYTES = max(MAX_UPLOAD_BYTES, MAX_IMPORT_BYTES, MAX_IMAGE_BYTES) + 16_384
 _UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 

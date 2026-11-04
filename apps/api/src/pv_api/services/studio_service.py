@@ -33,7 +33,7 @@ from pv_domain.resume_doc import (
     validate_document,
 )
 from pv_domain.resume_render import render_html
-from pv_files import FileStorage, StorageError
+from pv_files import FileStorage, StorageError, load_pictures
 from pv_persistence.audit import record_audit
 from pv_persistence.models import ResumeDocument, ResumeExport
 from pv_persistence.resumes import list_entries
@@ -144,14 +144,15 @@ def get(engine: Engine, user_id: uuid.UUID, doc_id: uuid.UUID) -> ResumeDocument
 def save(
     engine: Engine, user_id: uuid.UUID, doc_id: uuid.UUID, payload: ResumeSave
 ) -> ResumeDocumentSummaryOut:
-    try:
-        content = validate_document(payload.content)
-    except ResumeDocError as exc:
-        raise _validation_error(exc) from exc
     with tenant_session(engine, user_id) as db:
         doc = get_document(db, user_id, doc_id)
         if doc is None:
             raise not_found()
+        pictures = load_pictures(db, user_id, payload.content)
+        try:
+            content = validate_document(payload.content, pictures.infos)
+        except ResumeDocError as exc:
+            raise _validation_error(exc) from exc
         try:
             saved = save_document(
                 db,
@@ -171,16 +172,23 @@ def save(
         return _summary(saved)
 
 
-def preview(engine: Engine, user_id: uuid.UUID, doc_id: uuid.UUID, content: dict[str, Any]) -> str:
+def preview(
+    engine: Engine,
+    storage: FileStorage,
+    user_id: uuid.UUID,
+    doc_id: uuid.UUID,
+    content: dict[str, Any],
+) -> str:
     """The HTML of unsaved content, for the live preview. Nothing is stored."""
-    try:
-        clean = validate_document(content)
-    except ResumeDocError as exc:
-        raise _validation_error(exc) from exc
     with tenant_session(engine, user_id) as db:
         if get_document(db, user_id, doc_id) is None:
             raise not_found()
-    return render_html(clean, font_base=FONT_URL, preview=True)
+        pictures = load_pictures(db, user_id, content, storage)
+    try:
+        clean = validate_document(content, pictures.infos)
+    except ResumeDocError as exc:
+        raise _validation_error(exc) from exc
+    return render_html(clean, font_base=FONT_URL, preview=True, blobs=pictures.blobs)
 
 
 def versions(engine: Engine, user_id: uuid.UUID, doc_id: uuid.UUID) -> list[VersionOut]:

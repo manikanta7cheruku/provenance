@@ -1179,6 +1179,7 @@ version = "0.1.0"
 source = { editable = "packages/files" }
 dependencies = [
     { name = "defusedxml" },
+    { name = "pillow" },
     { name = "pv-config" },
     { name = "pv-domain" },
     { name = "pypdf" },
@@ -1188,6 +1189,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "defusedxml", specifier = ">=0.7,<1" },
+    { name = "pillow", specifier = ">=11,<14" },
     { name = "pv-config", editable = "packages/config" },
     { name = "pv-domain", editable = "packages/domain" },
     { name = "pypdf", specifier = ">=5,<7" },

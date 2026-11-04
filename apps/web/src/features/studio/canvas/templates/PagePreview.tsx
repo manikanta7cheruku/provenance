@@ -1,4 +1,5 @@
 import { elementCss, reactStyle } from "../css";
+import { iconSvg } from "../icons";
 import { RichView } from "../rich";
 import { pageSize } from "../types";
 import type { CanvasDoc } from "../types";
@@ -18,7 +19,8 @@ export function PagePreview({ doc, width }: { doc: CanvasDoc; width: number }) {
       <div className="cv-page tpl-page" style={{ width: `${pw}mm`, height: `${ph}mm`, transform: `scale(${scale})` }}>
         {page?.elements.map((el, index) => {
           const style = reactStyle(elementCss(el, doc.style, index + 1));
-          if (el.kind === "shape") return <div key={el.id} className="cv-el cv-el--shape" style={style} />;
+          if (el.kind === "shape" || el.kind === "image") return <div key={el.id} className="cv-el cv-el--shape" style={style} />;
+          if (el.kind === "icon") return <div key={el.id} className="cv-el cv-el--shape" style={style} dangerouslySetInnerHTML={{ __html: iconSvg(el.icon, el.weight) }} />;
           return (
             <div key={el.id} className="cv-el cv-el--text" style={style}>
               <div className="cv-wrap">

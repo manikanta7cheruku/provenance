@@ -25,7 +25,7 @@ export function LayersPanel({ doc, selection, onSelect, onOrder, onLock }: Layer
             {[...page.elements].reverse().map((el, index, all) => (
               <li key={el.id} className={selection.includes(el.id) ? "is-selected" : undefined}>
                 <button type="button" className="cv-layers__name" aria-pressed={selection.includes(el.id)} onClick={() => onSelect([el.id])}>
-                  <span className="cv-layers__kind">{el.kind === "text" ? "Text" : "Shape"}</span> {el.name}
+                  <span className="cv-layers__kind">{el.kind === "text" ? "Text" : el.kind === "image" ? "Picture" : el.kind === "icon" ? "Icon" : "Shape"}</span> {el.name}
                   {el.locked ? <span className="cv-layers__locked"> (locked)</span> : null}
                 </button>
                 <span className="cv-layers__tools">

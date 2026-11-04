@@ -5,6 +5,7 @@ description = "Provenance private file storage and untrusted document text extra
 requires-python = ">=3.12"
 dependencies = [
     "defusedxml>=0.7,<1",
+    "pillow>=11,<14",
     "pypdf>=5,<7",
     "weasyprint>=70,<72",
     "pv-config",

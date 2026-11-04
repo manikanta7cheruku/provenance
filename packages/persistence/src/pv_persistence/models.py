@@ -895,3 +895,23 @@ class ShortlistItem(Base):
     )
     owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     position: Mapped[int] = mapped_column(Integer)
+
+
+# ---- checkpoint 2.11: pictures for the resume studio (migration 0016)
+
+
+class ResumeImage(Base):
+    """A stored picture. The bytes are in private storage. Protected by RLS."""
+
+    __tablename__ = "resume_images"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    storage_key: Mapped[str] = mapped_column(Text)
+    mime: Mapped[str] = mapped_column(Text)
+    width: Mapped[int] = mapped_column(Integer)
+    height: Mapped[int] = mapped_column(Integer)
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    original_name: Mapped[str] = mapped_column(Text, default="")
+    sha256: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

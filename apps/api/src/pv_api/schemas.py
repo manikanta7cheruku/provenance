@@ -1347,3 +1347,26 @@ class ShortlistPreviewOut(BaseModel):
 class ShortlistSendOut(BaseModel):
     queued: bool
     message: str
+
+
+# ---- checkpoint 2.11: pictures for the resume studio
+class ImageOut(BaseModel):
+    id: uuid.UUID
+    width: int
+    height: int
+    mime: str
+    size_bytes: int
+    original_name: str
+    created_at: datetime
+    # Whether a resume (or a saved version of one) still uses it, so it cannot be deleted yet.
+    used: bool
+    url: str
+
+
+class ImagesOut(BaseModel):
+    images: list[ImageOut]
+    count: int
+    max_images: int
+    max_bytes: int
+    used_bytes: int
+    accepted: list[str]

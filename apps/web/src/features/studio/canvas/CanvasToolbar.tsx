@@ -8,6 +8,8 @@ import type { AlignMode } from "./geometry";
 
 export interface CanvasActions {
   addText: () => void;
+  addPicture: () => void;
+  addIcon: () => void;
   addBox: () => void;
   addRule: () => void;
   undo: () => void;
@@ -94,6 +96,8 @@ export function CanvasToolbar(props: CanvasToolbarProps) {
         <Btn onClick={a.addText} primary>
           Add text
         </Btn>
+        <Btn onClick={a.addPicture}>Add picture</Btn>
+        <Btn onClick={a.addIcon}>Add icon</Btn>
         <Btn onClick={a.addBox}>Add box</Btn>
         <Btn onClick={a.addRule}>Add rule</Btn>
       </Group>

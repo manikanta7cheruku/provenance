@@ -16,6 +16,8 @@ const DRAG_START_PX = 3;
 
 const HANDLES: Record<string, Handle[]> = {
   shape: ["nw", "n", "ne", "e", "se", "s", "sw", "w"],
+  image: ["nw", "n", "ne", "e", "se", "s", "sw", "w"],
+  icon: ["nw", "ne", "se", "sw"],
   text: ["w", "e"],
 };
 

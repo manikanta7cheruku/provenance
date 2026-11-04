@@ -16,6 +16,7 @@ golden file (tests/fixtures/canvas_css_golden.json) is checked by both, so the t
 """
 
 import re
+from collections.abc import Mapping
 from html import escape
 from typing import Any
 
@@ -31,6 +32,14 @@ from pv_domain.resume_doc import (
     new_id,
     rich_to_text,
 )
+from pv_domain.resume_icons import DEFAULT_WEIGHT, ICON_NAMES, WEIGHTS, icon_svg
+from pv_domain.resume_images import (
+    MAX_IMAGES_PER_DOCUMENT,
+    ImageBlob,
+    ImageInfo,
+    clean_alt,
+    data_uri,
+)
 from pv_domain.resume_render import FONT_PAIRS as FONT_FAMILIES
 from pv_domain.resume_render import font_faces, render_rich_nodes
 
@@ -45,7 +54,13 @@ EDGE_TOLERANCE_MM = 0.05
 # Two elements whose tops differ by less than this are read as being on the same row.
 ROW_BAND_MM = 3.0
 
-KINDS = ("text", "shape")
+KINDS = ("text", "shape", "image", "icon")
+IMAGE_FITS = ("cover", "contain")
+IMAGE_SHAPES = ("rect", "rounded", "circle")
+FOCUS = (0.0, 100.0)
+BORDER_PT = (0.0, 6.0)
+ROUNDED_MM = 3.0
+MAX_ICON_ALT = 80
 FONT_ROLES = ("heading", "body")
 ALIGNS = ("left", "center", "right", "justify")
 COLOR_TOKENS = ("ink", "muted", "accent", "tint", "white", "none")
@@ -237,8 +252,81 @@ def _clean_meta(raw: Any, path: str, problems: dict[str, str]) -> dict[str, Any]
     return {"role": raw["role"], "sec": sec, "idx": idx, "kind": kind}
 
 
+def _clean_image(
+    raw: dict[str, Any], path: str, problems: dict[str, str], images: Mapping[str, ImageInfo] | None
+) -> dict[str, Any]:
+    image_id = raw.get("image_id")
+    if not (isinstance(image_id, str) and _ID.match(image_id)):
+        problems[f"{path}.image_id"] = "This picture is not valid."
+        image_id = ""
+    elif images is None or image_id not in images:
+        # Not the person's, or deleted. The same sentence either way, so ids cannot be probed.
+        problems[f"{path}.image_id"] = "This picture is not available. Choose another or remove it."
+    fit = raw.get("fit", "cover")
+    shape = raw.get("shape", "rect")
+    if fit not in IMAGE_FITS:
+        problems[f"{path}.fit"] = "Choose one of the options shown."
+        fit = "cover"
+    if shape not in IMAGE_SHAPES:
+        problems[f"{path}.shape"] = "Choose one of the options shown."
+        shape = "rect"
+    return {
+        "image_id": image_id,
+        "alt": clean_alt(raw.get("alt")),
+        "decorative": raw.get("decorative") is True,
+        "fit": fit,
+        "shape": shape,
+        "focus_x": round(
+            _number(
+                raw.get("focus_x", 50.0), *FOCUS, f"{path}.focus_x", problems, "The crop position"
+            ),
+            1,
+        ),
+        "focus_y": round(
+            _number(
+                raw.get("focus_y", 50.0), *FOCUS, f"{path}.focus_y", problems, "The crop position"
+            ),
+            1,
+        ),
+        "border": _color(raw.get("border", "none"), f"{path}.border", problems, allow_none=True),
+        "border_pt": round(
+            _number(
+                raw.get("border_pt", 0.0),
+                *BORDER_PT,
+                f"{path}.border_pt",
+                problems,
+                "The outline width",
+            ),
+            2,
+        ),
+    }
+
+
+def _clean_icon(raw: dict[str, Any], path: str, problems: dict[str, str]) -> dict[str, Any]:
+    icon = raw.get("icon")
+    if icon not in ICON_NAMES:
+        problems[f"{path}.icon"] = "Choose an icon from the list."
+        icon = ICON_NAMES[0]
+    weight = raw.get("weight", DEFAULT_WEIGHT)
+    if isinstance(weight, bool) or weight not in WEIGHTS:
+        problems[f"{path}.weight"] = "Choose one of the options shown."
+        weight = DEFAULT_WEIGHT
+    return {
+        "icon": icon,
+        "weight": weight,
+        "color": _color(raw.get("color", "accent"), f"{path}.color", problems, allow_none=False),
+        "alt": clean_alt(raw.get("alt"))[:MAX_ICON_ALT],
+    }
+
+
 def _clean_element(
-    raw: Any, path: str, problems: dict[str, str], page_w: float, page_h: float, used: set[str]
+    raw: Any,
+    path: str,
+    problems: dict[str, str],
+    page_w: float,
+    page_h: float,
+    used: set[str],
+    images: Mapping[str, ImageInfo] | None = None,
 ) -> dict[str, Any] | None:
     if not isinstance(raw, dict):
         problems[path] = "This element is not valid."
@@ -261,7 +349,7 @@ def _clean_element(
     h = _number(raw.get("h"), MIN_SIZE_MM, page_h, f"{path}.h", problems, "The height")
     if x + w > page_w + EDGE_TOLERANCE_MM:
         problems[f"{path}.w"] = "This box goes past the right edge of the page."
-    if kind == "shape" and y + h > page_h + EDGE_TOLERANCE_MM:
+    if kind != "text" and y + h > page_h + EDGE_TOLERANCE_MM:
         problems[f"{path}.h"] = "This box goes past the bottom edge of the page."
     if kind == "text":
         # A text box is as tall as its text. The browser measures that, so a long text may reach
@@ -312,6 +400,10 @@ def _clean_element(
             ),
             caps=raw.get("caps") is True,
         )
+    elif kind == "image":
+        out.update(_clean_image(raw, path, problems, images))
+    elif kind == "icon":
+        out.update(_clean_icon(raw, path, problems))
     else:
         out.update(
             fill=_color(raw.get("fill", "none"), f"{path}.fill", problems, allow_none=True),
@@ -340,8 +432,11 @@ def _clean_element(
     return out
 
 
-def validate_canvas(raw: Any) -> dict[str, Any]:
-    """A clean copy of a canvas document, or ResumeDocError saying what is wrong and where."""
+def validate_canvas(raw: Any, images: Mapping[str, ImageInfo] | None = None) -> dict[str, Any]:
+    """A clean copy of a canvas document, or ResumeDocError saying what is wrong and where.
+
+    `images` holds the pictures the person owns, by id. A picture on a page must be one of them, so
+    a document can never refer to someone else's picture or to one that was deleted."""
     problems: dict[str, str] = {}
     if not isinstance(raw, dict):
         raise ResumeDocError({"document": "The resume is not valid."})
@@ -374,7 +469,9 @@ def validate_canvas(raw: Any) -> dict[str, Any]:
             elements_raw = []
         elements: list[dict[str, Any]] = []
         for ei, el in enumerate(elements_raw):
-            cleaned = _clean_element(el, f"{path}.elements.{ei}", problems, page_w, page_h, used)
+            cleaned = _clean_element(
+                el, f"{path}.elements.{ei}", problems, page_w, page_h, used, images
+            )
             if cleaned is not None:
                 elements.append(cleaned)
         total += len(elements)
@@ -389,6 +486,9 @@ def validate_canvas(raw: Any) -> dict[str, Any]:
         pages.append({"id": page_id, "elements": elements})
     if total > MAX_ELEMENTS:
         problems["pages"] = f"Use at most {MAX_ELEMENTS} elements in total."
+    picture_count = sum(1 for p in pages for e in p["elements"] if e["kind"] == "image")
+    if picture_count > MAX_IMAGES_PER_DOCUMENT:
+        problems["pages"] = f"Use at most {MAX_IMAGES_PER_DOCUMENT} pictures in a resume."
 
     document = {"version": CANVAS_VERSION, "style": style, "pages": pages}
     if len(canvas_text(document)) > MAX_TEXT_CHARS:
@@ -454,6 +554,33 @@ def canvas_text(doc: dict[str, Any]) -> str:
     return "\n".join(parts)
 
 
+def raw_image_ids(raw: Any) -> set[str]:
+    """The picture ids a document that has not been checked yet claims to use. Never raises, and
+    keeps only text values, so it is safe to call on anything a request sent."""
+    found: set[str] = set()
+    pages = raw.get("pages") if isinstance(raw, dict) else None
+    for page in pages if isinstance(pages, list) else []:
+        elements = page.get("elements") if isinstance(page, dict) else None
+        for el in elements if isinstance(elements, list) else []:
+            if (
+                isinstance(el, dict)
+                and el.get("kind") == "image"
+                and isinstance(el.get("image_id"), str)
+            ):
+                found.add(el["image_id"])
+    return found
+
+
+def image_ids(doc: dict[str, Any]) -> set[str]:
+    """The ids of the pictures a document uses."""
+    return {
+        e["image_id"]
+        for page in doc.get("pages", [])
+        for e in page.get("elements", [])
+        if e.get("kind") == "image" and e.get("image_id")
+    }
+
+
 # ---- drawing
 
 
@@ -502,6 +629,18 @@ def element_css(el: dict[str, Any], style: dict[str, Any], z: int) -> dict[str, 
         if el["caps"]:
             css["text-transform"] = "uppercase"
             css["letter-spacing"] = "0.06em"
+    elif el["kind"] == "image":
+        css["height"] = _mm(el["h"])
+        css["overflow"] = "hidden"
+        if el["shape"] == "circle":
+            css["border-radius"] = "50%"
+        elif el["shape"] == "rounded":
+            css["border-radius"] = _mm(ROUNDED_MM)
+        if el["border"] != "none" and el["border_pt"] > 0:
+            css["border"] = f"{el['border_pt']:g}pt solid {resolve_color(el['border'], style)}"
+    elif el["kind"] == "icon":
+        css["height"] = _mm(el["h"])
+        css["color"] = resolve_color(el["color"], style)
     else:
         css["height"] = _mm(el["h"])
         css["background"] = resolve_color(el["fill"], style)
@@ -510,6 +649,17 @@ def element_css(el: dict[str, Any], style: dict[str, Any], z: int) -> dict[str, 
         if el["radius"] > 0:
             css["border-radius"] = _mm(el["radius"])
     return css
+
+
+def image_css(el: dict[str, Any]) -> dict[str, str]:
+    """The CSS of the picture inside its box. css.ts must return the same."""
+    return {
+        "display": "block",
+        "width": "100%",
+        "height": "100%",
+        "object-fit": el["fit"],
+        "object-position": f"{el['focus_x']:g}% {el['focus_y']:g}%",
+    }
 
 
 def _style_attr(css: dict[str, str]) -> str:
@@ -539,7 +689,13 @@ body{margin:0;color:#1b1b1b}
 """
 
 
-def render_canvas_html(doc: dict[str, Any], *, font_base: str, preview: bool = False) -> str:
+def render_canvas_html(
+    doc: dict[str, Any],
+    *,
+    font_base: str,
+    preview: bool = False,
+    blobs: Mapping[str, ImageBlob] | None = None,
+) -> str:
     """The pages as HTML. Stacking uses z-index from the stored order, while the HTML itself is in
     reading order. The document must already have passed validate_canvas."""
     style = doc["style"]
@@ -562,6 +718,21 @@ def render_canvas_html(doc: dict[str, Any], *, font_base: str, preview: bool = F
             if el["kind"] == "text":
                 inner = render_rich_nodes(el["body"])
                 boxes.append(f'<div class="el t" style="{css}">{inner}</div>')
+            elif el["kind"] == "image":
+                blob = (blobs or {}).get(el["image_id"])
+                alt = "" if el["decorative"] else escape(el["alt"], quote=True)
+                picture = (
+                    f'<img src="{data_uri(blob)}" alt="{alt}" style="{_style_attr(image_css(el))}">'
+                    if blob is not None
+                    else ""
+                )
+                boxes.append(f'<div class="el" style="{css}">{picture}</div>')
+            elif el["kind"] == "icon":
+                label = escape(el["alt"], quote=True)
+                role = f' role="img" aria-label="{label}"' if el["alt"] else ' aria-hidden="true"'
+                boxes.append(
+                    f'<div class="el"{role} style="{css}">{icon_svg(el["icon"], el["weight"])}</div>'
+                )
             else:
                 boxes.append(f'<div class="el" style="{css}"></div>')
         parts.append(f'<section class="page">{"".join(boxes)}</section>')
