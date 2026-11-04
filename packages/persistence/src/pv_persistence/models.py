@@ -725,3 +725,48 @@ class PostingLink(Base):
     state: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     decided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 2.8: imports (migration 0013)
+
+
+class ImportBatch(Base):
+    """One spreadsheet upload or one web address a person asked us to read. Protected by RLS."""
+
+    __tablename__ = "import_batches"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(Text)
+    label: Mapped[str] = mapped_column(Text)
+    default_source: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    file_key: Mapped[str | None] = mapped_column(Text, default=None)
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    ignored_columns: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    total_rows: Mapped[int] = mapped_column(Integer, default=0)
+    created_count: Mapped[int] = mapped_column(Integer, default=0)
+    duplicate_count: Mapped[int] = mapped_column(Integer, default=0)
+    rejected_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class ImportItem(Base):
+    """One row of an import report. Never holds posting text. Protected by RLS."""
+
+    __tablename__ = "import_items"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    batch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("import_batches.id", ondelete="CASCADE"))
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    row_number: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    code: Mapped[str | None] = mapped_column(Text, default=None)
+    message: Mapped[str | None] = mapped_column(Text, default=None)
+    title: Mapped[str | None] = mapped_column(Text, default=None)
+    source_url: Mapped[str | None] = mapped_column(Text, default=None)
+    posting_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("job_postings.id", ondelete="SET NULL"), default=None
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

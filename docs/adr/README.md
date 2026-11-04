@@ -41,5 +41,6 @@
 | [0037](0037-source-registry-and-resolver.md) | Source registry, company registry and a deterministic resolver | Accepted |
 | [0038](0038-adapters-fetch-layer-and-circuit-breaker.md) | Source adapters, one fetch layer, and a circuit breaker | Accepted |
 | [0039](0039-deduplication-links-and-visibility.md) | Deduplication with reversible links, private and public jobs, and sightings | Accepted |
+| [0040](0040-imports-and-the-ssrf-hardened-fetch.md) | Imports (typed, spreadsheet, web page) and the hardened fetch of an address a person typed | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

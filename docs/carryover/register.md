@@ -78,6 +78,17 @@ The product runs end to end without a key and says so honestly. These items need
 | C-64 | 2.7 | A screen to review suggested links | Administrators have an API only | Build a small admin page if suggested links turn out to be common | open |
 | C-65 | 2.7 | Many candidates for one company | Candidates are capped at 400 per comparison | If a company has more open jobs than that, compare by title first | open |
 
+## I. Imports and the fetch of a typed address (added at 2.8)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-66 | 2.8 | Read a real career page | The page reader was tested on constructed pages and a fake web server | Import a few real career page links (not LinkedIn or Indeed) and check the title, company and text. Record pages that give no text and decide whether a headless browser is worth it | open |
+| C-67 | 2.8 | The network is the third layer of the address defence | The rules and the pinned connection are proven in tests. The worker host must also have no route to private ranges or the metadata address | At deployment (3.x), block the worker's outbound traffic to private, link local and metadata ranges at the network, and test it with a request to such an address from the worker | open |
+| C-68 | 2.8 | Cost of reading a spreadsheet | 200 rows is 200 reading tasks the first time | With a real model set up (C-01), import a 50 row file, check the cost shown in the runs page, and decide whether rows should be read on demand or in a daily budget | open |
+| C-69 | 2.8 | robots.txt and per host politeness for typed addresses | One page per request, limited per person, honest name, but robots rules are not read | Decide whether to read robots.txt and apply a per host gap, and add it to `pv_worker.safe_fetch` with tests | open |
+| C-70 | 2.8 | Only the first sheet of a workbook, no dates | The reader gives text and numbers of the first sheet. A date cell is shown as its stored number | Add a sheet chooser and date formatting if real files need them | open |
+| C-71 | 2.8 | Preview before importing | The report is shown after the import, not before | If people want to check rows first, add a dry run that returns the report without saving | open |
+| C-72 | 2.8 | Importing on a phone | Not tried on a phone | Try the four ways on a phone during real use (2.12 covers touch editing, not this) | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

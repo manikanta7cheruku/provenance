@@ -150,9 +150,15 @@ export function request<T>(
  * Sends a file as the raw request body. The server decides the type from the first bytes,
  * so no Content-Type is trusted. The name travels percent-encoded in X-Filename.
  */
-export function uploadFile<T>(path: string, file: File, signal?: AbortSignal): Promise<T> {
+export function uploadFile<T>(
+  path: string,
+  file: File,
+  signal?: AbortSignal,
+  extraHeaders: Record<string, string> = {},
+): Promise<T> {
   return send<T>("POST", path, {
     headers: {
+      ...extraHeaders,
       "Content-Type": "application/octet-stream",
       "X-Filename": encodeURIComponent(file.name),
     },

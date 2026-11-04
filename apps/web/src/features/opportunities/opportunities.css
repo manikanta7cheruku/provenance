@@ -394,3 +394,23 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* Add a job: the chooser and the import report. */
+.jobs__way {
+  margin-top: var(--space-5);
+}
+.import__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin: var(--space-4) 0;
+}
+.import__counts dt {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+.import__counts dd {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
+}

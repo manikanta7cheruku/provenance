@@ -28,7 +28,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.addInitScript((value) => window.localStorage.setItem("pv-theme", value), theme);
     const fake = await fakeApi(page);
     await page.goto("/opportunities");
-    await expect(page.getByRole("heading", { name: "Paste a job" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Add a job" })).toBeVisible();
     await axe(page);
     fake.jobs = [makeJob("ready", { id: "job-1" }), makeJob("failed", { id: "job-2", source: "Indeed" })];
     await page.reload();

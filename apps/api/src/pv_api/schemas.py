@@ -1019,3 +1019,62 @@ class AdminLinkOut(BaseModel):
     decided_at: datetime | None
     first: LinkedJobOut
     second: LinkedJobOut
+
+
+# ---- checkpoint 2.8: imports
+class JobManualIn(BaseModel):
+    """A job typed in by hand. The fields become the posting text, which is read like any paste."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(min_length=1, max_length=400)
+    company: str = Field(default="", max_length=400)
+    location: str = Field(default="", max_length=400)
+    source_name: str = Field(default="Other", min_length=1, max_length=80)
+    source_url: str | None = Field(default=None, max_length=500)
+    description: str = Field(min_length=1, max_length=40_000)
+
+    @field_validator("title")
+    @classmethod
+    def _title_present(cls, value: str) -> str:
+        cleaned = " ".join(value.split())
+        if not cleaned:
+            raise ValueError("Enter the job title.")
+        return cleaned
+
+
+class ImportUrlIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    url: str = Field(min_length=1, max_length=2000)
+    source_name: str = Field(default="Company career page", min_length=1, max_length=80)
+
+
+class ImportItemOut(BaseModel):
+    row_number: int
+    status: Literal["queued", "created", "duplicate", "rejected"]
+    code: str | None
+    message: str | None
+    title: str | None
+    source_url: str | None
+    posting_id: uuid.UUID | None
+
+
+class ImportBatchOut(BaseModel):
+    id: uuid.UUID
+    kind: Literal["csv", "xlsx", "url"]
+    label: str
+    default_source: str
+    status: Literal["queued", "running", "done", "failed"]
+    error_message: str | None
+    total_rows: int
+    created_count: int
+    duplicate_count: int
+    rejected_count: int
+    ignored_columns: list[str]
+    created_at: datetime
+    finished_at: datetime | None
+
+
+class ImportDetailOut(ImportBatchOut):
+    items: list[ImportItemOut]

@@ -11,15 +11,17 @@ from pv_api.http import client_ip
 from pv_config import Settings
 from pv_domain.auth import keyed_hash
 from pv_domain.failures import FailureClass
+from pv_domain.job_import import MAX_IMPORT_BYTES
 from pv_domain.resume import MAX_UPLOAD_BYTES
 from pv_persistence.audit import record_audit
 
 CallNext = Callable[[Request], Awaitable[Response]]
 
 MAX_BODY_BYTES = 1_048_576  # 1 MiB for ordinary JSON requests.
-# The resume upload carries a file. The route also enforces the cap while reading the stream.
-UPLOAD_PATH = "/api/v1/resume"
-MAX_UPLOAD_REQUEST_BYTES = MAX_UPLOAD_BYTES + 16_384
+# The resume upload and the spreadsheet import carry a file. Each route also enforces its own cap
+# while reading the stream.
+UPLOAD_PATHS = frozenset({"/api/v1/resume", "/api/v1/imports/file"})
+MAX_UPLOAD_REQUEST_BYTES = max(MAX_UPLOAD_BYTES, MAX_IMPORT_BYTES) + 16_384
 _UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
@@ -57,7 +59,7 @@ async def origin_guard(request: Request, call_next: CallNext) -> Response:
 
 async def body_limit(request: Request, call_next: CallNext) -> Response:
     declared = request.headers.get("content-length")
-    is_upload = request.method == "POST" and request.url.path == UPLOAD_PATH
+    is_upload = request.method == "POST" and request.url.path in UPLOAD_PATHS
     limit = MAX_UPLOAD_REQUEST_BYTES if is_upload else MAX_BODY_BYTES
     if declared is not None and declared.isdigit() and int(declared) > limit:
         return JSONResponse(
