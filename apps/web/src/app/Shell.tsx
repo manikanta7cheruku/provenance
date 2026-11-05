@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { BrandMark, Button } from "../ui";
-import { visibleNavItems, SETTINGS_ITEM } from "./nav";
+import { BrandMark, Button, Icon } from "../ui";
+import { groupedNav, visibleNavItems, SETTINGS_ITEM } from "./nav";
 import { useSession } from "../lib/session";
 import { NavAccount } from "./NavAccount";
 import { NavStatus } from "./NavStatus";
@@ -27,7 +27,7 @@ export function Shell() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [menuOpen]);
 
-  const links = [...visibleNavItems(user), SETTINGS_ITEM];
+  const groups = groupedNav([...visibleNavItems(user), SETTINGS_ITEM]);
 
   return (
     <div className="shell">
@@ -49,15 +49,25 @@ export function Shell() {
         </Button>
       </header>
       <nav id="primary-nav" className="shell__nav" aria-label="Primary" data-open={menuOpen}>
-        <ul className="shell__nav-list">
-          {links.map((item) => (
-            <li key={item.path}>
-              <NavLink to={item.path} className="shell__link">
-                {item.label}
-              </NavLink>
-            </li>
+        <div className="shell__groups">
+          {groups.map(({ group, items }) => (
+            <div key={group} className="shell__group">
+              <p className="shell__group-label" aria-hidden="true">
+                {group}
+              </p>
+              <ul className="shell__nav-list" aria-label={group}>
+                {items.map((item) => (
+                  <li key={item.path}>
+                    <NavLink to={item.path} className="shell__link">
+                      <Icon name={item.icon} />
+                      <span>{item.label}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
         <div className="shell__footer">
           <NavAccount />
           <div className="shell__theme">

@@ -644,3 +644,26 @@
 .cv-context .cv-group + .cv-group {
   border-left: 1px solid var(--color-border-subtle);
 }
+
+/* The toolbar is one surface with its groups divided by hairlines, not a row of separate boxes */
+.cv-toolbar {
+  gap: var(--space-1) 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-raised);
+}
+.cv-toolbar > .cv-group {
+  border: none;
+  background: transparent;
+}
+.cv-toolbar > .cv-group + .cv-group {
+  margin-left: var(--space-2);
+  padding-left: var(--space-2);
+  border-left: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+}
+.cv-btn:hover:not(:disabled) {
+  background: var(--color-hover);
+}

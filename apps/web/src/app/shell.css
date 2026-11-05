@@ -1,5 +1,5 @@
-/* Responsive strategy: below 900px a single column with a toggled menu;
-   from 900px a fixed sidebar and a scrolling content area. */
+/* The application shell. Responsive strategy: below 900px a single column with a toggled menu;
+   from 900px a fixed sidebar and a scrolling content area. Tokens only. */
 .shell {
   display: grid;
   min-height: 100vh;
@@ -18,6 +18,7 @@
   justify-content: space-between;
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-base);
 }
 .shell__brand {
   display: inline-flex;
@@ -48,11 +49,26 @@
   grid-area: nav;
   display: none;
   flex-direction: column;
-  padding: var(--space-2) var(--space-3) var(--space-4);
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-base);
 }
 .shell__nav[data-open="true"] {
   display: flex;
+}
+.shell__groups {
+  display: grid;
+  gap: var(--space-4);
+}
+.shell__group-label {
+  margin: 0 0 var(--space-1);
+  padding: 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
 }
 .shell__nav-list {
   display: flex;
@@ -61,8 +77,10 @@
   list-style: none;
 }
 .shell__link {
+  position: relative;
   display: flex;
   align-items: center;
+  gap: var(--space-3);
   min-height: var(--size-touch);
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
@@ -73,20 +91,56 @@
     background-color var(--duration-fast) var(--ease-standard),
     color var(--duration-fast) var(--ease-standard);
 }
+.shell__link .icon {
+  flex: none;
+  color: var(--color-text-secondary);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-base) var(--ease-emphasis);
+}
 .shell__link:hover {
   background: var(--color-hover);
   color: var(--color-text-primary);
+}
+.shell__link:hover .icon {
+  color: var(--color-accent);
+  transform: translateX(1px) scale(1.06);
+}
+.shell__link:active {
+  background: var(--color-pressed);
 }
 .shell__link[aria-current="page"] {
   background: var(--color-selected);
   color: var(--color-text-primary);
   box-shadow: inset 3px 0 0 var(--color-highlight-line);
 }
+.shell__link[aria-current="page"] .icon {
+  color: var(--color-accent);
+}
 .shell__footer {
-  margin-top: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  margin-top: auto;
 }
 .shell__account {
-  padding: 0 var(--space-1) var(--space-3) var(--space-3);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+.shell__avatar {
+  display: grid;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: 50%;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
 }
 .shell__account-email {
   overflow: hidden;
@@ -96,15 +150,16 @@
   white-space: nowrap;
 }
 .shell__account .button {
-  margin-left: calc(var(--space-4) * -1);
-  min-height: var(--size-touch);
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: var(--size-control);
+  margin-left: calc(var(--space-3) * -1);
 }
 .shell__theme {
-  padding: 0 var(--space-3) var(--space-3);
   font-size: var(--text-small);
 }
 .shell__status {
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-1);
   font-size: var(--text-small);
 }
 .app-status {
@@ -119,6 +174,16 @@
   min-width: 0;
   padding: var(--space-5) var(--space-4) var(--space-7);
 }
+/* A page arrives with a short fade, so moving between screens feels continuous. */
+.shell__main > * {
+  animation: page-in var(--duration-slow) var(--ease-emphasis) both;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
 
 @media (min-width: 900px) {
   .shell {
@@ -129,8 +194,7 @@
       "nav main";
   }
   .shell__header {
-    /* top padding chosen so the wordmark and the page title share a baseline */
-    padding: calc(var(--space-6) - var(--space-1)) var(--space-5) var(--space-4);
+    padding: var(--space-5) var(--space-4) var(--space-3);
     border-bottom: none;
     border-right: 1px solid var(--color-border-subtle);
   }
@@ -142,18 +206,18 @@
     top: 0;
     display: flex;
     align-self: start;
-    justify-content: space-between;
     height: calc(100vh - 84px);
-    padding: var(--space-2) var(--space-3) var(--space-5);
+    padding: var(--space-2) var(--space-3) var(--space-4);
     border-bottom: none;
     border-right: 1px solid var(--color-border-subtle);
+    overflow-y: auto;
   }
   .shell__link {
     min-height: var(--size-control);
   }
   .shell__main {
     max-width: var(--size-content-max);
-    padding: var(--space-5) var(--space-7) var(--space-7);
+    padding: var(--space-6) var(--space-7) var(--space-7);
   }
   /* The resume studio needs the width: a page is 210 mm across and the tools sit beside it. */
   .shell__main--wide {

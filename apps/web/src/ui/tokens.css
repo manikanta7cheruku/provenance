@@ -15,10 +15,10 @@
   --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --text-caption: 0.75rem;
   --text-small: 0.8125rem;
-  --text-body: 0.875rem;
+  --text-body: 0.9375rem;
   --text-body-lg: 1rem;
-  --text-title: 1.25rem;
-  --text-heading: 1.75rem;
+  --text-title: 1.3125rem;
+  --text-heading: 2rem;
   --text-display: 2.5rem;
   --leading-display: 1.1;
   --tracking-display: -0.02em;
@@ -40,11 +40,11 @@
   --space-7: 48px;
 
   /* Sizing */
-  --size-control: 36px;
+  --size-control: 40px;
   --size-control-compact: 28px;
   --size-touch: 44px;
   --size-sidebar: 232px;
-  --size-content-max: 1100px;
+  --size-content-max: 1180px;
   --size-detail-pane: 26rem;
   --size-dot: 8px;
   --measure: 64ch;

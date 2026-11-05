@@ -1,4 +1,5 @@
 export { ActionButton } from "./ActionButton";
+export { Icon, type IconName } from "./Icon";
 export { BrandMark } from "./BrandMark";
 export { ChoiceCards } from "./ChoiceCards";
 export { CommandPalette, filterCommands, type Command } from "./CommandPalette";

@@ -55,7 +55,17 @@ h1 + p {
 
 a {
   color: var(--color-accent);
+  text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
+  transition: color var(--duration-fast) var(--ease-standard), text-decoration-thickness var(--duration-fast) var(--ease-standard);
+}
+a:hover {
+  color: var(--color-accent-hover);
+  text-decoration-thickness: 2px;
+}
+/* A heading that only receives focus from the program, to announce a new page, shows no ring. */
+h1[tabindex="-1"]:focus-visible {
+  outline: none;
 }
 
 :focus-visible {

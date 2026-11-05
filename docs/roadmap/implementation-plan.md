@@ -38,7 +38,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 2.13 | Built on branch phase-2/checkpoint-2.13-saved-themes, awaiting review and merge |
 | 3.8 | Built on branch phase-3/checkpoint-3.8-design-foundation, awaiting review and merge |
 | 3.9 | Built on branch phase-3/checkpoint-3.9-resume-experience, awaiting review and merge |
-| 3.10 | Not started (whole-product polish, built next) |
+| 3.10 | Built on branch phase-3/checkpoint-3.10-product-polish, awaiting review and merge (a first pass, the owner reviews it next) |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop

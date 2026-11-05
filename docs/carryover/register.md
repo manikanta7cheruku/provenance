@@ -158,6 +158,16 @@ The product runs end to end without a key and says so honestly. These items need
 | C-112 | 3.9 | Speed on a slow machine | The budget was measured on a development machine | Try an older laptop and a mid-range phone with a long resume | open |
 | C-113 | 3.9 | The guided editor | Only its start screen changed. Its editing screens are the older design | Rebuild them in 3.10 or retire the guided mode if the free canvas with the layout check covers it | open |
 
+## Q. Whole-product polish (added at 3.10)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-114 | 3.10 | Owner review of every screen | The polish is a first pass by reasoning and screenshots. The owner has not judged it | Walk every screen in light and dark, on a laptop and a phone, and list what to change. These become the next changes | open |
+| C-115 | 3.10 | The workbench and job detail layouts | They inherit panels, controls and states, but their internal layout is the older design | Redesign them once the owner has said what feels wrong | open |
+| C-116 | 3.10 | The order of the Opportunities page | Adding a job comes before the list of jobs. The list is probably the better first thing | Decide with the owner, then reorder | open |
+| C-117 | 3.10 | A screen reader pass of the whole product | Axe passes everywhere. NVDA, VoiceOver and TalkBack were not used | Do it at 3.7 | open |
+| C-118 | 3.10 | Usability sessions | No real person has used the product in this look | Watch three people do the main journeys. Fix what stops them | open |
+| C-119 | 3.10 | A dark navigation sidebar | Deferred in ADR-0046 and ADR-0048 | Decide after the owner has lived with the light one | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

@@ -10,7 +10,7 @@ A calm, dense, professional workbench. Closer to a research tool than a marketin
 
 Identity (amended in checkpoint 3.8, [ADR-0046](../adr/0046-design-foundation-and-brand.md)): ink and paper. Warm paper surfaces (60 percent), deep ink-blue for structure and actions (30), brass for the one thing to notice (10), an editorial serif for titles and the brand, a plain sans for the interface, a mono face for ids and counts. One gradient, "dusk" (ink-blue to deep teal), used at most once on a screen.
 
-Hierarchy comes from typography, spacing, alignment, hairline rules and progressive disclosure. It does not come from cards. Content sits directly on the page. A bordered container is used only when it groups interactive controls or separates an overlay from the page.
+Hierarchy comes from typography, spacing, alignment, hairline rules and progressive disclosure. Amended in checkpoint 3.10 ([ADR-0048](../adr/0048-whole-product-polish.md)): each section is a panel, a raised surface with a hairline, a large radius and a soft shadow, so each job on a page reads as one thing. Cards inside a panel use the paper color and a quiet edge. The navigation is grouped and has outline icons. Every control has a hover, press, focus and disabled state, and the tests check them.
 
 Excluded: more than one gradient, a gradient used more than once on a screen, glow, glassmorphism, oversized hero text, donut charts, floating AI orbs, purple-blue AI palettes, emoji in the interface, large radii, heavy shadows, decorative or looping animation, chat-first navigation, badges used as decoration, arbitrary icons.
 
