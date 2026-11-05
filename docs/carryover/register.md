@@ -194,6 +194,16 @@ The product runs end to end without a key and says so honestly. These items need
 | C-132 | 3.3 | Choose a payment provider | Payments are a disabled interface. No provider terms were read | Compare providers (fees, tax handling, regions, refund rules), read the terms, implement `PaymentProvider`, test with the provider's test mode, then add a webhook with signature checking | open |
 | C-133 | 3.3 | A screen reader pass of the plan section | Axe passes. No screen reader was used on the meters and the comparison table | Do it at 3.7 | open |
 
+## U. Reports (added at 3.4)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-134 | 3.4 | Open the reports in real applications | The Excel and Word files are written by hand and were opened with openpyxl and python-docx, not the real programs | Make one workbook and one Word report with quotes on. Open each in Excel, Word, LibreOffice and Google Sheets or Docs. Check the sheets, the frozen header, the filters, the table and the fonts. Note anything that looks wrong and add a test for the structure | open |
+| C-135 | 3.4 | A report PDF | The requirements list a PDF report. Only CSV, XLSX and DOCX were built. The resume PDF exists | Design a report template and make it with the existing PDF engine, then add it as a fourth format | open |
+| C-136 | 3.4 | A compensation column | Compensation is not extracted from postings, so the report has no such column | When extraction reads pay, add the column to the model, the three writers and the tests | open |
+| C-137 | 3.4 | Sweep expired reports and delete them with the account | Expired and surplus reports are removed when a person lists or asks for reports. A person who never returns keeps their file until then | Add a scheduled sweep task, and include report files in the account deletion workflow (T20) at 3.7 | open |
+| C-138 | 3.4 | A screen reader pass of the export panel | Axe passes. No screen reader was used on the panel, the status changes and the download links | Do it at 3.7 | open |
+| C-139 | 3.4 | Short-lived signed links | Downloads need the signed-in session. Signed links need object storage | At 3.7, when files move to object storage, return a signed link that expires in minutes and keep the session check | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

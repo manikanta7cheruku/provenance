@@ -64,6 +64,7 @@ def test_registry_knows_the_task_types() -> None:
         "send_shortlist",
         "sync_github",
         "prepare_job",
+        "build_report",
     }
 
 

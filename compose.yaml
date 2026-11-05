@@ -27,6 +27,7 @@ x-api-env: &api-env
   FILE_STORAGE_DIR: ${FILE_STORAGE_DIR:-/data/files}
   # AI provider. The worker uses it to read resumes and embed evidence, the api to embed search queries.
   DEFAULT_PLAN: ${DEFAULT_PLAN:-free}
+  REPORT_RETENTION_DAYS: ${REPORT_RETENTION_DAYS:-7}
   GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
   GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
   GEMINI_API_KEY: ${GEMINI_API_KEY:-}

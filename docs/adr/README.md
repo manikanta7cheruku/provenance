@@ -53,5 +53,6 @@
 | [0049](0049-github-connection.md) | The GitHub connection | Accepted |
 | [0050](0050-career-preparation.md) | Career preparation | Accepted |
 | [0051](0051-plans-entitlements-and-quotas.md) | Plans, entitlements and quotas | Accepted |
+| [0052](0052-server-side-reports.md) | Server-side reports (CSV, Excel, Word) | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

@@ -1294,6 +1294,8 @@ export function previewHtml(content: any): string {
 import { newPlan, planBody } from "./fake-plan";
 import type { FakePlan } from "./fake-plan";
 import { handlePreparation, newPrep } from "./fake-prep";
+import { handleReports, newReports } from "./fake-reports";
+import type { FakeReports } from "./fake-reports";
 import type { FakePrep } from "./fake-prep";
 
 export interface Fake {
@@ -1329,6 +1331,8 @@ export interface Fake {
   github: FakeGitHub;
   /** Career preparation for the sample job. */
   prep: FakePrep;
+  /** Reports made from the list of jobs. */
+  reports: FakeReports;
   /** The person's plan and usage. */
   plan: FakePlan;
   /** Application drafts per job. Each is working for two reads, then ready. */
@@ -1594,6 +1598,7 @@ export async function fakeApi(
     images: [],
     themes: [],
     prep: newPrep(),
+    reports: newReports(),
     plan: newPlan(),
     github: {
       available: false,
@@ -1657,6 +1662,19 @@ export async function fakeApi(
         status: prepared.status,
         ...(prepared.json !== undefined ? { json: prepared.json } : {}),
       });
+    if (path.startsWith("/api/v1/reports")) {
+      const handled = handleReports(
+        path,
+        method,
+        method === "POST" ? request.postDataJSON() : undefined,
+        fake,
+      );
+      if (handled)
+        return route.fulfill({
+          status: handled.status,
+          ...(handled.json !== undefined ? { json: handled.json } : {}),
+        });
+    }
     if (path === "/api/v1/plan" && method === "GET")
       return json(planBody(fake.plan));
     if (path === "/api/v1/plan/upgrade" && method === "POST")
