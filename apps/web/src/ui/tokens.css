@@ -19,6 +19,9 @@
   --text-body-lg: 1rem;
   --text-title: 1.25rem;
   --text-heading: 1.75rem;
+  --text-display: 2.5rem;
+  --leading-display: 1.1;
+  --tracking-display: -0.02em;
   --leading-tight: 1.25;
   --leading-body: 1.5;
   --weight-regular: 400;
@@ -46,26 +49,30 @@
   --size-dot: 8px;
   --measure: 64ch;
 
-  /* Radii: two values only */
-  --radius-sm: 3px;
-  --radius-md: 6px;
+  /* Radii: small for chips and marks, medium for controls and panels, large for dialogs */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
 
-  /* Elevation: flat by default. One overlay shadow for popovers and dialogs. */
-  --shadow-overlay: 0 4px 16px light-dark(rgb(28 27 25 / 0.14), rgb(0 0 0 / 0.55));
+  /* Elevation: flat by default. One step lifts a card on hover, one is for popovers and dialogs. */
+  --shadow-raised: 0 1px 2px light-dark(rgb(20 32 46 / 0.06), rgb(0 0 0 / 0.4)), 0 2px 8px light-dark(rgb(20 32 46 / 0.06), rgb(0 0 0 / 0.3));
+  --shadow-overlay: 0 12px 32px light-dark(rgb(20 32 46 / 0.16), rgb(0 0 0 / 0.6)), 0 2px 6px light-dark(rgb(20 32 46 / 0.08), rgb(0 0 0 / 0.4));
 
   /* Motion: only to communicate state change */
-  --duration-fast: 120ms;
-  --duration-base: 180ms;
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-slow: 360ms;
 
   /* Focus */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
   /* Color roles: surface */
-  --color-surface-base: light-dark(#faf9f6, #131412);
-  --color-surface-raised: light-dark(#ffffff, #1b1c1a);
-  --color-surface-sunken: light-dark(#f2f0eb, #0f100f);
+  --color-surface-base: light-dark(#faf8f4, #0e1116);
+  --color-surface-raised: light-dark(#ffffff, #151a22);
+  --color-surface-sunken: light-dark(#f1eee7, #0a0d12);
   /* Paper in the resume canvas is white in every theme, so its inks are fixed too. */
   --color-paper: #ffffff;
   --color-paper-ink: #1b1b1b;
@@ -76,29 +83,40 @@
   --color-highlight-bg: light-dark(#fff1a8, #5e5200);
   --color-highlight-text: light-dark(#1b1b1b, #fff8d0);
   /* Color roles: border */
-  --color-border-subtle: light-dark(#e6e3dc, #2a2c28);
-  --color-border-strong: light-dark(#cfcbc1, #3c3e39); /* decorative only: below 3:1 */
-  --color-border-control: light-dark(#8a867c, #7a7c75); /* boundaries of inputs and buttons: 3:1 or better */
+  --color-border-subtle: light-dark(#e5e1d8, #232a35);
+  --color-border-strong: light-dark(#cdc8bc, #343d4a); /* decorative only: below 3:1 */
+  --color-border-control: light-dark(#7d8794, #7b8696); /* boundaries of inputs and buttons: 3:1 or better */
   /* Color roles: text */
-  --color-text-primary: light-dark(#1c1b19, #eceae4);
-  --color-text-secondary: light-dark(#5b5850, #a8a59b);
-  --color-text-disabled: light-dark(#8c887f, #6f7068); /* exempt from contrast rules, still readable */
-  --color-text-on-accent: light-dark(#ffffff, #131412);
-  --color-text-on-danger: light-dark(#ffffff, #131412);
+  --color-text-primary: light-dark(#14202e, #e9ecf1);
+  --color-text-secondary: light-dark(#4a5565, #a3acb9);
+  --color-text-disabled: light-dark(#8a929d, #6b7480); /* exempt from contrast rules, still readable */
+  --color-text-on-accent: light-dark(#ffffff, #0e1116);
+  --color-text-on-danger: light-dark(#ffffff, #0e1116);
   /* Color roles: accent */
-  --color-accent: light-dark(#2b4a8b, #8fa8e0);
-  --color-accent-hover: light-dark(#223b70, #a5bbea);
-  --color-accent-active: light-dark(#1a2d57, #b9caf0);
-  --color-accent-subtle: light-dark(#e8edf7, #1e2740);
+  --color-accent: light-dark(#1f3a5f, #9db8e6);
+  --color-accent-hover: light-dark(#182e4c, #b3c9ee);
+  --color-accent-active: light-dark(#11223a, #c6d7f3);
+  --color-accent-subtle: light-dark(#e7ecf4, #1b2740);
+  /* Color roles: highlight (brass). The 10 percent. Text uses --color-highlight, fills use the
+     subtle one, the line is decorative only. */
+  --color-highlight: light-dark(#8a5a0b, #e2b25c);
+  --color-highlight-subtle: light-dark(#f5e6c4, #2e2410);
+  --color-highlight-line: light-dark(#b07a1e, #c99a3e);
+  /* The one gradient. Ink-blue to deep teal. Used at most once on a screen: the brand mark,
+     a welcome moment, a progress ring. Text on it is always the fixed white below. */
+  --gradient-dusk: linear-gradient(135deg, #1f3a5f 0%, #0f6b6b 100%);
+  --gradient-dusk-start: #1f3a5f;
+  --gradient-dusk-end: #0f6b6b;
+  --color-text-on-gradient: #ffffff;
   /* Color roles: status. Meaning only, always paired with text and a distinct shape. */
-  --color-success: light-dark(#2f6b45, #7cc49a);
-  --color-warning: light-dark(#8a5a12, #e0b15c);
-  --color-danger: light-dark(#a6372b, #e58a7e);
-  --color-info: light-dark(#2b5e7a, #7fb6d4);
-  --color-danger-fill: light-dark(#a6372b, #e58a7e);
+  --color-success: light-dark(#1f6b44, #7cc49a);
+  --color-warning: light-dark(#8a5a0b, #e0b15c);
+  --color-danger: light-dark(#a6372b, #ec9488);
+  --color-info: light-dark(#25607f, #86bdd9);
+  --color-danger-fill: light-dark(#a6372b, #ec9488);
   /* Color roles: overlays and placeholders */
-  --color-backdrop: light-dark(rgb(28 27 25 / 0.45), rgb(0 0 0 / 0.6));
-  --color-skeleton: light-dark(#ebe8e1, #242623);
+  --color-backdrop: light-dark(rgb(20 32 46 / 0.45), rgb(0 0 0 / 0.62));
+  --color-skeleton: light-dark(#ebe7de, #1b212b);
   /* Interaction state roles */
   --color-hover: var(--color-surface-sunken);
   --color-pressed: var(--color-border-subtle);

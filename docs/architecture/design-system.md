@@ -8,11 +8,11 @@ The single source of values is `apps/web/src/ui/tokens.css`. Components use toke
 
 A calm, dense, professional workbench. Closer to a research tool than a marketing dashboard. Interaction references (not visual copies): Linear for workflow clarity, GitHub for information density, Notion for structure, Stripe for polish.
 
-Identity: warm neutral surfaces, one ink-blue accent, a serif used for page titles and empty states, a plain system sans for the interface, a mono face for ids and counts.
+Identity (amended in checkpoint 3.8, [ADR-0046](../adr/0046-design-foundation-and-brand.md)): ink and paper. Warm paper surfaces (60 percent), deep ink-blue for structure and actions (30), brass for the one thing to notice (10), an editorial serif for titles and the brand, a plain sans for the interface, a mono face for ids and counts. One gradient, "dusk" (ink-blue to deep teal), used at most once on a screen.
 
 Hierarchy comes from typography, spacing, alignment, hairline rules and progressive disclosure. It does not come from cards. Content sits directly on the page. A bordered container is used only when it groups interactive controls or separates an overlay from the page.
 
-Excluded: gradients, glow, glassmorphism, oversized hero text, donut charts, floating AI orbs, purple-blue AI palettes, emoji in the interface, large radii, heavy shadows, decorative or looping animation, chat-first navigation, badges used as decoration, arbitrary icons.
+Excluded: more than one gradient, a gradient used more than once on a screen, glow, glassmorphism, oversized hero text, donut charts, floating AI orbs, purple-blue AI palettes, emoji in the interface, large radii, heavy shadows, decorative or looping animation, chat-first navigation, badges used as decoration, arbitrary icons.
 
 ## 2. Color roles
 
@@ -21,7 +21,9 @@ Excluded: gradients, glow, glassmorphism, oversized hero text, donut charts, flo
 | Surface | base, raised, sunken | Page, overlays and inputs, inset regions |
 | Border | subtle, strong, control | Hairline rules, decorative separation (never for control boundaries), control boundaries at 3:1 or better |
 | Text | primary, secondary, disabled, on-accent | Body, supporting text, disabled, text on accent fill |
-| Accent | default, hover, active, subtle | The single brand color: links, primary action, selection, focus |
+| Accent | default, hover, active, subtle | The ink-blue: links, primary action, selection, focus |
+| Highlight | highlight, subtle, line | Brass, the 10 percent: the rule under page titles, the selected marker, selection color. Text only with `highlight` (4.5:1), the line is decorative |
+| Gradient | dusk, start, end, text-on-gradient | The one gradient and the fixed white text on it |
 | Status | success, warning, danger, info | Meaning only. Always paired with text and a distinct shape |
 | Interaction | hover, pressed, selected, focus, invalid | Derived from the roles above so states stay consistent |
 
@@ -53,8 +55,8 @@ Two densities. Comfortable is the default. Compact (`data-density="compact"`) re
 ## 6. Borders, radii, elevation
 
 - Borders: 1px hairlines. Subtle for layout, control for the edge of a control.
-- Radii: 3px and 6px. No other radii. Dots and avatars are the only circles.
-- Elevation: flat by default. A single overlay shadow exists for popovers and dialogs. Nothing else has a shadow.
+- Radii: 4px (chips, marks), 8px (controls and panels), 14px (dialogs). Dots and avatars are the only circles.
+- Elevation: flat by default (a hairline). Raised is a soft two-layer shadow for a lifted card. Overlay is for popovers and dialogs. Nothing else has a shadow.
 
 ## 7. Interaction states
 
@@ -84,7 +86,7 @@ CSS variables cannot be used inside media queries, so these values are constants
 
 ## 9. Motion principles
 
-Motion communicates a state change and nothing else. Durations come from tokens (120ms and 180ms) and the easing is one curve. Nothing loops or decorates. `prefers-reduced-motion` reduces all durations to near zero. Content never moves in a way that causes layout shift under the user's pointer.
+Motion communicates a state change and nothing else. Durations come from tokens (140ms, 220ms and 360ms) with a standard and an emphasis curve. Nothing loops or decorates. `prefers-reduced-motion` reduces all durations to near zero. Content never moves in a way that causes layout shift under the user's pointer.
 
 ## 10. Component composition rules
 

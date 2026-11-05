@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import {
   ActionButton,
+  BrandMark,
   Button,
   Checkbox,
   ConfirmDialog,
@@ -29,6 +30,9 @@ const SWATCHES = [
   "--color-text-secondary",
   "--color-accent",
   "--color-accent-subtle",
+  "--color-highlight",
+  "--color-highlight-subtle",
+  "--color-highlight-line",
   "--color-success",
   "--color-warning",
   "--color-danger",
@@ -36,6 +40,7 @@ const SWATCHES = [
 ];
 
 const TYPE_SCALE = [
+  { name: "Display", token: "text-display", family: "Newsreader", className: "type--display" },
   { name: "Heading", token: "text-heading", family: "Newsreader", className: "type--heading" },
   { name: "Title", token: "text-title", family: "Newsreader", className: "type--title" },
   { name: "Section", token: "text-body-lg", family: "IBM Plex Sans, semibold", className: "type--section" },
@@ -65,6 +70,34 @@ export function GalleryPage() {
         title="Design system"
         description="Every primitive in every state. Switch the theme in the header to check both."
       />
+
+      <Section title="Brand and palette">
+        <div className="brand-board">
+          <div className="brand-board__lockup">
+            <BrandMark size={56} />
+            <span className="brand-board__word">Provenance</span>
+            <span className="brand-board__tag">Jobs, with receipts</span>
+          </div>
+          <div className="proportion" role="img" aria-label="The palette proportions: sixty percent paper, thirty percent ink-blue, ten percent brass">
+            <span className="proportion__paper">60 paper</span>
+            <span className="proportion__ink">30 ink-blue</span>
+            <span className="proportion__brass">10</span>
+          </div>
+          <p className="note">
+            Sixty percent calm paper, thirty percent ink-blue for structure and actions, ten percent brass for the one thing to notice. Brass is used for rules, markers
+            and selection, never for large areas.
+          </p>
+          <div className="gradient-demo" role="img" aria-label="The dusk gradient, ink-blue to deep teal">
+            <span>Dusk</span>
+          </div>
+          <p className="note">The one gradient. At most once on a screen: the brand mark, a welcome moment or a progress ring. Text on it is always white.</p>
+          <div className="elevation-demo">
+            <span className="elevation-demo__flat">Flat</span>
+            <span className="elevation-demo__raised">Raised</span>
+            <span className="elevation-demo__overlay">Overlay</span>
+          </div>
+        </div>
+      </Section>
 
       <Section title="Color roles">
         <ul className="swatches">

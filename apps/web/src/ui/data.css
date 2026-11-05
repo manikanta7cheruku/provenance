@@ -111,10 +111,27 @@
   width: min(32rem, calc(100vw - var(--space-5)));
   padding: var(--space-5);
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-raised);
   color: var(--color-text-primary);
   box-shadow: var(--shadow-overlay);
+}
+.dialog[open] {
+  animation: dialog-in var(--duration-base) var(--ease-emphasis);
+}
+.dialog[open]::backdrop {
+  animation: backdrop-in var(--duration-base) var(--ease-standard);
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.985);
+  }
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
 }
 .dialog::backdrop {
   background: var(--color-backdrop);
