@@ -1,0 +1,70 @@
+/* Choice cards. Tokens only. */
+.choices {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.choices__legend {
+  padding: 0;
+  margin-bottom: var(--space-3);
+  font-weight: var(--weight-semibold);
+}
+.choices__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+@media (min-width: 600px) {
+  .choices__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.choice {
+  position: relative;
+}
+.choice__input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.choice__card {
+  display: grid;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard);
+}
+.choice__input:hover + .choice__card {
+  border-color: var(--color-text-secondary);
+  box-shadow: var(--shadow-raised);
+}
+.choice__input:checked + .choice__card {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  box-shadow: inset 4px 0 0 var(--color-highlight-line);
+}
+.choice__input:focus-visible + .choice__card {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.choice__title {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-display);
+}
+.choice__description {
+  color: var(--color-text-secondary);
+}
+.choice__input:checked + .choice__card .choice__description {
+  color: var(--color-text-primary);
+}

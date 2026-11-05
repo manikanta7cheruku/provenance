@@ -1,5 +1,7 @@
 export { ActionButton } from "./ActionButton";
 export { BrandMark } from "./BrandMark";
+export { ChoiceCards } from "./ChoiceCards";
+export { CommandPalette, filterCommands, type Command } from "./CommandPalette";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { DataTable } from "./DataTable";
 export { Button } from "./Button";

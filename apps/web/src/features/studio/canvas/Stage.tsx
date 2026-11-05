@@ -4,7 +4,15 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import type { RichDoc } from "../../../lib/studio-api";
 import { mm } from "./css";
 import { ElementView } from "./ElementView";
-import { bounds, clampDelta, pinchZoom, resizeBox, snapMove, snapTargets, snapValues } from "./geometry";
+import {
+  bounds,
+  clampDelta,
+  pinchZoom,
+  resizeBox,
+  snapMove,
+  snapTargets,
+  snapValues,
+} from "./geometry";
 import type { Box, Guide, Handle } from "./geometry";
 import { expandSelection, setBoxes } from "./edit";
 import { LIMITS, allElements, pageSize } from "./types";
@@ -41,9 +49,35 @@ interface StageProps {
 }
 
 type Drag =
-  | { kind: "move"; startX: number; startY: number; ids: string[]; origin: Record<string, Box>; page: number; key: string; started: boolean }
-  | { kind: "resize"; startX: number; startY: number; id: string; handle: Handle; origin: Box; page: number; key: string; isText: boolean }
-  | { kind: "marquee"; page: number; startX: number; startY: number; additive: boolean; base: string[] };
+  | {
+      kind: "move";
+      startX: number;
+      startY: number;
+      ids: string[];
+      origin: Record<string, Box>;
+      page: number;
+      key: string;
+      started: boolean;
+    }
+  | {
+      kind: "resize";
+      startX: number;
+      startY: number;
+      id: string;
+      handle: Handle;
+      origin: Box;
+      page: number;
+      key: string;
+      isText: boolean;
+    }
+  | {
+      kind: "marquee";
+      page: number;
+      startX: number;
+      startY: number;
+      additive: boolean;
+      base: string[];
+    };
 
 let dragCounter = 0;
 
@@ -53,15 +87,41 @@ let dragCounter = 0;
  * converted with the zoom. Keyboard control lives one level up, in the editor.
  */
 export function Stage(props: StageProps) {
-  const { doc, selection, editing, zoom, showMargins, readOnly, onSelect, onApply, onBody, onHeight, onEditor, onEdit, onMoved, onPinch } = props;
-  const [guides, setGuides] = useState<{ page: number; lines: Guide[] } | null>(null);
-  const [marquee, setMarquee] = useState<{ page: number; box: Box } | null>(null);
+  const {
+    doc,
+    selection,
+    editing,
+    zoom,
+    showMargins,
+    readOnly,
+    onSelect,
+    onApply,
+    onBody,
+    onHeight,
+    onEditor,
+    onEdit,
+    onMoved,
+    onPinch,
+  } = props;
+  const [guides, setGuides] = useState<{ page: number; lines: Guide[] } | null>(
+    null,
+  );
+  const [marquee, setMarquee] = useState<{ page: number; box: Box } | null>(
+    null,
+  );
   const drag = useRef<Drag | null>(null);
-  const lastDown = useRef<{ id: string; at: number; x: number; y: number } | null>(null);
+  const lastDown = useRef<{
+    id: string;
+    at: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const root = useRef<HTMLDivElement>(null);
   // Fingers down right now, for the pinch. Only touch pointers are tracked.
   const fingers = useRef(new Map<number, { x: number; y: number }>());
-  const pinch = useRef<{ startZoom: number; startDistance: number } | null>(null);
+  const pinch = useRef<{ startZoom: number; startDistance: number } | null>(
+    null,
+  );
   const [pw, ph] = pageSize(doc.style);
   const pxPerMm = CSS_PX_PER_MM * zoom;
 
@@ -81,13 +141,19 @@ export function Stage(props: StageProps) {
     };
   }, []);
 
-  const pageOf = (id: string) => doc.pages.findIndex((p) => p.elements.some((e) => e.id === id));
+  const pageOf = (id: string) =>
+    doc.pages.findIndex((p) => p.elements.some((e) => e.id === id));
 
   function pageMm(page: number, clientX: number, clientY: number) {
-    const node = root.current?.querySelector<HTMLElement>(`[data-page="${page}"]`);
+    const node = root.current?.querySelector<HTMLElement>(
+      `[data-page="${page}"]`,
+    );
     const rect = node?.getBoundingClientRect();
     if (!rect) return { x: 0, y: 0 };
-    return { x: (clientX - rect.left) / pxPerMm, y: (clientY - rect.top) / pxPerMm };
+    return {
+      x: (clientX - rect.left) / pxPerMm,
+      y: (clientY - rect.top) / pxPerMm,
+    };
   }
 
   function fingerDistance(): number {
@@ -98,7 +164,10 @@ export function Stage(props: StageProps) {
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (readOnly || event.button !== 0) return;
     if (event.pointerType === "touch") {
-      fingers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      fingers.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
       if (fingers.current.size === 2) {
         // A second finger turns whatever was happening into a pinch. Nothing is moved by it.
         drag.current = null;
@@ -142,12 +211,28 @@ export function Stage(props: StageProps) {
       // A second press on the same text box within a moment starts editing it. The browser's own
       // double-click event is retargeted to the stage while the pointer is captured.
       const previous = lastDown.current;
-      lastDown.current = { id, at: event.timeStamp, x: event.clientX, y: event.clientY };
+      lastDown.current = {
+        id,
+        at: event.timeStamp,
+        x: event.clientX,
+        y: event.clientY,
+      };
       // A finger is less exact than a mouse, so a double tap gets more time and more room.
       const touch = event.pointerType === "touch";
-      if (previous && previous.id === id && event.timeStamp - previous.at < (touch ? 600 : 450) && Math.hypot(event.clientX - previous.x, event.clientY - previous.y) < (touch ? 24 : 6)) {
+      if (
+        previous &&
+        previous.id === id &&
+        event.timeStamp - previous.at < (touch ? 600 : 450) &&
+        Math.hypot(event.clientX - previous.x, event.clientY - previous.y) <
+          (touch ? 24 : 6)
+      ) {
         const target = allElements(doc).find((e) => e.id === id);
-        if (target && target.kind === "text" && !target.locked && !event.shiftKey) {
+        if (
+          target &&
+          target.kind === "text" &&
+          !target.locked &&
+          !event.shiftKey
+        ) {
           lastDown.current = null;
           onSelect([id]);
           onEdit(id);
@@ -157,12 +242,16 @@ export function Stage(props: StageProps) {
       const group = expandSelection(doc, [id]);
       let next = selection;
       if (event.shiftKey) {
-        next = group.every((g) => selection.includes(g)) ? selection.filter((s) => !group.includes(s)) : [...new Set([...selection, ...group])];
+        next = group.every((g) => selection.includes(g))
+          ? selection.filter((s) => !group.includes(s))
+          : [...new Set([...selection, ...group])];
       } else if (!selection.includes(id)) {
         next = group;
       }
       if (next !== selection) onSelect(next);
-      const movable = allElements(doc).filter((e) => next.includes(e.id) && !e.locked);
+      const movable = allElements(doc).filter(
+        (e) => next.includes(e.id) && !e.locked,
+      );
       if (movable.length === 0 || event.shiftKey) return;
       root.current?.setPointerCapture(event.pointerId);
       dragCounter += 1;
@@ -171,7 +260,9 @@ export function Stage(props: StageProps) {
         startX: event.clientX,
         startY: event.clientY,
         ids: movable.map((e) => e.id),
-        origin: Object.fromEntries(movable.map((e) => [e.id, { x: e.x, y: e.y, w: e.w, h: e.h }])),
+        origin: Object.fromEntries(
+          movable.map((e) => [e.id, { x: e.x, y: e.y, w: e.w, h: e.h }]),
+        ),
         page: pageOf(id),
         key: `move-${dragCounter}`,
         started: false,
@@ -189,7 +280,14 @@ export function Stage(props: StageProps) {
       const page = Number(pageNode.dataset.page);
       const p = pageMm(page, event.clientX, event.clientY);
       root.current?.setPointerCapture(event.pointerId);
-      drag.current = { kind: "marquee", page, startX: p.x, startY: p.y, additive: event.shiftKey, base: event.shiftKey ? selection : [] };
+      drag.current = {
+        kind: "marquee",
+        page,
+        startX: p.x,
+        startY: p.y,
+        additive: event.shiftKey,
+        base: event.shiftKey ? selection : [],
+      };
       if (!event.shiftKey) onSelect([]);
     } else {
       onSelect([]);
@@ -198,9 +296,18 @@ export function Stage(props: StageProps) {
 
   function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.pointerType === "touch" && fingers.current.has(event.pointerId)) {
-      fingers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      fingers.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
       if (pinch.current) {
-        onPinch(pinchZoom(pinch.current.startZoom, pinch.current.startDistance, fingerDistance()));
+        onPinch(
+          pinchZoom(
+            pinch.current.startZoom,
+            pinch.current.startDistance,
+            fingerDistance(),
+          ),
+        );
         return;
       }
     }
@@ -209,12 +316,24 @@ export function Stage(props: StageProps) {
 
     if (d.kind === "marquee") {
       const p = pageMm(d.page, event.clientX, event.clientY);
-      const box: Box = { x: Math.min(d.startX, p.x), y: Math.min(d.startY, p.y), w: Math.abs(p.x - d.startX), h: Math.abs(p.y - d.startY) };
+      const box: Box = {
+        x: Math.min(d.startX, p.x),
+        y: Math.min(d.startY, p.y),
+        w: Math.abs(p.x - d.startX),
+        h: Math.abs(p.y - d.startY),
+      };
       setMarquee({ page: d.page, box });
       const hit = doc.pages[d.page]!.elements.filter(
-        (e) => e.x < box.x + box.w && box.x < e.x + e.w && e.y < box.y + box.h && box.y < e.y + e.h,
+        (e) =>
+          e.x < box.x + box.w &&
+          box.x < e.x + e.w &&
+          e.y < box.y + box.h &&
+          box.y < e.y + e.h,
       );
-      const ids = expandSelection(doc, hit.map((e) => e.id));
+      const ids = expandSelection(
+        doc,
+        hit.map((e) => e.id),
+      );
       onSelect([...new Set([...d.base, ...ids])]);
       return;
     }
@@ -223,7 +342,11 @@ export function Stage(props: StageProps) {
     let dy = (event.clientY - d.startY) / pxPerMm;
     if (d.kind === "move") {
       if (!d.started) {
-        if (Math.hypot(event.clientX - d.startX, event.clientY - d.startY) < DRAG_START_PX) return;
+        if (
+          Math.hypot(event.clientX - d.startX, event.clientY - d.startY) <
+          DRAG_START_PX
+        )
+          return;
         d.started = true;
       }
       if (event.shiftKey) {
@@ -236,10 +359,22 @@ export function Stage(props: StageProps) {
       let ddy = clamped.dy;
       let lines: Guide[] = [];
       if (!event.altKey) {
-        const others = (doc.pages[d.page]?.elements ?? []).filter((e) => !d.ids.includes(e.id)).map((e) => ({ x: e.x, y: e.y, w: e.w, h: e.h }));
+        const others = (doc.pages[d.page]?.elements ?? [])
+          .filter((e) => !d.ids.includes(e.id))
+          .map((e) => ({ x: e.x, y: e.y, w: e.w, h: e.h }));
         const targets = snapTargets(pw, ph, doc.style.margin_mm, others);
-        const snapped = snapMove({ ...frame, x: frame.x + ddx, y: frame.y + ddy }, targets, SNAP_PX / pxPerMm);
-        const again = clampDelta(frame, ddx + snapped.dx, ddy + snapped.dy, pw, ph);
+        const snapped = snapMove(
+          { ...frame, x: frame.x + ddx, y: frame.y + ddy },
+          targets,
+          SNAP_PX / pxPerMm,
+        );
+        const again = clampDelta(
+          frame,
+          ddx + snapped.dx,
+          ddy + snapped.dy,
+          pw,
+          ph,
+        );
         ddx = again.dx;
         ddy = again.dy;
         lines = snapped.guides;
@@ -255,9 +390,16 @@ export function Stage(props: StageProps) {
     }
 
     // resize
-    let box = resizeBox(d.origin, d.handle, dx, dy, { minW: LIMITS.minSizeMm * 5, minH: LIMITS.minSizeMm, pageW: pw, pageH: ph });
+    let box = resizeBox(d.origin, d.handle, dx, dy, {
+      minW: LIMITS.minSizeMm * 5,
+      minH: LIMITS.minSizeMm,
+      pageW: pw,
+      pageH: ph,
+    });
     if (!event.altKey) {
-      const others = (doc.pages[d.page]?.elements ?? []).filter((e) => e.id !== d.id).map((e) => ({ x: e.x, y: e.y, w: e.w, h: e.h }));
+      const others = (doc.pages[d.page]?.elements ?? [])
+        .filter((e) => e.id !== d.id)
+        .map((e) => ({ x: e.x, y: e.y, w: e.w, h: e.h }));
       const targets = snapTargets(pw, ph, doc.style.margin_mm, others);
       const threshold = SNAP_PX / pxPerMm;
       const lines: Guide[] = [];
@@ -305,16 +447,21 @@ export function Stage(props: StageProps) {
     drag.current = null;
     setGuides(null);
     setMarquee(null);
-    if (root.current?.hasPointerCapture(event.pointerId)) root.current.releasePointerCapture(event.pointerId);
+    if (root.current?.hasPointerCapture(event.pointerId))
+      root.current.releasePointerCapture(event.pointerId);
     if (d && d.kind === "move" && d.started) {
-      const frame = bounds(allElements(doc).filter((e) => d.ids.includes(e.id)));
+      const frame = bounds(
+        allElements(doc).filter((e) => d.ids.includes(e.id)),
+      );
       onMoved(d.ids, frame);
     }
   }
 
   function onDoubleClick(event: React.MouseEvent<HTMLDivElement>) {
     if (readOnly) return;
-    const node = (event.target as HTMLElement).closest<HTMLElement>("[data-el]");
+    const node = (event.target as HTMLElement).closest<HTMLElement>(
+      "[data-el]",
+    );
     if (!node) return;
     const el = allElements(doc).find((e) => e.id === node.dataset.el);
     if (el && el.kind === "text" && !el.locked) {
@@ -324,7 +471,10 @@ export function Stage(props: StageProps) {
   }
 
   const selected = new Set(selection);
-  const single = selection.length === 1 ? allElements(doc).find((e) => e.id === selection[0]) : undefined;
+  const single =
+    selection.length === 1
+      ? allElements(doc).find((e) => e.id === selection[0])
+      : undefined;
 
   return (
     <div
@@ -338,8 +488,17 @@ export function Stage(props: StageProps) {
       onFocus={(event) => {
         // Tabbing onto an element selects it when nothing is selected. Once something is selected,
         // moving the focus leaves the selection alone, so several can be gathered with Shift+Space.
-        const node = (event.target as HTMLElement).closest<HTMLElement>("[data-el]");
-        if (!node || readOnly || editing || selection.length > 0 || !node.matches(":focus-visible")) return;
+        const node = (event.target as HTMLElement).closest<HTMLElement>(
+          "[data-el]",
+        );
+        if (
+          !node ||
+          readOnly ||
+          editing ||
+          selection.length > 0 ||
+          !node.matches(":focus-visible")
+        )
+          return;
         onSelect([node.dataset.el!]);
       }}
     >
@@ -353,16 +512,29 @@ export function Stage(props: StageProps) {
             aria-label={`Page ${pi + 1} of ${doc.pages.length}`}
             style={{ width: pw * pxPerMm, height: ph * pxPerMm }}
           >
+            <p className="cv-pagetag" aria-hidden="true">
+              Page {pi + 1} of {doc.pages.length}
+            </p>
             <div
               className="cv-page"
               data-page={pi}
-              style={{ width: mm(pw), height: mm(ph), transform: `scale(${zoom})`, transformOrigin: "top left" }}
+              style={{
+                width: mm(pw),
+                height: mm(ph),
+                transform: `scale(${zoom})`,
+                transformOrigin: "top left",
+              }}
             >
               {showMargins ? (
                 <div
                   className="cv-margins"
                   aria-hidden="true"
-                  style={{ left: mm(doc.style.margin_mm), top: mm(doc.style.margin_mm), right: mm(doc.style.margin_mm), bottom: mm(doc.style.margin_mm) }}
+                  style={{
+                    left: mm(doc.style.margin_mm),
+                    top: mm(doc.style.margin_mm),
+                    right: mm(doc.style.margin_mm),
+                    bottom: mm(doc.style.margin_mm),
+                  }}
                 />
               ) : null}
               {page.elements.map((el: CanvasElement, z) => (
@@ -384,11 +556,24 @@ export function Stage(props: StageProps) {
                 <div
                   className={`cv-selection${live.length > 1 ? " is-multi" : ""}`}
                   aria-hidden="true"
-                  style={{ left: mm(frame.x), top: mm(frame.y), width: mm(frame.w), height: mm(frame.h), zIndex: 9000 }}
+                  style={{
+                    left: mm(frame.x),
+                    top: mm(frame.y),
+                    width: mm(frame.w),
+                    height: mm(frame.h),
+                    zIndex: 9000,
+                  }}
                 >
                   {single && !single.locked && live.length === 1
                     ? HANDLES[single.kind]!.map((h) => (
-                        <span key={h} className={`cv-handle cv-handle--${h}`} data-handle={h} style={{ transform: `translate(-50%, -50%) scale(${1 / zoom})` }} />
+                        <span
+                          key={h}
+                          className={`cv-handle cv-handle--${h}`}
+                          data-handle={h}
+                          style={{
+                            transform: `translate(-50%, -50%) scale(${1 / zoom})`,
+                          }}
+                        />
                       ))
                     : null}
                 </div>
@@ -399,7 +584,9 @@ export function Stage(props: StageProps) {
                       key={i}
                       className={`cv-guide cv-guide--${g.axis}`}
                       aria-hidden="true"
-                      style={g.axis === "x" ? { left: mm(g.at) } : { top: mm(g.at) }}
+                      style={
+                        g.axis === "x" ? { left: mm(g.at) } : { top: mm(g.at) }
+                      }
                     />
                   ))
                 : null}
@@ -407,7 +594,12 @@ export function Stage(props: StageProps) {
                 <div
                   className="cv-marquee"
                   aria-hidden="true"
-                  style={{ left: mm(marquee.box.x), top: mm(marquee.box.y), width: mm(marquee.box.w), height: mm(marquee.box.h) }}
+                  style={{
+                    left: mm(marquee.box.x),
+                    top: mm(marquee.box.y),
+                    width: mm(marquee.box.w),
+                    height: mm(marquee.box.h),
+                  }}
                 />
               ) : null}
             </div>

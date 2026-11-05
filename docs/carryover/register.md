@@ -149,6 +149,15 @@ The product runs end to end without a key and says so honestly. These items need
 | C-107 | 3.8 | Color-blindness check | Status never depends on color alone, but no simulation was run | Run each main screen through a color-blindness simulator | open |
 | C-108 | 3.8 | A real designer's review | The direction is written and tested, not reviewed by a designer | Ask a designer to review the gallery and the voice guide before 3.10 | open |
 
+## P. The resume experience (added at 3.9)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-109 | 3.9 | A usability session | No real person has used the new start screen and editor | Watch three people (not you) start a resume and make five edits without help. Write down where they stop. Fix before 3.10 ends | open |
+| C-110 | 3.9 | Drag to reorder layers and sections | Reordering is by buttons and commands only. A drag with a keyboard equal was not built | Decide whether to build it once you have watched real use | open |
+| C-111 | 3.9 | Screen reader pass of the palette and start cards | Axe passes. NVDA, VoiceOver and TalkBack were not used | Do it at 3.10 | open |
+| C-112 | 3.9 | Speed on a slow machine | The budget was measured on a development machine | Try an older laptop and a mid-range phone with a long resume | open |
+| C-113 | 3.9 | The guided editor | Only its start screen changed. Its editing screens are the older design | Rebuild them in 3.10 or retire the guided mode if the free canvas with the layout check covers it | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

@@ -2,9 +2,10 @@ import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import type { RichDoc, StudioOptions } from "../../../lib/studio-api";
-import { ActionButton } from "../../../ui";
+import { ActionButton, CommandPalette, Dialog } from "../../../ui";
+import type { Command } from "../../../ui";
 import { analyzeAts } from "./ats";
-import { CanvasToolbar } from "./CanvasToolbar";
+import { CanvasToolbar, ContextToolbar } from "./CanvasToolbar";
 import type { CanvasActions } from "./CanvasToolbar";
 import {
   addElement,
@@ -34,7 +35,7 @@ import {
 import type { Order } from "./edit";
 import type { PictureRef } from "./edit";
 import type { AlignMode, Box } from "./geometry";
-import { History } from "./history";
+import { History, labelForKey } from "./history";
 import { Inspector } from "./Inspector";
 import { IconsDialog, PicturesDialog } from "./PicturesDialog";
 import { SelectionBar } from "./SelectionBar";
@@ -52,6 +53,8 @@ interface CanvasEditorProps {
   /** Changes when the document is replaced from outside (restore, reload). Undo history starts over. */
   epoch: number;
   announce: (message: string) => void;
+  /** More commands for the palette, from the screen around the editor (template, versions, PDF). */
+  extraCommands?: Command[];
 }
 
 function useWide(): boolean {
@@ -109,6 +112,7 @@ export function CanvasEditor({
   options,
   epoch,
   announce,
+  extraCommands = [],
 }: CanvasEditorProps) {
   const wide = useWide();
   const coarse = useCoarse();
@@ -123,6 +127,9 @@ export function CanvasEditor({
   const [showMargins, setShowMargins] = useState(true);
   const [atsOpen, setAtsOpen] = useState(false);
   const [dialog, setDialog] = useState<"pictures" | "icons" | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [focus, setFocus] = useState(false);
   const [, force] = useState(0);
   const viewport = useRef<HTMLDivElement>(null);
   const announceTimer = useRef<number | null>(null);
@@ -156,9 +163,14 @@ export function CanvasEditor({
   );
 
   const apply = useCallback(
-    (next: CanvasDoc, key?: string) => {
+    (next: CanvasDoc, key?: string, label?: string) => {
       if (next === docRef.current) return;
-      history.current.record(docRef.current, key);
+      history.current.record(
+        docRef.current,
+        key,
+        Date.now(),
+        label ?? labelForKey(key),
+      );
       docRef.current = next;
       onChange(next);
       force((n) => n + 1);
@@ -274,7 +286,7 @@ export function CanvasEditor({
         announce("The resume has the most elements it can hold.");
         return;
       }
-      apply(next);
+      apply(next, undefined, `Added ${what.toLowerCase()}`);
       setSelection([el.id]);
       if (el.kind === "text") setEditing(el.id);
       say(`${what} added.`);
@@ -314,7 +326,7 @@ export function CanvasEditor({
     duplicate: () => {
       if (ids.length === 0) return;
       const result = duplicateElements(docRef.current, ids);
-      apply(result.doc);
+      apply(result.doc, undefined, "Duplicated");
       setSelection(result.ids);
       say(
         `${result.ids.length === 1 ? "Duplicated" : `${result.ids.length} elements duplicated`}.`,
@@ -322,7 +334,7 @@ export function CanvasEditor({
     },
     remove: () => {
       if (ids.length === 0) return;
-      apply(deleteElements(docRef.current, ids));
+      apply(deleteElements(docRef.current, ids), undefined, "Deleted");
       setSelection([]);
       setEditing(null);
       say(
@@ -330,29 +342,41 @@ export function CanvasEditor({
       );
     },
     group: () => {
-      apply(groupElements(docRef.current, ids));
+      apply(groupElements(docRef.current, ids), undefined, "Grouped");
       say("Grouped. They now select and move together.");
     },
     ungroup: () => {
-      apply(ungroupElements(docRef.current, ids));
+      apply(ungroupElements(docRef.current, ids), undefined, "Ungrouped");
       say("Ungrouped.");
     },
     lock: (locked) => {
-      apply(lockElements(docRef.current, ids, locked));
+      apply(
+        lockElements(docRef.current, ids, locked),
+        undefined,
+        locked ? "Locked" : "Allowed edits",
+      );
       say(locked ? "Locked." : "Editing allowed.");
     },
     order: (how: Order) => {
-      apply(reorder(docRef.current, ids, how));
+      apply(
+        reorder(docRef.current, ids, how),
+        undefined,
+        "Changed the stacking order",
+      );
       say(
         `Moved ${how === "front" ? "to the front" : how === "back" ? "to the back" : how}.`,
       );
     },
     align: (mode: AlignMode) => {
-      apply(alignElements(docRef.current, ids, mode));
+      apply(alignElements(docRef.current, ids, mode), undefined, "Aligned");
       say(`Aligned ${mode}.`);
     },
     distribute: (axis) => {
-      apply(distributeElements(docRef.current, ids, axis));
+      apply(
+        distributeElements(docRef.current, ids, axis),
+        undefined,
+        "Spaced evenly",
+      );
       say(axis === "x" ? "Spaced evenly across." : "Spaced evenly down.");
     },
     setZoom,
@@ -363,7 +387,256 @@ export function CanvasEditor({
       const el = selectedEls[0];
       if (el && el.kind === "text" && !el.locked) setEditing(el.id);
     },
+    openCommands: () => setPaletteOpen(true),
+    openHistory: () => setHistoryOpen(true),
+    toggleFocus: () => {
+      setFocus((on) => {
+        say(
+          on
+            ? "The side panel is back."
+            : "Focus on the page. The side panel is hidden.",
+        );
+        return !on;
+      });
+    },
   };
+
+  // ---- command palette: Ctrl or Command and K, from anywhere on the screen
+  useEffect(() => {
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === "k" &&
+        !event.shiftKey &&
+        !event.altKey
+      ) {
+        event.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  const hasSel = selection.length > 0;
+  const commands: Command[] = [
+    {
+      id: "add-text",
+      label: "Add a text box",
+      group: "Add",
+      keywords: "new write words",
+      run: actions.addText,
+    },
+    {
+      id: "add-picture",
+      label: "Add a picture",
+      group: "Add",
+      keywords: "photo image logo upload",
+      run: actions.addPicture,
+    },
+    {
+      id: "add-icon",
+      label: "Add an icon",
+      group: "Add",
+      keywords: "symbol",
+      run: actions.addIcon,
+    },
+    {
+      id: "add-box",
+      label: "Add a box",
+      group: "Add",
+      keywords: "shape rectangle panel",
+      run: actions.addBox,
+    },
+    {
+      id: "add-rule",
+      label: "Add a rule",
+      group: "Add",
+      keywords: "line divider",
+      run: actions.addRule,
+    },
+    {
+      id: "add-page",
+      label: "Add a page",
+      group: "Add",
+      keywords: "second page",
+      run: () => apply(addPage(docRef.current), undefined, "Added a page"),
+    },
+    {
+      id: "undo",
+      label: "Undo",
+      group: "History",
+      shortcut: "Ctrl Z",
+      disabled: !history.current.canUndo,
+      run: actions.undo,
+    },
+    {
+      id: "redo",
+      label: "Redo",
+      group: "History",
+      shortcut: "Ctrl Y",
+      disabled: !history.current.canRedo,
+      run: actions.redo,
+    },
+    {
+      id: "history",
+      label: "Show recent changes",
+      group: "History",
+      keywords: "undo steps list",
+      disabled: !history.current.canUndo,
+      run: actions.openHistory,
+    },
+    {
+      id: "edit",
+      label: "Edit the selected text",
+      group: "Selection",
+      shortcut: "Enter",
+      disabled: !(
+        selectedEls.length === 1 &&
+        selectedEls[0]!.kind === "text" &&
+        !selectedEls[0]!.locked
+      ),
+      run: actions.edit,
+    },
+    {
+      id: "duplicate",
+      label: "Duplicate the selection",
+      group: "Selection",
+      shortcut: "Ctrl D",
+      disabled: !hasSel,
+      run: actions.duplicate,
+    },
+    {
+      id: "delete",
+      label: "Delete the selection",
+      group: "Selection",
+      shortcut: "Delete",
+      disabled: !hasSel,
+      run: actions.remove,
+    },
+    {
+      id: "group",
+      label: "Group the selection",
+      group: "Selection",
+      shortcut: "Ctrl G",
+      disabled: selection.length < 2,
+      run: actions.group,
+    },
+    {
+      id: "ungroup",
+      label: "Ungroup",
+      group: "Selection",
+      shortcut: "Ctrl Shift G",
+      disabled: !selectedEls.some((e) => e.group),
+      run: actions.ungroup,
+    },
+    {
+      id: "lock",
+      label: "Lock the selection",
+      group: "Selection",
+      disabled: !hasSel,
+      run: () => actions.lock(true),
+    },
+    {
+      id: "allow-edits",
+      label: "Allow edits to the selection",
+      group: "Selection",
+      disabled: !hasSel,
+      run: () => actions.lock(false),
+    },
+    {
+      id: "front",
+      label: "Bring to the front",
+      group: "Stacking",
+      keywords: "order layer",
+      disabled: !hasSel,
+      run: () => actions.order("front"),
+    },
+    {
+      id: "back",
+      label: "Send to the back",
+      group: "Stacking",
+      keywords: "order layer",
+      disabled: !hasSel,
+      run: () => actions.order("back"),
+    },
+    ...(
+      ["left", "center", "right", "top", "middle", "bottom"] as AlignMode[]
+    ).map((mode) => ({
+      id: `align-${mode}`,
+      label: `Align ${mode}`,
+      group: "Align",
+      disabled: !hasSel,
+      run: () => actions.align(mode),
+    })),
+    {
+      id: "zoom-in",
+      label: "Zoom in",
+      group: "View",
+      shortcut: "Ctrl +",
+      run: () => setZoom(Math.min(3, zoom + 0.25)),
+    },
+    {
+      id: "zoom-out",
+      label: "Zoom out",
+      group: "View",
+      shortcut: "Ctrl -",
+      run: () => setZoom(Math.max(0.25, zoom - 0.25)),
+    },
+    {
+      id: "zoom-fit",
+      label: "Fit the page to the width",
+      group: "View",
+      run: () => setFitted(true),
+    },
+    {
+      id: "zoom-100",
+      label: "Zoom to 100 percent",
+      group: "View",
+      run: () => setZoom(1),
+    },
+    {
+      id: "margins",
+      label: showMargins ? "Hide the margin guides" : "Show the margin guides",
+      group: "View",
+      run: () => setShowMargins((v) => !v),
+    },
+    {
+      id: "ats",
+      label: atsOpen ? "Hide the layout check" : "Show the layout check",
+      group: "View",
+      keywords: "ats tracking system",
+      run: () => setAtsOpen((v) => !v),
+    },
+    {
+      id: "focus",
+      label: focus ? "Show the side panel" : "Focus on the page",
+      group: "View",
+      keywords: "distraction free hide panel",
+      run: actions.toggleFocus,
+    },
+    ...extraCommands,
+    ...allElements(doc)
+      .slice(0, 80)
+      .map((el) => ({
+        id: `go-${el.id}`,
+        label: `Go to ${el.name}`,
+        group: "Elements",
+        keywords: el.kind,
+        run: () => {
+          setSelection(expandSelection(docRef.current, [el.id]));
+          say(`${el.name} selected.`);
+          // Bring it into view in the page.
+          window.setTimeout(
+            () =>
+              viewport.current
+                ?.querySelector(`[data-el="${el.id}"]`)
+                ?.scrollIntoView({ block: "center", behavior: "auto" }),
+            0,
+          );
+        },
+      })),
+  ];
 
   // ---- keyboard
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -497,6 +770,7 @@ export function CanvasEditor({
         ats={ats}
         atsOpen={atsOpen}
         editor={editor}
+        focus={focus}
       />
 
       {atsOpen ? (
@@ -520,29 +794,41 @@ export function CanvasEditor({
           </ul>
         </section>
       ) : null}
-      <div className="cv-body">
-        <div className="cv-viewport" ref={viewport}>
-          <Stage
-            doc={doc}
-            selection={selection}
-            editing={editing}
-            zoom={zoom}
-            showMargins={showMargins}
-            readOnly={false}
-            onSelect={select}
-            onApply={apply}
-            onBody={onBody}
-            onHeight={onHeight}
-            onEditor={setEditor}
-            onEdit={setEditing}
-            onPinch={setZoom}
-            onMoved={(movedIds, frame) => {
-              const el = findElement(docRef.current, movedIds[0]!)?.element;
-              say(
-                `Moved ${movedIds.length > 1 ? `${movedIds.length} elements` : (el?.name ?? "element")} to ${frame.x.toFixed(1)} across, ${frame.y.toFixed(1)} down.`,
-              );
-            }}
-          />
+      <div className="cv-body" data-focus={focus}>
+        <div className="cv-stagewrap">
+          <div className="cv-viewport" ref={viewport}>
+            <Stage
+              doc={doc}
+              selection={selection}
+              editing={editing}
+              zoom={zoom}
+              showMargins={showMargins}
+              readOnly={false}
+              onSelect={select}
+              onApply={apply}
+              onBody={onBody}
+              onHeight={onHeight}
+              onEditor={setEditor}
+              onEdit={setEditing}
+              onPinch={setZoom}
+              onMoved={(movedIds, frame) => {
+                const el = findElement(docRef.current, movedIds[0]!)?.element;
+                say(
+                  `Moved ${movedIds.length > 1 ? `${movedIds.length} elements` : (el?.name ?? "element")} to ${frame.x.toFixed(1)} across, ${frame.y.toFixed(1)} down.`,
+                );
+              }}
+            />
+          </div>
+          {selection.length > 0 && editing === null ? (
+            <ContextToolbar
+              actions={actions}
+              count={selection.length}
+              anyGrouped={selectedEls.some((e) => e.group)}
+              allLocked={
+                selectedEls.length > 0 && selectedEls.every((e) => e.locked)
+              }
+            />
+          ) : null}
         </div>
         <Inspector
           doc={doc}
@@ -588,6 +874,67 @@ export function CanvasEditor({
           }}
         />
       ) : null}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        commands={commands}
+        label="Commands"
+      />
+      <Dialog
+        open={historyOpen}
+        title="Recent changes"
+        onClose={() => setHistoryOpen(false)}
+        actions={
+          <ActionButton
+            variant="primary"
+            onClick={() => setHistoryOpen(false)}
+            autoFocus
+          >
+            Done
+          </ActionButton>
+        }
+      >
+        {history.current.undoable.length === 0 ? (
+          <p>Nothing to undo yet.</p>
+        ) : (
+          <>
+            <p>
+              The newest change is first. Go back to just before any of them.
+              You can redo from the toolbar until you make a new change.
+            </p>
+            <ol className="cv-history">
+              {history.current.undoable.slice(0, 30).map((label, index) => (
+                <li key={`${index}-${label}`}>
+                  <span>{label}</span>
+                  <ActionButton
+                    aria-label={`Go back to here, before: ${label}${index === 0 ? " (the latest)" : `, ${index + 1} changes back`}`}
+                    onClick={() => {
+                      const earlier = history.current.undoMany(
+                        docRef.current,
+                        index + 1,
+                      );
+                      if (earlier) {
+                        docRef.current = earlier;
+                        onChange(earlier);
+                        setEditing(null);
+                        force((n) => n + 1);
+                        say(
+                          index === 0
+                            ? "Undone."
+                            : `Went back ${index + 1} changes.`,
+                        );
+                      }
+                      setHistoryOpen(false);
+                    }}
+                  >
+                    Go back to here
+                  </ActionButton>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+      </Dialog>
       <PicturesDialog
         open={dialog === "pictures"}
         onClose={() => setDialog(null)}
