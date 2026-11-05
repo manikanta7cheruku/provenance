@@ -55,7 +55,7 @@ export function describeQuota(quota: Quota): string {
 
 /** A day such as "1 December", read in UTC because the month rolls over in UTC. */
 export function formatDay(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+  return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
     timeZone: "UTC",
