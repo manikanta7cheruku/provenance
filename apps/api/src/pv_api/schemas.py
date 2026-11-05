@@ -1370,3 +1370,34 @@ class ImagesOut(BaseModel):
     max_bytes: int
     used_bytes: int
     accepted: list[str]
+
+
+# ---- checkpoint 2.13: saved themes for the resume studio
+class ThemeIn(BaseModel):
+    """What the person sends. The rules (readable colors, a known font pair) are in the domain."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(max_length=200)
+    font_pair: str = Field(max_length=100)
+    accent: str = Field(max_length=20)
+    ink: str = Field(max_length=20)
+    muted: str = Field(max_length=20)
+    tint: str = Field(max_length=20)
+
+
+class ThemeOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    font_pair: str
+    accent: str
+    ink: str
+    muted: str
+    tint: str
+    updated_at: datetime
+
+
+class ThemesOut(BaseModel):
+    themes: list[ThemeOut]
+    count: int
+    max_themes: int

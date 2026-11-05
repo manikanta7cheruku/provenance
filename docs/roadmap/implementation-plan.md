@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-29 checkpoints in total. Nineteen are done and merged (1.1 to 1.9 and 2.1 to 2.10). Checkpoints 2.11 and 2.12 are built and awaiting merge. Eight remain after them. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
+32 checkpoints in total. Nineteen are done and merged (1.1 to 1.9 and 2.1 to 2.10). Checkpoints 2.11 to 2.13 are built (2.11 is merged, 2.12 and 2.13 await merge), which completes Phase 2 in code. Ten remain, all in Phase 3. Three of them (3.8 to 3.10) are the design and experience checkpoints added by the owner, and are built first so every later screen uses the new look. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
 
 | Checkpoint | State |
 |---|---|
@@ -33,9 +33,10 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 2.8 | Done and merged |
 | 2.9 | Done and merged |
 | 2.10 | Done and merged |
-| 2.11 | Built on branch phase-2/checkpoint-2.11-images-and-icons, awaiting review and merge |
-| 2.12 | Built on branch phase-2/checkpoint-2.12-touch-editing, awaiting review and merge |
-| 2.13 | Not started |
+| 2.11 | Done and merged |
+| 2.12 | Built, awaiting merge (PR to bring it to main) |
+| 2.13 | Built on branch phase-2/checkpoint-2.13-saved-themes, awaiting review and merge |
+| 3.8 to 3.10 | Not started (the design and experience checkpoints, built first) |
 | 3.1 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
@@ -103,8 +104,15 @@ Exit: the resume studio produces professional PDFs. Search by role, company, sou
 | 3.5 | Full observability: Run Inspector, Admin Console, source health, cost analytics, dead-letter inspection, alerts | Observability that answers operational questions |
 | 3.6 | Full evaluation harness, labeled dataset of about 100 jobs, labeling guidelines, thresholds, history. Evaluate the collected feedback labels and decide on a learned ranker (ADR-0026) | Measuring AI systems |
 | 3.7 | Security hardening, production Compose, secrets management, paid LLM tier with no-training terms, backups and restore drill, deployment and rollback, health and readiness, failure drills, incident response, deletion workflow test, email infrastructure, legal review of privacy and terms, remaining runbooks | Running a system, disaster recovery |
+| 3.8 | **Design foundation and brand.** A written design direction first. The product must look and feel like a premium professional tool, not a template: no stock gradients, sparkles, chat bubbles, robot or AI imagery, and no AI branding or marketing words in the interface. A custom brand and a professional color palette (warm neutrals, one deep ink-blue primary, a restrained brass accent for emphasis, calm semantic colors), light and dark, every pair measured for contrast. A type system, a spacing and sizing scale, elevation, an icon set, a motion language (short, purposeful, stops under reduced motion), and a voice for the words in the interface. The component library is audited and rebuilt on this foundation and shown in the design gallery. Decided in an ADR with the owner's approval of the palette before anything is rebuilt | Design systems, color science, typography, motion, content design |
+| 3.9 | **The resume experience.** Creating a resume and editing it redesigned from the person's point of view. A guided start (from my evidence and profile, from a file, from a template chosen by seeing it with my own words, or blank) that gets to a good first page in a minute. An editor that is calm and fast: one clear workspace, direct editing on the page, a quiet context panel that only shows what applies to what is selected, a command palette and quick actions, drag to reorder sections and items, visible undo history, honest save state, live page breaks, instant template and theme preview, performance budgets for typing and dragging. Mouse, keyboard, touch and screen reader are equals, with WCAG 2.2 AA throughout and reduced motion respected. Tried with real people and fixed from what they struggle with | Interaction design, direct manipulation, performance budgets, usability testing |
+| 3.10 | **Whole-product experience and polish.** Every screen rebuilt on the new foundation: navigation and home, evidence, find jobs, the workbench, drafts and shortlist settings, account and admin. A first-run path, designed empty, loading and error states, smooth transitions, full dark mode parity, responsive from phone to wide screen, performance budgets for load and interaction, visual regression tests for the screens, cross-browser checks, and a real screen reader pass (NVDA, VoiceOver, TalkBack). Usability sessions on the main journeys and a fix round. Nothing ships that feels unfinished | Product polish, visual regression testing, assistive technology, usability research |
 
-Exit: the Definition of Done in the product brief is true, and the go-live gates in business-model.md are checked.
+Order of work: 3.8, 3.9 and 3.10 come first, then 3.1 to 3.7, so every new screen is built in the new design from the start. Numbers stay stable. Production UX hardening in 3.7 becomes a final verification of what 3.10 built.
+
+The interface does not present itself as AI. Where text is machine-written (application drafts, tailoring suggestions) the honesty rules of the product brief still apply: it is labelled plainly as a draft written from the person's evidence, to be checked, with no AI styling, icons or marketing words.
+
+Exit: the Definition of Done in the product brief is true, the go-live gates in business-model.md are checked, and the owner agrees that the product feels professional and finished.
 
 ## 8. Production operations coverage map
 
@@ -182,6 +190,9 @@ Every checkpoint is written and reviewed in this structure:
 | 3.5 | Run Inspector and admin console: run status, stages, errors, evidence, cost, diagnostics designed around operational questions |
 | 3.6 | Evaluation views: dataset and run selection, results, regression visibility, comparison, failure inspection |
 | 3.7 | Production UX hardening: accessibility, responsive, error, loading and empty state reviews, security feedback, failure recovery, smoke tests, cross-browser checks |
+| 3.8 | The design direction, palette, type, spacing, motion and voice, the rebuilt components, and a gallery that shows every state in light and dark |
+| 3.9 | Creating a resume (guided start) and editing it (calm workspace, direct editing, command palette, reorder, undo history, save state, previews), with mouse, keyboard, touch and screen reader as equals |
+| 3.10 | Every screen on the new foundation, first run, empty, loading and error states, transitions, dark mode, responsive, performance, visual regression, screen reader pass, usability sessions |
 
 ## 11. Definition of UI/UX done
 
@@ -201,4 +212,5 @@ Checkpoint 1.4 is merged. Checkpoint 1.5 is next. Its plan, with questions, is p
 | 2 | 2026-10-30 | 25 checkpoints. Phase 1 gains 1.7 to 1.9 (the old 1.5 and 1.6 are split). Phase 2 is renamed and gains a resume studio (2.1 to 2.4), periodic shortlist email and application drafts (2.10). Source verification is an explicit first step (2.5). Gap-to-qualify plan, feedback labels and outreach drafts added. Paid services are placeholders until later | Competitor review and owner decisions: build the full product in sequence, resume builder with free single resume, better help for finding and applying. See ADR-0027 |
 | 3 | 2026-11-01 | 26 checkpoints. New checkpoint 2.2 (free canvas editor). Old 2.2 to 2.9 become 2.3 to 2.10 | Owner decision after testing against Canva-style tools: users must be able to move, resize and edit anything on the page, with instant updates. This is the product gap against other resume builders. See ADR-0034 |
 | 4 | 2026-11-01 | 29 checkpoints. New 2.11 (images and icons), 2.12 (touch and phone editing), 2.13 (saved themes). Links in text and more fonts and color sets are part of 2.3 | Owner request after testing 2.2: include images, icons, more fonts, color palettes and saved themes, phone and touch editing, and links. See ADR-0035 |
+| 5 | 2026-11-05 | 32 checkpoints. New 3.8 (design foundation and brand), 3.9 (the resume experience), 3.10 (whole-product experience and polish), built first in Phase 3 | Owner request: a premium, professional, smooth interface that does not look like a template or an AI product, a professional color palette, and an excellent, accessible way to create and edit a resume |
 

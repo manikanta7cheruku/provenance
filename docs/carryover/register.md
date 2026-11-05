@@ -133,6 +133,14 @@ The product runs end to end without a key and says so honestly. These items need
 | C-99 | 2.12 | Screen reader on a phone | Axe passes. TalkBack and VoiceOver were not used | Do it at 3.7 | open |
 | C-100 | 2.12 | Drag to resize on small elements | The 44 pixel handle targets overlap on very small elements | Use it for a week. If it bites, add a resize mode or bigger minimum handles | open |
 
+## N. Saved themes (added at 2.13)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-101 | 2.13 | Use themes on real resumes | Tested with made-up themes | Save a look you like, apply it to a second resume, change it and update the theme. Note what is missing | open |
+| C-102 | 2.13 | Apply a theme to every resume at once | One resume at a time | Decide whether you need it once you have several resumes | open |
+| C-103 | 2.13 | Themes older than a rule | A rule added later could refuse an old theme when applied | If the color rules change, add a check or a migration that lists themes that no longer pass | open |
+| C-104 | 2.13 | Screen reader pass of My themes | Axe passes, no screen reader was used | Do it at 3.7 | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

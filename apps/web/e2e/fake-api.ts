@@ -405,6 +405,8 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   asked: string[];
   /** Pictures the person has uploaded. */
   images: FakeImage[];
+  /** Saved themes. */
+  themes: FakeTheme[];
   /** Application drafts per job. Each is working for two reads, then ready. */
   drafts: Record<string, FakeDraft[]>;
   /** Whether the evidence check of every job is complete, so drafts can be written. */
@@ -413,6 +415,8 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   shortlist: { enabled: boolean; frequency: string; weekday: number; hour: number; timezone: string; max_items: number; next_run_at: string | null; last_run_at: string | null };
   runs: { outcome: string; outcome_text: string; item_count: number; manual: boolean; at: string }[];
   verified: boolean }
+
+export interface FakeTheme { id: string; name: string; font_pair: string; accent: string; ink: string; muted: string; tint: string; updated_at: string }
 
 export interface FakeImage { id: string; name: string; width: number; height: number; used?: boolean }
 
@@ -476,7 +480,7 @@ export function importBody(fake: Fake, batch: FakeImport) {
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], images: [], drafts: {}, checked: true, runs: [], verified: true,
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], images: [], themes: [], drafts: {}, checked: true, runs: [], verified: true,
     shortlist: { enabled: false, frequency: "weekly", weekday: 0, hour: 8, timezone: "UTC", max_items: 5, next_run_at: null, last_run_at: null }, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
@@ -596,6 +600,32 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       if (!image) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
       if (image.used) return json({ code: "IMAGE_LIMIT", message: "This picture is used in one of your resumes, or in a saved version of one. Remove it from there first, or delete that resume." }, 409);
       fake.images = fake.images.filter((i) => i.id !== image.id);
+      return route.fulfill({ status: 204 });
+    }
+    if (path === "/api/v1/studio/themes" && method === "GET") {
+      const sorted = [...fake.themes].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+      return json({ themes: sorted, count: sorted.length, max_themes: 20 });
+    }
+    if (path === "/api/v1/studio/themes" && method === "POST") {
+      const body = request.postDataJSON() as Omit<FakeTheme, "id" | "updated_at">;
+      if (!body.name?.trim()) return json({ code: "VALIDATION_FAILED", message: "The theme needs a change before it can be saved.", fields: { name: "Give the theme a name." } }, 422);
+      if (fake.themes.some((t) => t.name.toLowerCase() === body.name.trim().toLowerCase())) return json({ code: "THEME_NAME_TAKEN", message: "You already have a theme with that name. Choose another name.", fields: { name: "You already have a theme with that name. Choose another name." } }, 409);
+      const theme: FakeTheme = { ...body, name: body.name.trim(), id: `theme-${fake.nextId++}`, updated_at: NOW };
+      fake.themes.push(theme);
+      return json(theme, 201);
+    }
+    const themeOne = path.match(/^\/api\/v1\/studio\/themes\/([^/]+)$/);
+    if (themeOne && method === "PUT") {
+      const theme = fake.themes.find((t) => t.id === themeOne[1]);
+      if (!theme) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      const body = request.postDataJSON() as Omit<FakeTheme, "id" | "updated_at">;
+      if (fake.themes.some((t) => t.id !== theme.id && t.name.toLowerCase() === body.name.trim().toLowerCase())) return json({ code: "THEME_NAME_TAKEN", message: "You already have a theme with that name. Choose another name.", fields: { name: "You already have a theme with that name. Choose another name." } }, 409);
+      Object.assign(theme, body, { name: body.name.trim(), updated_at: NOW });
+      return json(theme);
+    }
+    if (themeOne && method === "DELETE") {
+      if (!fake.themes.some((t) => t.id === themeOne[1])) return json({ code: "NOT_FOUND", message: "Not found." }, 404);
+      fake.themes = fake.themes.filter((t) => t.id !== themeOne[1]);
       return route.fulfill({ status: 204 });
     }
     const draftsMatch = path.match(/^\/api\/v1\/jobs\/([^/]+)\/drafts(?:\/([^/]+))?$/);
