@@ -26,8 +26,8 @@ export interface ProfileEntry {
   entry_type: string;
   data: EntryData;
   user_edited: boolean;
-  /** "resume" when a parse created it, "user" when the person added it. */
-  source: "resume" | "user";
+  /** "resume" when a parse created it, "github" when a chosen repository made it, "user" when the person added it. */
+  source: "resume" | "user" | "github";
   /** Recommended fields still empty. */
   flags: string[];
   created_at: string;

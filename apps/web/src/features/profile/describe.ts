@@ -59,7 +59,10 @@ export function summarize(entry: ProfileEntry, spec: EntrySpec | undefined): Ent
 }
 
 export function provenanceLabel(entry: ProfileEntry): string {
-  return entry.source === "resume" && !entry.user_edited ? "From your resume" : "Added or edited by you";
+  if (entry.user_edited) return "Added or edited by you";
+  if (entry.source === "resume") return "From your resume";
+  if (entry.source === "github") return "From GitHub";
+  return "Added or edited by you";
 }
 
 export function flagLabels(entry: ProfileEntry, spec: EntrySpec | undefined): string[] {

@@ -100,7 +100,7 @@ Each step writes to `workflow_steps`, each model call to `llm_calls`, each tool 
 
 ## 9A. As built in checkpoint 1.9
 
-The agent is `pv_llm.evidence_agent`. Differences from the design above: the tools are `search` (keyword and meaning search fused by rank) and `list_entries`; the GitHub tool arrives with the GitHub connector (3.1); the first search is run by code from the requirement's key words joined with OR before the first model step; evidence is named by labels (E1, E2) assigned in the run; the limits are 4 model calls and 3 tool calls per requirement, 90 model calls, 3 questions and ten minutes per run; progress is stored as the verdicts and questions themselves, not as a separate checkpoint. Requirements decided by the eligibility gates (work authorization, location) are not sent to the agent. See ADR-0032.
+The agent is `pv_llm.evidence_agent`. Differences from the design above: the tools are `search` (keyword and meaning search fused by rank) and `list_entries`; there is no live GitHub tool (ADR-0049): the repositories a person chooses become profile entries, and the agent finds them with the same `search` and `list_entries` tools; the first search is run by code from the requirement's key words joined with OR before the first model step; evidence is named by labels (E1, E2) assigned in the run; the limits are 4 model calls and 3 tool calls per requirement, 90 model calls, 3 questions and ten minutes per run; progress is stored as the verdicts and questions themselves, not as a separate checkpoint. Requirements decided by the eligibility gates (work authorization, location) are not sent to the agent. See ADR-0032.
 
 ## 10. Runtime decision (LangGraph)
 

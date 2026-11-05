@@ -3,6 +3,7 @@ import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { PageHeader } from "../../ui";
 import { EntriesSection } from "./EntriesSection";
 import { EvidenceSection } from "./EvidenceSection";
+import { GitHubSection } from "./GitHubSection";
 import { PreferencesSection } from "./PreferencesSection";
 import { ResumeSection } from "./ResumeSection";
 import "./profile.css";
@@ -20,6 +21,7 @@ export function ProfilePage() {
         description="Your evidence base: resume, projects, skills and anything else you add. Every conclusion about a job is traced back to what is stored here."
       />
       <ResumeSection onChanged={refreshEntries} />
+      <GitHubSection onChanged={refreshEntries} />
       <EntriesSection version={version} onChanged={refreshEntries} />
       <EvidenceSection version={version} />
       <PreferencesSection />

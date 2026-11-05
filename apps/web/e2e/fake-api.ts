@@ -18,10 +18,12 @@ export const SPECS = [
              field("highlights", "What you did", "list", false, true, "One achievement per line.")] },
   { entry_type: "skill", label: "Skill", plural: "Skills", primary_field: "name",
     fields: [field("name", "Skill", "text", true), field("category", "Group", "text")] },
+  { entry_type: "project", label: "Project", plural: "Projects", primary_field: "name",
+    fields: [field("name", "Project name", "text", true), field("description", "What it is", "longtext", false, true), field("url", "Link", "url")] },
 ];
 
 export interface Entry { id: string; entry_type: string; data: Record<string, unknown>; user_edited: boolean;
-  source: "resume" | "user"; flags: string[]; created_at: string; updated_at: string }
+  source: "resume" | "user" | "github"; flags: string[]; created_at: string; updated_at: string }
 
 export function flagsFor(type: string, data: Record<string, unknown>): string[] {
   const spec = SPECS.find((s) => s.entry_type === type);
@@ -407,6 +409,8 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   images: FakeImage[];
   /** Saved themes. */
   themes: FakeTheme[];
+  /** The GitHub connection. */
+  github: FakeGitHub;
   /** Application drafts per job. Each is working for two reads, then ready. */
   drafts: Record<string, FakeDraft[]>;
   /** Whether the evidence check of every job is complete, so drafts can be written. */
@@ -415,6 +419,13 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   shortlist: { enabled: boolean; frequency: string; weekday: number; hour: number; timezone: string; max_items: number; next_run_at: string | null; last_run_at: string | null };
   runs: { outcome: string; outcome_text: string; item_count: number; manual: boolean; at: string }[];
   verified: boolean }
+
+export interface FakeGitHubRepo { id: number; full_name: string; name: string; description: string; language: string; topics: string[]; stars: number; fork: boolean; archived: boolean; url: string; selected: boolean; suggested: boolean; has_excerpt: boolean }
+export interface FakeGitHub { available: boolean; connected: boolean; reads: number; sync_state: string; sync_error: string | null; repos: FakeGitHubRepo[]; revoked: boolean; calls: string[] }
+
+export function githubRepos(): FakeGitHubRepo[] {
+  return [1, 2, 3, 4].map((i) => ({ id: i, full_name: `asha/project-${i}`, name: `project-${i}`, description: `Project ${i} loads data into a clean table`, language: "Python", topics: [], stars: i, fork: false, archived: false, url: `https://github.com/asha/project-${i}`, selected: false, suggested: i <= 2, has_excerpt: false }));
+}
 
 export interface FakeTheme { id: string; name: string; font_pair: string; accent: string; ink: string; muted: string; tint: string; updated_at: string }
 
@@ -480,7 +491,7 @@ export function importBody(fake: Fake, batch: FakeImport) {
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], images: [], themes: [], drafts: {}, checked: true, runs: [], verified: true,
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], images: [], themes: [], github: { available: false, connected: false, reads: 0, sync_state: "idle", sync_error: null, repos: [], revoked: true, calls: [] }, drafts: {}, checked: true, runs: [], verified: true,
     shortlist: { enabled: false, frequency: "weekly", weekday: 0, hour: 8, timezone: "UTC", max_items: 5, next_run_at: null, last_run_at: null }, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
@@ -601,6 +612,57 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
       if (image.used) return json({ code: "IMAGE_LIMIT", message: "This picture is used in one of your resumes, or in a saved version of one. Remove it from there first, or delete that resume." }, 409);
       fake.images = fake.images.filter((i) => i.id !== image.id);
       return route.fulfill({ status: 204 });
+    }
+    if (path === "/api/v1/github" && method === "GET") {
+      const g = fake.github;
+      if (g.connected && (g.sync_state === "queued" || g.sync_state === "syncing")) {
+        g.reads += 1;
+        if (g.reads >= 2) {
+          g.sync_state = "idle";
+          if (g.repos.length === 0) g.repos = githubRepos();
+          // The worker makes entries for the chosen repositories.
+          fake.entries = fake.entries.filter((e) => e.source !== "github" || e.user_edited);
+          for (const r of g.repos.filter((x) => x.selected)) {
+            if (!fake.entries.some((e) => e.source === "github" && e.data.name === r.name)) fake.entries.push({ ...makeEntry(`gh${r.id}`, "project", { name: r.name, description: r.description, url: r.url }, "user"), source: "github" });
+          }
+        }
+      }
+      return json({
+        available: g.available, connected: g.connected, login: g.connected ? "asha" : null, profile_url: g.connected ? "https://github.com/asha" : null, scope: "",
+        scope_sentence: "Provenance asks GitHub for no permissions at all. That gives it read access to public information only: your public repositories and their README files. It cannot see private repositories, cannot change anything on GitHub, and never sees your password.",
+        sync_state: g.sync_state, sync_error: g.sync_error, connected_at: g.connected ? NOW : null, last_synced_at: g.connected && g.sync_state === "idle" ? NOW : null,
+        repos: g.repos, max_selected: 12, entries_from_github: fake.entries.filter((e) => e.source === "github").length,
+        platforms: [{ name: "LinkedIn", why: "LinkedIn does not allow other products to read your profile.", what: "Download your profile as a PDF from LinkedIn and upload it under Your resume." }, { name: "Anywhere else", why: "A portfolio, a paper or a talk is evidence too.", what: "Add it as an entry by hand with its link." }],
+      });
+    }
+    if (path === "/api/v1/github/start" && method === "POST") {
+      fake.github.calls.push("start");
+      if (!fake.github.available) return json({ code: "GITHUB_NOT_CONFIGURED", message: "GitHub is not set up on this server yet, so it cannot be connected. Nothing was changed." }, 503);
+      return json({ authorize_url: "https://github.com/login/oauth/authorize?client_id=cid&state=" + "s".repeat(40) });
+    }
+    if (path === "/api/v1/github/callback" && method === "POST") {
+      const body = request.postDataJSON() as { code: string; state: string };
+      fake.github.calls.push(`callback:${body.code}`);
+      if (body.code === "bad") return json({ code: "GITHUB_INVALID_CODE", message: "GitHub did not accept that sign-in. Start again from the Connect GitHub button." }, 400);
+      fake.github.connected = true; fake.github.sync_state = "queued"; fake.github.reads = 0;
+      return json({ login: "asha" });
+    }
+    if (path === "/api/v1/github/sync" && method === "POST") { fake.github.calls.push("sync"); fake.github.sync_state = "queued"; fake.github.reads = 0; return route.fulfill({ status: 202 }); }
+    if (path === "/api/v1/github/repos" && method === "PUT") {
+      const body = request.postDataJSON() as { repo_ids: number[] };
+      fake.github.calls.push(`repos:${body.repo_ids.join(",")}`);
+      if (body.repo_ids.length > 12) return json({ code: "GITHUB_TOO_MANY_SELECTED", message: "Choose at most 12 repositories. Fewer, better chosen ones read better." }, 400);
+      for (const r of fake.github.repos) r.selected = body.repo_ids.includes(r.id);
+      fake.github.sync_state = "queued"; fake.github.reads = 0;
+      return route.fulfill({ status: 202 });
+    }
+    if (path === "/api/v1/github/disconnect" && method === "POST") {
+      const body = request.postDataJSON() as { keep_entries: boolean };
+      fake.github.calls.push(`disconnect:${body.keep_entries}`);
+      const removed = fake.entries.filter((e) => e.source === "github" && !e.user_edited).length;
+      fake.entries = body.keep_entries ? fake.entries.map((e) => (e.source === "github" ? { ...e, source: "user" as const } : e)) : fake.entries.filter((e) => e.source !== "github" || e.user_edited);
+      fake.github.connected = false; fake.github.repos = []; fake.github.sync_state = "idle";
+      return json({ revoked: fake.github.revoked, entries_removed: body.keep_entries ? 0 : removed });
     }
     if (path === "/api/v1/studio/themes" && method === "GET") {
       const sorted = [...fake.themes].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));

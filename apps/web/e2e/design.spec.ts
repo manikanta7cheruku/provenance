@@ -88,7 +88,8 @@ test("system theme follows the operating system preference", async ({ page }) =>
   await page.goto("/design");
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(14, 17, 22)");
   await page.emulateMedia({ colorScheme: "light" });
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(250, 248, 244)");
+  // Reduced motion makes a change last a frame instead of no time, so wait for it to land.
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(250, 248, 244)");
 });
 
 test("the confirmation dialog traps focus, starts on Cancel, closes on Escape and returns focus", async ({ page }) => {

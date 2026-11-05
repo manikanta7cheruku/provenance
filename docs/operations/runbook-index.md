@@ -24,3 +24,4 @@ Each runbook is written in checkpoint 3.7 (earlier ones when their component is 
 | Security incident | 3.7 |
 | Backup restore | 3.7 |
 | Secret rotation | 3.7 |
+| [The GitHub connection](runbooks/github-connection.md) | 3.1 (written) |

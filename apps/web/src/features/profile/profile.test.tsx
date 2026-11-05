@@ -49,6 +49,8 @@ describe("describe", () => {
     expect(provenanceLabel(entry())).toBe("From your resume");
     expect(provenanceLabel(entry({ user_edited: true }))).toBe("Added or edited by you");
     expect(provenanceLabel(entry({ source: "user" }))).toBe("Added or edited by you");
+    expect(provenanceLabel(entry({ source: "github" }))).toBe("From GitHub");
+    expect(provenanceLabel(entry({ source: "github", user_edited: true }))).toBe("Added or edited by you");
   });
 
   it("names missing fields with their labels", () => {

@@ -13,6 +13,10 @@ export default defineConfig({
   reporter: [["list"]],
   use: {
     baseURL: "http://localhost:4173",
+    // Pages rise and fade in. A scan that lands mid-animation reads half-faded text as low contrast and
+    // a click lands where the element is about to be, so tests run with motion reduced. The base styles
+    // already stop all animation under this preference.
+    reducedMotion: "reduce",
     ...(channel ? { channel } : {}),
     trace: "retain-on-failure",
   },

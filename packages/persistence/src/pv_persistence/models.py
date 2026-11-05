@@ -5,7 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Numeric, Text, func
+from sqlalchemy import BigInteger, Boolean, Date, DateTime, ForeignKey, Integer, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY, CITEXT, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -932,3 +932,63 @@ class ResumeTheme(Base):
     tint: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 3.1: the GitHub connection (migration 0018)
+
+
+class GitHubConnection(Base):
+    """A person's GitHub connection. The token is sealed (encrypted). Protected by RLS."""
+
+    __tablename__ = "github_connections"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    github_user_id: Mapped[int] = mapped_column(BigInteger)
+    login: Mapped[str] = mapped_column(Text)
+    token_sealed: Mapped[str] = mapped_column(Text)
+    scope: Mapped[str] = mapped_column(Text, default="")
+    sync_state: Mapped[str] = mapped_column(Text, default="idle")
+    sync_error: Mapped[str | None] = mapped_column(Text, default=None)
+    connected_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class GitHubOAuthState(Base):
+    """A started sign-in: a hash of the state and the sealed PKCE verifier. Protected by RLS."""
+
+    __tablename__ = "github_oauth_states"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    state_hash: Mapped[str] = mapped_column(Text)
+    verifier_sealed: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class GitHubRepo(Base):
+    """A public repository as last read, so the person can choose which become evidence. RLS."""
+
+    __tablename__ = "github_repos"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    repo_id: Mapped[int] = mapped_column(BigInteger)
+    full_name: Mapped[str] = mapped_column(Text)
+    name: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text, default="")
+    html_url: Mapped[str] = mapped_column(Text, default="")
+    language: Mapped[str] = mapped_column(Text, default="")
+    topics: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    stars: Mapped[int] = mapped_column(Integer, default=0)
+    fork: Mapped[bool] = mapped_column(Boolean, default=False)
+    archived: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_remote: Mapped[str] = mapped_column(Text, default="")
+    pushed_remote: Mapped[str] = mapped_column(Text, default="")
+    suggested: Mapped[bool] = mapped_column(Boolean, default=False)
+    selected: Mapped[bool] = mapped_column(Boolean, default=False)
+    readme_excerpt: Mapped[str] = mapped_column(Text, default="")
+    seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
