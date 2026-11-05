@@ -95,5 +95,9 @@ def import_url(
 ) -> ImportBatchOut:
     limiter.check("import_url_user", str(auth.user_id))
     return import_service.start_url(
-        engine, user_id=auth.user_id, payload=payload, ip_hash=ip_hash_of(request, settings)
+        engine,
+        user_id=auth.user_id,
+        payload=payload,
+        ip_hash=ip_hash_of(request, settings),
+        settings=settings,
     )

@@ -24,6 +24,7 @@ class ApiError(Exception):
         failure_class: FailureClass,
         fields: dict[str, str] | None = None,
         retry_after_seconds: int | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
         self.status_code = status_code
@@ -32,6 +33,7 @@ class ApiError(Exception):
         self.failure_class = failure_class
         self.fields = fields or {}
         self.retry_after_seconds = retry_after_seconds
+        self.details = details or {}
 
     def body(self, request_id: str) -> dict[str, Any]:
         body: dict[str, Any] = {
@@ -44,6 +46,8 @@ class ApiError(Exception):
             body["fields"] = self.fields
         if self.retry_after_seconds is not None:
             body["retry_after_seconds"] = self.retry_after_seconds
+        if self.details:
+            body["details"] = self.details
         return body
 
 

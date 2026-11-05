@@ -23,8 +23,10 @@ from pv_api.schemas import (
     ResumeSave,
     VersionOut,
 )
+from pv_api.services import entitlement_service
 from pv_api.services.job_service import not_found
 from pv_config import Settings
+from pv_domain.entitlements import resume_limit_message
 from pv_domain.failures import FailureClass
 from pv_domain.resume_doc import (
     ResumeDocError,
@@ -111,11 +113,12 @@ def create(
     ip_hash: str | None,
 ) -> ResumeDocumentOut:
     with tenant_session(engine, user_id) as db:
-        if len(list_documents(db, user_id)) >= settings.studio_max_resumes:
+        cap, plan_label = entitlement_service.resume_cap(db, settings, user_id)
+        if len(list_documents(db, user_id)) >= cap:
             raise ApiError(
                 409,
                 "RESUME_LIMIT",
-                "The free plan keeps one resume. Delete it first to start another.",
+                resume_limit_message(plan_label, cap),
                 failure_class=FailureClass.USER_ACTION_REQUIRED,
             )
         if payload.start == "profile":
@@ -272,7 +275,9 @@ def export(
                 failure_class=FailureClass.USER_ACTION_REQUIRED,
             )
         created = start_export(db, doc)
-        removed = prune_exports(db, user_id, doc_id, settings.studio_max_exports)
+        removed = prune_exports(
+            db, user_id, doc_id, entitlement_service.exports_cap(db, settings, user_id)
+        )
         out = _export_out(created)
     for key in removed:
         with contextlib.suppress(StorageError):

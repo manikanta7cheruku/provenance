@@ -23,7 +23,9 @@ from pv_api.schemas import (
     JobCreatedOut,
     JobManualIn,
 )
-from pv_api.services import job_service
+from pv_api.services import entitlement_service, job_service
+from pv_config import Settings
+from pv_domain.entitlements import UNIT_URL
 from pv_domain.failures import FailureClass
 from pv_domain.job import SOURCE_NAMES
 from pv_domain.job_import import (
@@ -181,7 +183,12 @@ def start_file(
 
 
 def start_url(
-    engine: Engine, *, user_id: uuid.UUID, payload: ImportUrlIn, ip_hash: str | None
+    engine: Engine,
+    *,
+    user_id: uuid.UUID,
+    payload: ImportUrlIn,
+    ip_hash: str | None,
+    settings: Settings,
 ) -> ImportBatchOut:
     try:
         safe = check_import_url(payload.url)
@@ -195,6 +202,7 @@ def start_url(
             host=safe.host,
             default_source=source_or_other(payload.source_name),
         )
+        entitlement_service.charge(db, settings, user_id, UNIT_URL, f"url:{batch.id}")
         out = _batch_out(batch)
     record_audit(
         engine, category="audit", action="import.url_started", actor_user_id=user_id,

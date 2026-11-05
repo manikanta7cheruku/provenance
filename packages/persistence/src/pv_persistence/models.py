@@ -1063,3 +1063,49 @@ class MockInterview(Base):
     turns: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+# ---- checkpoint 3.3: plans, entitlements and the usage ledger (migration 0020)
+
+
+class Plan(Base):
+    """A plan and its limits, as data. Readable by everyone, changed only by the database owner."""
+
+    __tablename__ = "plans"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    label: Mapped[str] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserPlan(Base):
+    """Which plan a person is on. No row means the default plan. Protected by RLS."""
+
+    __tablename__ = "user_plans"
+
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    plan_id: Mapped[str] = mapped_column(ForeignKey("plans.id"))
+    assigned_by: Mapped[str] = mapped_column(Text, default="operator")
+    assigned_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class UsageLedger(Base):
+    """One billable event. The same key in the same month is the same event. Protected by RLS."""
+
+    __tablename__ = "usage_ledger"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    unit: Mapped[str] = mapped_column(Text)
+    amount: Mapped[int] = mapped_column(Integer, default=1)
+    period_start: Mapped[date] = mapped_column(Date)
+    event_key: Mapped[str] = mapped_column(Text)
+    plan_id: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

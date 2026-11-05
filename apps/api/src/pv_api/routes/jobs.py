@@ -162,7 +162,7 @@ def start_draft(
 ) -> DraftsOut:
     limiter.check("draft_start_user", str(auth.user_id))
     return drafts_service.start(
-        engine, auth.user_id, job_id, payload, ip_hash_of(request, settings)
+        engine, auth.user_id, job_id, payload, ip_hash_of(request, settings), settings=settings
     )
 
 
@@ -225,7 +225,9 @@ def start_analysis(
     limiter: LimiterDep,
 ) -> AnalysisOut:
     limiter.check("analysis_start_user", str(auth.user_id))
-    return analysis_service.start(engine, auth.user_id, job_id, ip_hash_of(request, settings))
+    return analysis_service.start(
+        engine, auth.user_id, job_id, ip_hash_of(request, settings), settings=settings
+    )
 
 
 @router.post("/{job_id}/analysis/questions/{question_id}/answer", response_model=AnalysisOut)

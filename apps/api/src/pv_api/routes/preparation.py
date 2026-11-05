@@ -43,7 +43,13 @@ def write(
 ) -> PreparationOut:
     limiter.check("prep_start_user", str(auth.user_id))
     return preparation_service.start_action(
-        engine, auth.user_id, job_id, action, replace, ip_hash_of(request, settings)
+        engine,
+        auth.user_id,
+        job_id,
+        action,
+        replace,
+        ip_hash_of(request, settings),
+        settings=settings,
     )
 
 

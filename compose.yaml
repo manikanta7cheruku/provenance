@@ -26,6 +26,7 @@ x-api-env: &api-env
   # Private file storage (resumes). The api and the worker share this volume.
   FILE_STORAGE_DIR: ${FILE_STORAGE_DIR:-/data/files}
   # AI provider. The worker uses it to read resumes and embed evidence, the api to embed search queries.
+  DEFAULT_PLAN: ${DEFAULT_PLAN:-free}
   GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
   GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
   GEMINI_API_KEY: ${GEMINI_API_KEY:-}

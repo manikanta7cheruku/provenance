@@ -165,7 +165,7 @@ def test_a_blank_start_and_the_one_resume_limit(app: FastAPI, make_account: Make
     assert first["content"]["sections"] == [] and first["template"] == "modern"
     second = create(account)
     assert second.status_code == 409 and second.json()["code"] == "RESUME_LIMIT"
-    assert "one resume" in second.json()["message"]
+    assert "keeps 1 resume" in second.json()["message"]
     assert len(account.client.get(f"{STUDIO}/resumes").json()) == 1
 
 

@@ -30,10 +30,12 @@ from pv_api.schemas import (
     SourceOut,
     SourceUpdateIn,
 )
+from pv_api.services import entitlement_service
 from pv_api.services.dedupe_service import public_sighting
 from pv_api.services.job_service import not_found
 from pv_config import Settings
 from pv_domain.company import Candidate, Company
+from pv_domain.entitlements import UNIT_DISCOVERY
 from pv_domain.failures import FailureClass
 from pv_domain.job_feed import ADAPTERS
 from pv_domain.resolver import SearchPlan, decide_source, plan_search
@@ -186,6 +188,10 @@ def plan(
                 503,
             ) from exc
         keys = {r.key: r.display_name for r in records}
+        with tenant_session(engine, user_id) as db:
+            entitlement_service.charge(
+                db, settings, user_id, UNIT_DISCOVERY, f"discovery:{uuid.uuid4().hex}"
+            )
         try:
             intent, calls = parse_intent(
                 provider, model=settings.llm_model, query=query, source_keys=keys

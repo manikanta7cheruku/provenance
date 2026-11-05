@@ -21,7 +21,8 @@ from pv_api.schemas import (
     DraftsOut,
     DraftStartIn,
 )
-from pv_api.services import job_service
+from pv_api.services import entitlement_service, job_service
+from pv_config import Settings
 from pv_domain.analysis import GATE_CATEGORIES, AnalysisStatus
 from pv_domain.drafts import (
     COMMON_QUESTIONS,
@@ -38,6 +39,7 @@ from pv_domain.drafts import (
     verify_draft,
     word_count,
 )
+from pv_domain.entitlements import UNIT_MATERIAL
 from pv_domain.failures import FailureClass
 from pv_domain.tailoring import job_vocabulary
 from pv_persistence.analysis import get_analysis
@@ -140,6 +142,8 @@ def start(
     job_id: uuid.UUID,
     payload: DraftStartIn,
     ip_hash: str | None,
+    *,
+    settings: Settings,
 ) -> DraftsOut:
     question = clean_question(payload.question) if payload.kind == KIND_ANSWER else ""
     if payload.kind == KIND_ANSWER and len(question) < MIN_QUESTION_CHARS:
@@ -166,6 +170,9 @@ def start(
                     "EDITED_DRAFT",
                     "You edited this draft. Writing it again replaces your edits. Confirm to go ahead.",
                 )
+        entitlement_service.charge(
+            db, settings, user_id, UNIT_MATERIAL, f"material:{uuid.uuid4().hex}"
+        )
         start_draft(db, owner_id=user_id, posting_id=job_id, kind=payload.kind, question=question)
         out = _view(db, posting)
     record_audit(
