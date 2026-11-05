@@ -5,7 +5,7 @@ import pytest
 
 from pv_config import SecretBox, SecretBoxError
 
-SECRET = "a-long-enough-application-secret-for-tests-0123456789"
+SECRET = "s" * 48
 
 
 def test_a_secret_round_trips_and_is_not_stored_in_clear() -> None:
