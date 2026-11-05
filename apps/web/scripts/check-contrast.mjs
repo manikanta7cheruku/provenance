@@ -69,6 +69,13 @@ const PAIRS = [
   ["--color-text-on-accent", "--color-accent-hover", TEXT, "primary button hover"],
   ["--color-text-on-accent", "--color-accent-active", TEXT, "primary button pressed"],
   ["--color-text-on-danger", "--color-danger-fill", TEXT, "destructive button"],
+  ...SURFACES.map((s) => ["--color-highlight", s, TEXT, "highlight (brass) text"]),
+  ["--color-highlight", "--color-highlight-subtle", TEXT, "highlight text on its tint"],
+  ["--color-text-primary", "--color-highlight-subtle", TEXT, "text on the highlight tint"],
+  ["--color-text-on-gradient", "--gradient-dusk-start", TEXT, "text on the start of the gradient"],
+  ["--color-text-on-gradient", "--gradient-dusk-end", TEXT, "text on the end of the gradient"],
+  ["--color-highlight-line", "--color-surface-base", NON_TEXT, "the brass rule and indicator"],
+  ["--color-highlight-line", "--color-surface-raised", NON_TEXT, "the brass indicator on a raised surface"],
   ...["--color-success", "--color-warning", "--color-danger", "--color-info"].flatMap((c) =>
     ["--color-surface-base", "--color-surface-raised"].map((s) => [c, s, TEXT, "status text"]),
   ),

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Button } from "../ui";
+import { BrandMark, Button } from "../ui";
 import { visibleNavItems, SETTINGS_ITEM } from "./nav";
 import { useSession } from "../lib/session";
 import { NavAccount } from "./NavAccount";
@@ -35,7 +35,10 @@ export function Shell() {
         Skip to content
       </a>
       <header className="shell__header">
-        <span className="shell__brand">Provenance</span>
+        <span className="shell__brand">
+          <BrandMark />
+          Provenance
+        </span>
         <Button
           className="shell__menu-button"
           aria-expanded={menuOpen}

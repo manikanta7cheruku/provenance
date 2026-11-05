@@ -1,4 +1,5 @@
 export { ActionButton } from "./ActionButton";
+export { BrandMark } from "./BrandMark";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { DataTable } from "./DataTable";
 export { Button } from "./Button";

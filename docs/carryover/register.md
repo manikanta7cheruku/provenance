@@ -141,6 +141,14 @@ The product runs end to end without a key and says so honestly. These items need
 | C-103 | 2.13 | Themes older than a rule | A rule added later could refuse an old theme when applied | If the color rules change, add a check or a migration that lists themes that no longer pass | open |
 | C-104 | 2.13 | Screen reader pass of My themes | Axe passes, no screen reader was used | Do it at 3.7 | open |
 
+## O. Design foundation (added at 3.8)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-105 | 3.8 | Confirm the palette by using it | It was chosen by reasoning and measurement, not by living with it | Use the product for a few days in light and dark. Say what you would change. It is one file | open |
+| C-106 | 3.8 | Colors on real displays | Checked by arithmetic, not on devices | Look at the gallery on a phone, a laptop and an external monitor, in daylight and at night | open |
+| C-107 | 3.8 | Color-blindness check | Status never depends on color alone, but no simulation was run | Run each main screen through a color-blindness simulator | open |
+| C-108 | 3.8 | A real designer's review | The direction is written and tested, not reviewed by a designer | Ask a designer to review the gallery and the voice guide before 3.10 | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|
