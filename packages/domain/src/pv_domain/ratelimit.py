@@ -50,6 +50,8 @@ DEFAULT_POLICIES: dict[str, RatePolicy] = {
         RatePolicy("github_start_user", 20, 3600),
         RatePolicy("github_callback_user", 20, 3600),
         RatePolicy("github_sync_user", 30, 3600),
+        RatePolicy("prep_start_user", 60, 3600),
+        RatePolicy("prep_edit_user", 600, 3600),
         RatePolicy("draft_edit_user", 600, 3600),
         RatePolicy("shortlist_settings_user", 60, 3600),
         RatePolicy("shortlist_send_user", 5, 86400),

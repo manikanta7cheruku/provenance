@@ -19,6 +19,7 @@ import { NotFoundPage } from "../features/notfound";
 import { ImportReportPage, JobDetailPage, OpportunitiesPage } from "../features/opportunities";
 import { PlannedPage } from "../features/planned";
 import { GitHubCallbackPage, ProfilePage } from "../features/profile";
+import { PreparationPage } from "../features/preparation";
 import { RunDetailPage, RunsPage } from "../features/runs";
 import { SettingsPage } from "../features/settings";
 import { FindJobsPage } from "../features/search";
@@ -69,6 +70,7 @@ function ProductApp() {
               <Route path="/opportunities" element={<OpportunitiesPage />} />
               <Route path="/opportunities/imports/:batchId" element={<ImportReportPage />} />
               <Route path="/opportunities/:jobId" element={<JobDetailPage />} />
+              <Route path="/opportunities/:jobId/prepare" element={<PreparationPage />} />
               <Route path="/find" element={<FindJobsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/connect/github/callback" element={<GitHubCallbackPage />} />

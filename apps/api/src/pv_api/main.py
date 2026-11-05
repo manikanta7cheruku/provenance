@@ -29,6 +29,7 @@ from pv_api.routes import (
     imports,
     jobs,
     ops,
+    preparation,
     profile,
     resume,
     runs,
@@ -168,6 +169,7 @@ def create_app(
     app.include_router(studio.router, prefix="/api/v1")
     app.include_router(github.router, prefix="/api/v1")
     app.include_router(images.router, prefix="/api/v1")
+    app.include_router(preparation.router, prefix="/api/v1")
     app.include_router(themes.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")
     app.include_router(search.router, prefix="/api/v1")

@@ -222,11 +222,16 @@ test("typing in the side panel changes the page at once", async ({ page }) => {
 test("bold from the format bar is kept in the saved content", async ({ page }) => {
   const fake = await open(page);
   await page.locator("[data-el='headline']").dblclick();
+  // Editing starts a moment after the double click. Select all only once it has.
+  const formatting = page.getByRole("toolbar", { name: "Formatting for the text being edited" });
+  await expect(formatting).toBeVisible();
+  await expect(page.locator("[data-el='headline'] [contenteditable='true']")).toBeFocused();
   await page.keyboard.press("Control+a");
-  await page.getByRole("toolbar", { name: "Formatting for the text being edited" }).getByRole("button", { name: "Bold" }).click();
+  await formatting.getByRole("button", { name: "Bold" }).click();
   await page.keyboard.press("Escape");
   await saved(page);
-  expect(JSON.stringify(find(fake, "headline").body)).toContain('"bold"');
+  // "All changes saved" can still be showing from before the edit, so wait for the content itself.
+  await expect.poll(() => JSON.stringify(find(fake, "headline").body), { timeout: 8000 }).toContain('"bold"');
 });
 
 test("adding text, a box and a rule, then deleting and undoing", async ({ page }) => {
