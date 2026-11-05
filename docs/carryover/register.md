@@ -177,6 +177,16 @@ The product runs end to end without a key and says so honestly. These items need
 | C-123 | 3.1 | Other evidence platforms | LeetCode, CodeChef, GeeksforGeeks and similar have no connector and their terms were not read | If you want them, read their terms and API pages and decide per platform. Until then they use the by-hand path | open |
 | C-124 | 3.1 | A screen reader pass of the GitHub panel | Axe passes. No screen reader was used on the repository list and the disconnect question | Do it at 3.7 | open |
 
+## S. Career preparation (added at 3.2)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-125 | 3.2 | Written material on a real model | Questions, guidance, messages were tested with a stub model | With a key set, write every kind for three real jobs. Read every item. Count items the claim check missed and items that read as flattery. Record the result | open |
+| C-126 | 3.2 | The mock interview rubric on real answers | The rubric was tested on written examples | Answer five questions as you really would and see whether the scores and notes feel fair. Note answers it misjudges and add test cases, then bump the rules version | open |
+| C-127 | 3.2 | Company research and learning resources | The company section shows only what the posting states and the person's notes. No resource links exist | Decide which official company sources to allow, then build the fetch through the hardened fetch layer with source and time shown. Build a curated list of real learning resources and keep it current | open |
+| C-128 | 3.2 | Real people practising | No one has used preparation or the mock interview | Watch three people use it for one real job. Note where they stop. Fix before launch | open |
+| C-129 | 3.2 | A screen reader pass of preparation | Axe passes. No screen reader was used on the tabs, the disclosures and the mock interview | Do it at 3.7 | open |
+| C-130 | 3.2 | A model written follow-up in the mock interview | Feedback is a rubric. A model follow-up could probe an answer | Only if the evaluation set (3.6) shows it helps and the claim check keeps it honest | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

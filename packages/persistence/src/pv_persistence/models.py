@@ -992,3 +992,74 @@ class GitHubRepo(Base):
     selected: Mapped[bool] = mapped_column(Boolean, default=False)
     readme_excerpt: Mapped[str] = mapped_column(Text, default="")
     seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 3.2: career preparation (migration 0019)
+
+
+class JobPreparation(Base):
+    """The interview date and the person's own notes about a company, for one job. RLS."""
+
+    __tablename__ = "job_preparations"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    interview_date: Mapped[date | None] = mapped_column(Date, default=None)
+    company_link: Mapped[str] = mapped_column(Text, default="")
+    company_notes: Mapped[str] = mapped_column(Text, default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PrepOutput(Base):
+    """One kind of preparation for one job: questions, topics, or a message to send. RLS."""
+
+    __tablename__ = "prep_outputs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    action: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    origin: Mapped[str] = mapped_column(Text, default="model")
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    seq: Mapped[int] = mapped_column(Integer, default=1)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workflow_runs.id", ondelete="SET NULL"), default=None
+    )
+    prompt_version: Mapped[str | None] = mapped_column(Text, default=None)
+    model_calls: Mapped[int] = mapped_column(Integer, default=0)
+    items: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    body: Mapped[str] = mapped_column(Text, default="")
+    evidence: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    claims: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PrepProgress(Base):
+    """What the person has ticked as done, by a stable key. RLS."""
+
+    __tablename__ = "prep_progress"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    item_key: Mapped[str] = mapped_column(Text)
+    done: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class MockInterview(Base):
+    """A practice session: the questions, and each answer with its feedback. RLS."""
+
+    __tablename__ = "mock_interviews"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    posting_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("job_postings.id", ondelete="CASCADE"))
+    state: Mapped[str] = mapped_column(Text, default="active")
+    questions: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    turns: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)

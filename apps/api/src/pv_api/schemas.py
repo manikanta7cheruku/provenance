@@ -1477,3 +1477,172 @@ class GitHubDisconnectIn(BaseModel):
 class GitHubDisconnectOut(BaseModel):
     revoked: bool
     entries_removed: int
+
+
+# ---- checkpoint 3.2: career preparation
+class PrepClaimOut(BaseModel):
+    text: str
+    kind: str
+    supported: bool
+    source: str | None
+
+
+class PrepItemOut(BaseModel):
+    key: str
+    text: str
+    guidance: str
+    category: str
+    difficulty: str
+    requirement_id: str | None
+    evidence_count: int
+    insufficient_evidence: bool
+    note: str
+    claims: list[PrepClaimOut]
+    unsupported_count: int
+    done: bool
+
+
+class PrepEvidenceOut(BaseModel):
+    text: str
+    source: str
+    cited: bool
+
+
+class PrepActionOut(BaseModel):
+    key: str
+    label: str
+    description: str
+    shape: str
+    # None when nothing has been made yet.
+    status: str | None
+    error: str | None
+    origin: str | None
+    items: list[PrepItemOut]
+    body: str
+    word_count: int
+    claims: list[PrepClaimOut]
+    evidence: list[PrepEvidenceOut]
+    updated_at: datetime | None
+
+
+class PrepConceptOut(BaseModel):
+    key: str
+    requirement_id: str
+    text: str
+    kind: str
+    category: str
+    verdict: str
+    priority: str
+    priority_label: str
+    difficulty: str
+    why: str
+    done: bool
+
+
+class PrepCoverageOut(BaseModel):
+    required: int
+    met: int
+    partial: int
+    not_shown: int
+    unchecked: int
+
+
+class PrepPlanDayOut(BaseModel):
+    date: date
+    kind: str
+    topics: list[str]
+
+
+class PrepCompanyOut(BaseModel):
+    name: str
+    location: str
+    source_name: str
+    source_url: str | None
+    link: str
+    notes: str
+    says: list[str]
+
+
+class PrepProgressOut(BaseModel):
+    done: int
+    total: int
+    percent: int
+
+
+class MockRubricOut(BaseModel):
+    name: str
+    score: int
+    note: str
+
+
+class MockTurnOut(BaseModel):
+    question: str
+    answer: str
+    rubric: list[MockRubricOut]
+    total: int
+    maximum: int
+    unsupported_claims: list[str]
+    follow_up: str
+    words: int
+
+
+class MockOut(BaseModel):
+    id: uuid.UUID
+    state: str
+    question_count: int
+    turns: list[MockTurnOut]
+    current_question: str | None
+    current_index: int
+
+
+class PreparationOut(BaseModel):
+    job_id: uuid.UUID
+    title: str
+    company: str
+    can_prepare: bool
+    blocker: str | None
+    family: str
+    years: int
+    rules_version: str
+    coverage: PrepCoverageOut
+    concepts: list[PrepConceptOut]
+    actions: list[PrepActionOut]
+    interview_date: date | None
+    plan: list[PrepPlanDayOut]
+    company_info: PrepCompanyOut
+    progress: PrepProgressOut
+    mock: MockOut | None
+    likely_label: str
+    generated_label: str
+
+
+class PrepDateIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    interview_date: date | None = None
+
+
+class PrepCompanyIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    link: str = Field(default="", max_length=500)
+    notes: str = Field(default="", max_length=4000)
+
+
+class PrepProgressIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    key: str = Field(min_length=1, max_length=120)
+    done: bool
+
+
+class PrepTextIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str = Field(max_length=6000)
+
+
+class MockAnswerIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: str = Field(max_length=6000)

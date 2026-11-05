@@ -390,6 +390,9 @@ export function previewHtml(content: any): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Resume</title><style>body{margin:0;background:#e9e9e6;font-family:sans-serif}.sheet{width:794px;min-height:1123px;margin:0 auto;padding:60px;box-sizing:border-box;background:#fff}</style></head><body><main class="sheet"><h1>${content.header?.name ?? ""}</h1>${sections}</main></body></html>`;
 }
 
+import { handlePreparation, newPrep } from "./fake-prep";
+import type { FakePrep } from "./fake-prep";
+
 export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: Entry[]; reads: number; prefs: Record<string, unknown>; nextId: number;
   /** Whether the fake backend has an AI key and embedded entries. */
   meaning: "off" | "ready";
@@ -411,6 +414,8 @@ export interface Fake { resume: ReturnType<typeof resumeBody> | null; entries: E
   themes: FakeTheme[];
   /** The GitHub connection. */
   github: FakeGitHub;
+  /** Career preparation for the sample job. */
+  prep: FakePrep;
   /** Application drafts per job. Each is working for two reads, then ready. */
   drafts: Record<string, FakeDraft[]>;
   /** Whether the evidence check of every job is complete, so drafts can be written. */
@@ -491,7 +496,7 @@ export function importBody(fake: Fake, batch: FakeImport) {
 
 export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<Fake> {
   const fake: Fake = {
-    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], images: [], themes: [], github: { available: false, connected: false, reads: 0, sync_state: "idle", sync_error: null, repos: [], revoked: true, calls: [] }, drafts: {}, checked: true, runs: [], verified: true,
+    resume: null, entries: [], reads: 0, nextId: 10, meaning: "off", jobs: [], jobReads: {}, analyses: {}, studio: newStudio(), matches: [], imports: [], importReads: {}, views: [], asked: [], images: [], themes: [], prep: newPrep(), github: { available: false, connected: false, reads: 0, sync_state: "idle", sync_error: null, repos: [], revoked: true, calls: [] }, drafts: {}, checked: true, runs: [], verified: true,
     shortlist: { enabled: false, frequency: "weekly", weekday: 0, hour: 8, timezone: "UTC", max_items: 5, next_run_at: null, last_run_at: null }, prefs: {
       target_roles: [], authorized_countries: [], needs_sponsorship: null, locations: [], open_to_relocate: null,
       remote_preference: null, employment_types: [], min_salary_amount: null, min_salary_currency: null, exclusions: [],
@@ -503,6 +508,9 @@ export async function fakeApi(page: Page, initial: Partial<Fake> = {}): Promise<
     const path = url.pathname;
     const method = request.method();
     const json = (body: unknown, status = 200) => route.fulfill({ status, json: body });
+    // Only a preparation request has a JSON body to read. An upload body is raw bytes.
+    const prepared = path.includes("/preparation") ? handlePreparation(path, method, { ...(request.postDataJSON() ?? {}), __replace: url.searchParams.get("replace") === "true" }, fake) : null;
+    if (prepared) return route.fulfill({ status: prepared.status, ...(prepared.json !== undefined ? { json: prepared.json } : {}) });
     if (path === "/api/v1/status") return json({ service: "api", version: "0", environment: "test", ready: true, checks: { database: "ok", migrations: "ok" } });
     if (path === "/api/v1/auth/session") return json({ authenticated: true, user: USER, csrf_token: "t", config: { signup_mode: "invite", email_verification_required: false } });
     if (path === "/api/v1/profile/schema") return json(SPECS);

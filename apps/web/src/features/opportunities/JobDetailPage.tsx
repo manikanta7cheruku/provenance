@@ -236,6 +236,14 @@ export function JobDetailPage() {
       ) : null}
       {data.ui_state === "ready" ? <Ready job={data} /> : null}
       {data.ui_state === "ready" ? <EvidenceCheck jobId={data.id} /> : null}
+      {data.ui_state === "ready" ? (
+        <Section title="Prepare for the interview">
+          <p>What to prepare and in what order, practice questions, a mock interview and a plan, built from this job and your own evidence.</p>
+          <p>
+            <Link to={`/opportunities/${data.id}/prepare`}>Open preparation</Link>
+          </p>
+        </Section>
+      ) : null}
       {data.ui_state === "ready" ? <Drafts jobId={data.id} /> : null}
       {data.ui_state === "ready" ? <Sightings jobId={data.id} /> : null}
 
