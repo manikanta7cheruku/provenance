@@ -340,15 +340,17 @@ test("the layout check names overlapping text and can show it", async ({ page })
 
 test("zoom changes the page size", async ({ page }) => {
   await open(page);
-  const fit = (await page.locator("[data-page='0']").boundingBox())!.width;
+  const width = async () => (await page.locator("[data-page='0']").boundingBox())!.width;
+  const fit = await width();
   const zoom = page.getByRole("combobox", { name: "Zoom" });
   await zoom.selectOption("2");
-  const big = (await page.locator("[data-page='0']").boundingBox())!.width;
-  expect(big).toBeGreaterThan(fit * 1.5);
+  // The page is redrawn after the choice. Wait for it, as a slow machine takes longer.
+  await expect.poll(width).toBeGreaterThan(fit * 1.5);
+  const big = await width();
   await page.getByRole("button", { name: "Zoom out" }).click();
-  expect((await page.locator("[data-page='0']").boundingBox())!.width).toBeLessThan(big);
+  await expect.poll(width).toBeLessThan(big);
   await zoom.selectOption("fit");
-  expect(Math.abs((await page.locator("[data-page='0']").boundingBox())!.width - fit)).toBeLessThan(3);
+  await expect.poll(async () => Math.abs((await width()) - fit)).toBeLessThan(3);
 });
 
 test("several elements can be selected from the keyboard and aligned", async ({ page }) => {
