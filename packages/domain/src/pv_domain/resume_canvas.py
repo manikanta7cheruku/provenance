@@ -230,6 +230,11 @@ def _clean_style(raw: Any, problems: dict[str, str]) -> dict[str, Any]:
     return style
 
 
+def clean_style(raw: Any, problems: dict[str, str]) -> dict[str, Any]:
+    """The style rules (fonts, colors, readability) for callers outside this module."""
+    return _clean_style(raw, problems)
+
+
 def _index(value: Any, high: int) -> int | None:
     if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= high:
         return None

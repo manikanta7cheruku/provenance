@@ -5,7 +5,7 @@ import hashlib
 import json
 import uuid
 from collections.abc import Callable, Iterator
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -774,5 +774,5 @@ def test_date_helpers_are_not_needed_for_the_day_of_applying(
 ) -> None:
     account = make_account(app)
     job_id = add(account, "Backend engineer")
-    today = date.today().isoformat()
+    today = datetime.now(UTC).date().isoformat()  # the server decides in UTC
     assert decide(account, job_id, "mark_applied", applied_on=today).status_code == 200

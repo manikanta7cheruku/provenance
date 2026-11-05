@@ -915,3 +915,20 @@ class ResumeImage(Base):
     original_name: Mapped[str] = mapped_column(Text, default="")
     sha256: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ResumeTheme(Base):
+    """A saved font pair and four colors. Protected by RLS."""
+
+    __tablename__ = "resume_themes"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(Text)
+    font_pair: Mapped[str] = mapped_column(Text)
+    accent: Mapped[str] = mapped_column(Text)
+    ink: Mapped[str] = mapped_column(Text)
+    muted: Mapped[str] = mapped_column(Text)
+    tint: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -46,5 +46,6 @@
 | [0042](0042-shortlist-email-and-application-drafts.md) | The shortlist email and application drafts | Accepted |
 | [0043](0043-pictures-and-icons-on-the-resume.md) | Pictures and icons on the resume | Accepted |
 | [0044](0044-touch-and-phone-editing.md) | Touch and phone editing on the canvas | Accepted |
+| [0045](0045-saved-themes.md) | Saved themes | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

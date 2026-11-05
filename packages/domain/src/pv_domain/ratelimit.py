@@ -46,6 +46,7 @@ DEFAULT_POLICIES: dict[str, RatePolicy] = {
         RatePolicy("draft_start_user", 60, 3600),
         RatePolicy("image_upload_user", 30, 3600),
         RatePolicy("image_delete_user", 60, 3600),
+        RatePolicy("theme_write_user", 120, 3600),
         RatePolicy("draft_edit_user", 600, 3600),
         RatePolicy("shortlist_settings_user", 60, 3600),
         RatePolicy("shortlist_send_user", 5, 86400),

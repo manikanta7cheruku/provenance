@@ -7,6 +7,7 @@ import { ColorField, NumberField } from "./fields";
 import { contrastOnWhite, contrastRatio } from "./css";
 import { ICON_LABELS, ICON_NAMES, WEIGHT_LABELS } from "./icons";
 import { LayersPanel } from "./LayersPanel";
+import { ThemesPanel } from "./ThemesPanel";
 import { matchingPalette, PALETTES } from "./templates/palettes";
 import type { Order } from "./edit";
 import { LIMITS, pageSize } from "./types";
@@ -282,6 +283,14 @@ function PageProps({ doc, options, onStyle, onAddPage, onRemovePage, onMoveToPag
           <ShadeField label="Tint" value={doc.style.tint} against={[doc.style.ink, doc.style.muted]} onValid={(tint) => onStyle({ tint })} />
         </div>
       </fieldset>
+      <ThemesPanel
+        style={doc.style}
+        fontLabel={(key) => options.font_pairs.find((f) => f.key === key)?.label ?? key}
+        onApply={(theme) => {
+          setAccent(theme.accent);
+          onStyle({ font_pair: theme.font_pair, accent: theme.accent, ink: theme.ink, muted: theme.muted, tint: theme.tint });
+        }}
+      />
       <fieldset className="cv-fields">
         <legend className="group__title">Accent color</legend>
         <p className="field__hint">Used wherever an element is set to Accent.</p>

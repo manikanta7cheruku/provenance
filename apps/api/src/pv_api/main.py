@@ -34,6 +34,7 @@ from pv_api.routes import (
     search,
     shortlist,
     studio,
+    themes,
     v1,
     workbench,
 )
@@ -161,6 +162,7 @@ def create_app(
     app.include_router(shortlist.router, prefix="/api/v1")
     app.include_router(studio.router, prefix="/api/v1")
     app.include_router(images.router, prefix="/api/v1")
+    app.include_router(themes.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")
     app.include_router(search.router, prefix="/api/v1")
     app.include_router(admin.router, prefix="/api/v1")
