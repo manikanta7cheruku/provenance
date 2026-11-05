@@ -100,6 +100,10 @@ class Settings(BaseSettings):
     github_api_base: str = "https://api.github.com"
     github_oauth_base: str = "https://github.com"
 
+    # Plans (checkpoint 3.3). The plan a person is on when none was assigned to them. The limits are
+    # data in the plans table, not settings. See docs/product/business-model.md.
+    default_plan: str = "free"
+
     # Resume studio. A single configurable limit stands in for plan entitlements until 3.3.
     studio_max_resumes: int = 1
     studio_max_exports: int = 5

@@ -187,6 +187,13 @@ The product runs end to end without a key and says so honestly. These items need
 | C-129 | 3.2 | A screen reader pass of preparation | Axe passes. No screen reader was used on the tabs, the disclosures and the mock interview | Do it at 3.7 | open |
 | C-130 | 3.2 | A model written follow-up in the mock interview | Feedback is a rubric. A model follow-up could probe an answer | Only if the evaluation set (3.6) shows it helps and the claim check keeps it honest | open |
 
+## T. Plans and quotas (added at 3.3)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-131 | 3.3 | Measure real cost, then set the limits | The Free, Starter and Pro numbers are starting points chosen before any cost was measured. Failed generations are counted and not refunded, deep evidence search is not metered separately, and the shortlist email stays enabled on Free | With a real model key, run a typical month for a few people, read the cost per unit, then change the `plans` rows in a migration. Decide on refunds for failures | open |
+| C-132 | 3.3 | Choose a payment provider | Payments are a disabled interface. No provider terms were read | Compare providers (fees, tax handling, regions, refund rules), read the terms, implement `PaymentProvider`, test with the provider's test mode, then add a webhook with signature checking | open |
+| C-133 | 3.3 | A screen reader pass of the plan section | Axe passes. No screen reader was used on the meters and the comparison table | Do it at 3.7 | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

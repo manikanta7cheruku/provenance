@@ -1646,3 +1646,60 @@ class MockAnswerIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     answer: str = Field(max_length=6000)
+
+
+# ---- checkpoint 3.3: plans and usage
+class QuotaOut(BaseModel):
+    unit: str
+    label: str
+    noun: str
+    help: str
+    used: int
+    # None means no limit.
+    limit: int | None
+    remaining: int | None
+    percent: int
+    # "ok", "near" or "reached"
+    state: str
+
+
+class PlanChoiceOut(BaseModel):
+    id: str
+    label: str
+    current: bool
+    limits: dict[str, int | None]
+    resumes: int
+    exports_per_resume: int
+
+
+class UsageEventOut(BaseModel):
+    label: str
+    amount: int
+    at: datetime
+
+
+class PaymentsOut(BaseModel):
+    enabled: bool
+    message: str
+
+
+class PlanOut(BaseModel):
+    plan_id: str
+    plan_label: str
+    period_start: date
+    resets_at: datetime
+    quotas: list[QuotaOut]
+    resumes_used: int
+    resumes_limit: int
+    exports_per_resume: int
+    plans: list[PlanChoiceOut]
+    recent: list[UsageEventOut]
+    payments: PaymentsOut
+    # The limits are starting points. Real ones come from measured cost.
+    provisional: bool
+
+
+class UpgradeIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    plan_id: str = Field(min_length=1, max_length=40)

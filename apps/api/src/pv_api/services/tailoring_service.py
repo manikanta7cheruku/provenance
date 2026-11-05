@@ -28,14 +28,17 @@ from pv_api.schemas import (
     TailorRequirementOut,
     TailorSuggestionOut,
 )
+from pv_api.services import entitlement_service
 from pv_api.services.job_service import not_found
 from pv_api.services.studio_service import _summary, _validation_error
+from pv_config import Settings
 from pv_domain.analysis import (
     GATE_CATEGORIES,
     REASON_MESSAGES,
     AnalysisStatus,
     Verdict,
 )
+from pv_domain.entitlements import UNIT_MATERIAL
 from pv_domain.failures import FailureClass
 from pv_domain.resume_doc import ResumeDocError, validate_document
 from pv_domain.tailoring import (
@@ -178,7 +181,13 @@ def jobs(engine: Engine, user_id: uuid.UUID) -> list[TailorJobOut]:
 
 
 def start(
-    engine: Engine, user_id: uuid.UUID, doc_id: uuid.UUID, job_id: uuid.UUID, ip_hash: str | None
+    engine: Engine,
+    user_id: uuid.UUID,
+    doc_id: uuid.UUID,
+    job_id: uuid.UUID,
+    ip_hash: str | None,
+    *,
+    settings: Settings,
 ) -> TailoringOut:
     with tenant_session(engine, user_id) as db:
         if get_document(db, user_id, doc_id) is None:
@@ -195,6 +204,9 @@ def start(
             TailoringStatus.WORKING,
         ):
             raise _conflict("TAILORING_IN_PROGRESS", "Suggestions are already being made.")
+        entitlement_service.charge(
+            db, settings, user_id, UNIT_MATERIAL, f"material:{uuid.uuid4().hex}"
+        )
         row = start_tailoring(db, user_id, doc_id, job_id)
         out = _view(db, row, posting)
     record_audit(

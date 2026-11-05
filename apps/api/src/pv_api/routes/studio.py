@@ -30,7 +30,7 @@ from pv_api.schemas import (
     TemplateOut,
     VersionOut,
 )
-from pv_api.services import studio_service, tailoring_service
+from pv_api.services import entitlement_service, studio_service, tailoring_service
 from pv_domain.failures import FailureClass
 from pv_domain.resume_doc import (
     DIVIDERS,
@@ -43,6 +43,7 @@ from pv_domain.resume_doc import (
     TEMPLATE_INFO,
 )
 from pv_files import FileStorage, font_file
+from pv_persistence.tenancy import tenant_session
 
 router = APIRouter(prefix="/studio", tags=["studio"])
 
@@ -68,7 +69,9 @@ def get_storage(request: Request) -> FileStorage:
 
 
 @router.get("/options", response_model=StudioOptionsOut)
-def options(auth: CurrentUser, settings: SettingsDep) -> StudioOptionsOut:
+def options(auth: CurrentUser, engine: EngineDep, settings: SettingsDep) -> StudioOptionsOut:
+    with tenant_session(engine, auth.user_id) as db:
+        max_resumes, _ = entitlement_service.resume_cap(db, settings, auth.user_id)
     return StudioOptionsOut(
         templates=[
             TemplateOut(key=t.key, name=t.name, description=t.description, ats_safe=t.ats_safe)
@@ -81,7 +84,7 @@ def options(auth: CurrentUser, settings: SettingsDep) -> StudioOptionsOut:
         dividers=list(DIVIDERS),
         papers=list(PAPERS),
         section_kinds=list(SECTION_KINDS),
-        max_resumes=settings.studio_max_resumes,
+        max_resumes=max_resumes,
     )
 
 
@@ -239,7 +242,12 @@ def start_tailoring(
 ) -> TailoringOut:
     limiter.check("tailor_start_user", str(auth.user_id))
     return tailoring_service.start(
-        engine, auth.user_id, doc_id, payload.job_id, ip_hash_of(request, settings)
+        engine,
+        auth.user_id,
+        doc_id,
+        payload.job_id,
+        ip_hash_of(request, settings),
+        settings=settings,
     )
 
 

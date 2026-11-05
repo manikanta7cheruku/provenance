@@ -25,7 +25,9 @@ from pv_api.schemas import (
     ScoreOut,
     VerdictOut,
 )
+from pv_api.services import entitlement_service
 from pv_api.services.job_service import _eligibility, not_found
+from pv_config import Settings
 from pv_domain.analysis import (
     ANALYSIS_ERROR_MESSAGES,
     GATE_CATEGORIES,
@@ -42,6 +44,7 @@ from pv_domain.analysis import (
     score_analysis,
 )
 from pv_domain.eligibility import EligibilityResult, EligibilityState
+from pv_domain.entitlements import UNIT_ANALYSIS
 from pv_domain.failures import FailureClass
 from pv_domain.job import JobParseStatus
 from pv_persistence.analysis import (
@@ -275,7 +278,12 @@ def get_view(engine: Engine, user_id: uuid.UUID, job_id: uuid.UUID) -> AnalysisO
 
 
 def start(
-    engine: Engine, user_id: uuid.UUID, job_id: uuid.UUID, ip_hash: str | None
+    engine: Engine,
+    user_id: uuid.UUID,
+    job_id: uuid.UUID,
+    ip_hash: str | None,
+    *,
+    settings: Settings,
 ) -> AnalysisOut:
     with tenant_session(engine, user_id) as db:
         posting = get_posting(db, user_id, job_id)
@@ -287,6 +295,7 @@ def start(
         )
         if blocker is not None:
             raise _conflict(*blocker)
+        entitlement_service.charge(db, settings, user_id, UNIT_ANALYSIS, f"job_analysis:{job_id}")
         start_analysis(db, posting, analysis)
         out = _view(db, posting)
     record_audit(

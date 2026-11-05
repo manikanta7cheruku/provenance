@@ -34,9 +34,11 @@ from pv_api.schemas import (
     PrepPlanDayOut,
     PrepProgressOut,
 )
-from pv_api.services import job_service
+from pv_api.services import entitlement_service, job_service
+from pv_config import Settings
 from pv_domain.analysis import GATE_CATEGORIES, AnalysisStatus, Verdict
 from pv_domain.drafts import JobHeading, clean_body, verify_draft
+from pv_domain.entitlements import UNIT_MATERIAL
 from pv_domain.failures import FailureClass
 from pv_domain.preparation import (
     ACTIONS,
@@ -378,6 +380,8 @@ def start_action(
     action: str,
     replace: bool,
     ip_hash: str | None,
+    *,
+    settings: Settings,
 ) -> PreparationOut:
     if action not in ACTIONS:
         raise job_service.not_found()
@@ -395,6 +399,9 @@ def start_action(
                     "EDITED_TEXT",
                     "You edited this text. Writing it again replaces your edits. Confirm to go ahead.",
                 )
+        entitlement_service.charge(
+            db, settings, user_id, UNIT_MATERIAL, f"material:{uuid.uuid4().hex}"
+        )
         start_output(db, owner_id=user_id, posting_id=job_id, action=action)
         out = _view(db, user_id, posting)
     record_audit(
