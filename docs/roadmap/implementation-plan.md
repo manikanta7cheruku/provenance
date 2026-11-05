@@ -15,7 +15,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 
 ### 1.1 Status
 
-32 checkpoints in total. Nineteen are done and merged (1.1 to 1.9 and 2.1 to 2.10). Checkpoints 2.11 to 2.13 are built (2.11 is merged, 2.12 and 2.13 await merge), which completes Phase 2 in code. Ten remain, all in Phase 3. Three of them (3.8 to 3.10) are the design and experience checkpoints added by the owner, and are built first so every later screen uses the new look. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
+32 checkpoints in total. Nineteen are done and merged (1.1 to 1.9 and 2.1 to 2.10). Checkpoints 2.11 to 2.13 are built (2.11 and 2.12 are merged, 2.13 awaits merge), which completes Phase 2 in code. Ten remain, all in Phase 3. Three of them (3.8 to 3.10) are the design and experience checkpoints added by the owner, and are built first so every later screen uses the new look. A carryover folder ([docs/carryover](../carryover/README.md)) lists everything that needs the owner (a real AI key, real use, decisions) and is done together at the end. Revision 3 added checkpoint 2.2, the free canvas editor. Revision 4 adds 2.11 to 2.13 for images and icons, touch editing and saved themes, which the owner asked for after testing 2.2. They sit at the end of Phase 2 so earlier numbers stay stable, and can be pulled forward on request.
 
 | Checkpoint | State |
 |---|---|
@@ -34,7 +34,7 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 2.9 | Done and merged |
 | 2.10 | Done and merged |
 | 2.11 | Done and merged |
-| 2.12 | Built, awaiting merge (PR to bring it to main) |
+| 2.12 | Done and merged |
 | 2.13 | Built on branch phase-2/checkpoint-2.13-saved-themes, awaiting review and merge |
 | 3.8 to 3.10 | Not started (the design and experience checkpoints, built first) |
 | 3.1 to 3.7 | Not started |
