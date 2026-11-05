@@ -1401,3 +1401,79 @@ class ThemesOut(BaseModel):
     themes: list[ThemeOut]
     count: int
     max_themes: int
+
+
+# ---- checkpoint 3.1: the GitHub connection
+class PlatformOut(BaseModel):
+    name: str
+    why: str
+    what: str
+
+
+class GitHubRepoOut(BaseModel):
+    id: int
+    full_name: str
+    name: str
+    description: str
+    language: str
+    topics: list[str]
+    stars: int
+    fork: bool
+    archived: bool
+    url: str
+    selected: bool
+    suggested: bool
+    has_excerpt: bool
+
+
+class GitHubOut(BaseModel):
+    # Whether the operator has set up GitHub on this server at all.
+    available: bool
+    connected: bool
+    login: str | None
+    profile_url: str | None
+    # The permission asked of GitHub. Empty means none: public information only.
+    scope: str
+    scope_sentence: str
+    sync_state: str
+    sync_error: str | None
+    connected_at: datetime | None
+    last_synced_at: datetime | None
+    repos: list[GitHubRepoOut]
+    max_selected: int
+    entries_from_github: int
+    # Places that cannot be connected, and what to do instead.
+    platforms: list[PlatformOut]
+
+
+class GitHubStartOut(BaseModel):
+    authorize_url: str
+
+
+class GitHubFinishIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str = Field(min_length=1, max_length=300)
+    state: str = Field(min_length=20, max_length=200)
+
+
+class GitHubFinishOut(BaseModel):
+    login: str
+
+
+class GitHubChooseIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    repo_ids: list[int] = Field(max_length=200)
+
+
+class GitHubDisconnectIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # Keep the entries GitHub made. They become the person's own.
+    keep_entries: bool = False
+
+
+class GitHubDisconnectOut(BaseModel):
+    revoked: bool
+    entries_removed: int

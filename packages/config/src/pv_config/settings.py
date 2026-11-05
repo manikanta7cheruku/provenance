@@ -91,6 +91,15 @@ class Settings(BaseSettings):
     # Tune it from labeled data (checkpoint 3.6), not by guessing.
     evidence_min_similarity: float = 0.0
 
+    # GitHub connection (checkpoint 3.1). An OAuth app created by the operator at
+    # https://github.com/settings/developers. Empty means the connection is switched off.
+    # The two base addresses are operator configuration, never user input (a test double or a
+    # proxy can stand in for GitHub). See docs/providers/github.md.
+    github_client_id: str = ""
+    github_client_secret: SecretStr = SecretStr("")
+    github_api_base: str = "https://api.github.com"
+    github_oauth_base: str = "https://github.com"
+
     # Resume studio. A single configurable limit stands in for plan entitlements until 3.3.
     studio_max_resumes: int = 1
     studio_max_exports: int = 5

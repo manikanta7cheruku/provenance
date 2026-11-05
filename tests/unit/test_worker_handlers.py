@@ -62,6 +62,7 @@ def test_registry_knows_the_task_types() -> None:
         "import_url",
         "draft_application",
         "send_shortlist",
+        "sync_github",
     }
 
 

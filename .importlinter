@@ -5,6 +5,7 @@ root_packages =
     pv_llm
     pv_mail
     pv_files
+    pv_github
     pv_persistence
     pv_config
     pv_domain
@@ -38,7 +39,7 @@ type = layers
 layers =
     pv_api | pv_worker
     pv_llm
-    pv_mail | pv_files
+    pv_mail | pv_files | pv_github
     pv_persistence
     pv_config
     pv_domain

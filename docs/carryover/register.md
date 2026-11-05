@@ -168,6 +168,15 @@ The product runs end to end without a key and says so honestly. These items need
 | C-118 | 3.10 | Usability sessions | No real person has used the product in this look | Watch three people do the main journeys. Fix what stops them | open |
 | C-119 | 3.10 | A dark navigation sidebar | Deferred in ADR-0046 and ADR-0048 | Decide after the owner has lived with the light one | open |
 
+## R. The GitHub connection (added at 3.1)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-120 | 3.1 | Create the GitHub OAuth app and connect for real | The connection was built and tested against a test double. Nothing has been exercised against github.com | Follow docs/providers/github.md (setup), put the client id and secret in `.env`, restart, connect your own account, choose two repositories, check the entries, disconnect, and check the app is gone at github.com/settings/applications | open |
+| C-121 | 3.1 | Real READMEs | The README reduction was tested on written examples, not on a variety of real repositories | After C-120, look at the entries made from ten different repositories. Note any that read badly and add a test case for each | open |
+| C-122 | 3.1 | A managed key for the token key | The sealing key is derived from the application secret. Rotating that secret disconnects everyone | At deployment (3.7) move the key into a managed key store with versions, keeping the `v1.` format and adding `v2.` | open |
+| C-123 | 3.1 | Other evidence platforms | LeetCode, CodeChef, GeeksforGeeks and similar have no connector and their terms were not read | If you want them, read their terms and API pages and decide per platform. Until then they use the by-hand path | open |
+| C-124 | 3.1 | A screen reader pass of the GitHub panel | Axe passes. No screen reader was used on the repository list and the disconnect question | Do it at 3.7 | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

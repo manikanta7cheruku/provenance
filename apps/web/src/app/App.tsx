@@ -18,7 +18,7 @@ import {
 import { NotFoundPage } from "../features/notfound";
 import { ImportReportPage, JobDetailPage, OpportunitiesPage } from "../features/opportunities";
 import { PlannedPage } from "../features/planned";
-import { ProfilePage } from "../features/profile";
+import { GitHubCallbackPage, ProfilePage } from "../features/profile";
 import { RunDetailPage, RunsPage } from "../features/runs";
 import { SettingsPage } from "../features/settings";
 import { FindJobsPage } from "../features/search";
@@ -71,6 +71,7 @@ function ProductApp() {
               <Route path="/opportunities/:jobId" element={<JobDetailPage />} />
               <Route path="/find" element={<FindJobsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/connect/github/callback" element={<GitHubCallbackPage />} />
               <Route path="/studio" element={<StudioPage />} />
               <Route path="/runs" element={<RunsPage />} />
               <Route path="/runs/:runId" element={<RunDetailPage />} />

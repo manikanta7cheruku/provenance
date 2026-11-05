@@ -37,7 +37,7 @@ State as recorded on 2026-11-02. The registry (`job_sources`) holds the same rec
 | Indeed | User import only | Prohibited for automation | About 200,000 of 349,000 characters read: forbids scraping the sourcing database and automating apply. Rest to be read (C-36) |
 | Wellfound | User import only | Prohibited for automation | Terms read: forbid copying content, scraping and excess automated access |
 | Naukri | User import only | Unverified | Terms page returned HTTP 403, not read. No automation assumed (C-36) |
-| GitHub | Candidate evidence via official API and OAuth | Unverified | Verify at 3.1 |
+| GitHub | Candidate evidence via official API and OAuth (no scope, public data only) | Verified 2026-11-05 | Terms of Service section H read (effective 2026-04-27): API use through a product is permitted, tokens may not be shared to evade limits, and the API may not be used to download data for spam or to sell users' personal information (recruiters and job boards are named). Our use is a person's own public repositories, with their authorization, kept for their own profile. OAuth docs and rate limit docs read. See docs/providers/github.md |
 | LeetCode, CodeChef, GeeksforGeeks | Candidate evidence via user provided URL or export only unless an official API exists | Unverified | Verify at 3.1 |
 
 ### Open verification questions (2026-10-30)

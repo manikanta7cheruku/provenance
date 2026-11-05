@@ -24,6 +24,7 @@ from pv_api.routes import (
     admin,
     auth,
     evidence,
+    github,
     images,
     imports,
     jobs,
@@ -41,8 +42,10 @@ from pv_api.routes import (
 from pv_api.security.middleware import body_limit, origin_guard, security_headers
 from pv_config import Settings, get_settings
 from pv_domain.failures import FailureClass
+from pv_domain.github import GitHubGateway
 from pv_domain.ratelimit import DEFAULT_POLICIES, RatePolicy
 from pv_files import FileStorage, build_storage
+from pv_github import build_gateway
 from pv_persistence.engine import create_db_engine
 from pv_persistence.registry import seed_registry
 
@@ -102,6 +105,7 @@ def create_app(
     *,
     rate_policies: dict[str, RatePolicy] | None = None,
     storage: FileStorage | None = None,
+    github_gateway: GitHubGateway | None = None,
 ) -> FastAPI:
     cfg = settings if settings is not None else get_settings()
     configure_logging(cfg.log_level)
@@ -131,6 +135,7 @@ def create_app(
     app.state.engine = engine
     app.state.storage = storage if storage is not None else build_storage(cfg)
     app.state.limiter = RateLimiter(engine, rate_policies or DEFAULT_POLICIES)
+    app.state.github = github_gateway if github_gateway is not None else build_gateway(cfg)
 
     if cfg.cors_origin_list:
         app.add_middleware(
@@ -161,6 +166,7 @@ def create_app(
     app.include_router(workbench.router, prefix="/api/v1")
     app.include_router(shortlist.router, prefix="/api/v1")
     app.include_router(studio.router, prefix="/api/v1")
+    app.include_router(github.router, prefix="/api/v1")
     app.include_router(images.router, prefix="/api/v1")
     app.include_router(themes.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")

@@ -50,5 +50,6 @@
 | [0046](0046-design-foundation-and-brand.md) | Design foundation and brand | Accepted |
 | [0047](0047-the-resume-experience.md) | The resume experience | Accepted |
 | [0048](0048-whole-product-polish.md) | Whole-product polish | Accepted |
+| [0049](0049-github-connection.md) | The GitHub connection | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

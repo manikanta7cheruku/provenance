@@ -89,12 +89,14 @@ def build_app(settings: Settings) -> Callable[..., FastAPI]:
     def _build(
         policies: dict[str, RatePolicy] | None = None,
         storage: FileStorage | None = None,
+        github: Any = None,
         **overrides: Any,
     ) -> FastAPI:
         return create_app(
             settings.model_copy(update=overrides),
             rate_policies=policies or generous_policies(),
             storage=storage,
+            github_gateway=github,
         )
 
     return _build

@@ -13,6 +13,7 @@ from pv_domain.tasks import (
     TASK_RENDER_RESUME,
     TASK_SEND_EMAIL,
     TASK_SEND_SHORTLIST,
+    TASK_SYNC_GITHUB,
     TASK_TAILOR_RESUME,
 )
 from pv_worker.contract import Handler
@@ -28,6 +29,7 @@ from pv_worker.handlers.poll_source import handle_poll_source
 from pv_worker.handlers.render_resume import handle_render_resume
 from pv_worker.handlers.send_email import handle_send_email
 from pv_worker.handlers.send_shortlist import handle_send_shortlist
+from pv_worker.handlers.sync_github import handle_sync_github
 from pv_worker.handlers.tailor_resume import handle_tailor_resume
 
 
@@ -46,4 +48,5 @@ def build_registry() -> dict[str, Handler]:
         TASK_IMPORT_URL: handle_import_url,
         TASK_DRAFT_APPLICATION: handle_draft_application,
         TASK_SEND_SHORTLIST: handle_send_shortlist,
+        TASK_SYNC_GITHUB: handle_sync_github,
     }
