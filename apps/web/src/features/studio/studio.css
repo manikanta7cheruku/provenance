@@ -297,3 +297,38 @@
   border: 0;
   background: transparent;
 }
+
+/* The start screen: three steps */
+.start {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 56rem;
+}
+.start__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-display);
+}
+.start__number {
+  display: inline-grid;
+  place-items: center;
+  width: var(--space-5);
+  height: var(--space-5);
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+.start__go {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}

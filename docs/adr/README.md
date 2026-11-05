@@ -48,5 +48,6 @@
 | [0044](0044-touch-and-phone-editing.md) | Touch and phone editing on the canvas | Accepted |
 | [0045](0045-saved-themes.md) | Saved themes | Accepted |
 | [0046](0046-design-foundation-and-brand.md) | Design foundation and brand | Accepted |
+| [0047](0047-the-resume-experience.md) | The resume experience | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

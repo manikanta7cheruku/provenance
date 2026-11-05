@@ -27,6 +27,9 @@ export interface CanvasActions {
   toggleMargins: () => void;
   toggleAts: () => void;
   edit: () => void;
+  openCommands: () => void;
+  openHistory: () => void;
+  toggleFocus: () => void;
 }
 
 interface CanvasToolbarProps {
@@ -43,6 +46,7 @@ interface CanvasToolbarProps {
   atsOpen: boolean;
   /** The on-page editor while text is being edited. Its formatting bar replaces the arrange tools. */
   editor: Editor | null;
+  focus: boolean;
 }
 
 const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -50,12 +54,17 @@ const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 function Group({ label, children }: { label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    const items = Array.from(ref.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []);
+    const items = Array.from(
+      ref.current?.querySelectorAll<HTMLButtonElement>(
+        "button:not(:disabled)",
+      ) ?? [],
+    );
     const index = items.findIndex((b) => b === document.activeElement);
     if (index < 0) return;
     let next = index;
     if (event.key === "ArrowRight") next = (index + 1) % items.length;
-    else if (event.key === "ArrowLeft") next = (index - 1 + items.length) % items.length;
+    else if (event.key === "ArrowLeft")
+      next = (index - 1 + items.length) % items.length;
     else if (event.key === "Home") next = 0;
     else if (event.key === "End") next = items.length - 1;
     else return;
@@ -64,15 +73,42 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
     items[next]?.focus();
   }
   return (
-    <div ref={ref} className="cv-group" role="toolbar" aria-label={label} onKeyDown={onKeyDown}>
+    <div
+      ref={ref}
+      className="cv-group"
+      role="toolbar"
+      aria-label={label}
+      onKeyDown={onKeyDown}
+    >
       {children}
     </div>
   );
 }
 
-function Btn({ children, label, disabled, pressed, onClick, primary }: { children: ReactNode; label?: string; disabled?: boolean; pressed?: boolean; onClick: () => void; primary?: boolean }) {
+function Btn({
+  children,
+  label,
+  disabled,
+  pressed,
+  onClick,
+  primary,
+}: {
+  children: ReactNode;
+  label?: string;
+  disabled?: boolean;
+  pressed?: boolean;
+  onClick: () => void;
+  primary?: boolean;
+}) {
   return (
-    <button type="button" className={`cv-btn${primary ? " cv-btn--primary" : ""}`} aria-label={label} aria-pressed={pressed} disabled={disabled} onClick={onClick}>
+    <button
+      type="button"
+      className={`cv-btn${primary ? " cv-btn--primary" : ""}`}
+      aria-label={label}
+      aria-pressed={pressed}
+      disabled={disabled}
+      onClick={onClick}
+    >
       {children}
     </button>
   );
@@ -80,7 +116,21 @@ function Btn({ children, label, disabled, pressed, onClick, primary }: { childre
 
 /** The tools above the page. Every group is a toolbar: one tab stop, arrow keys inside it. */
 export function CanvasToolbar(props: CanvasToolbarProps) {
-  const { actions: a, count, anyGrouped, allLocked, canUndo, canRedo, zoom, fitted, showMargins, ats, atsOpen, editor } = props;
+  const {
+    actions: a,
+    count,
+    anyGrouped,
+    allLocked,
+    canUndo,
+    canRedo,
+    zoom,
+    fitted,
+    showMargins,
+    ats,
+    atsOpen,
+    editor,
+    focus,
+  } = props;
   const some = count > 0;
   const several = count > 1;
   const issues = ats.issues.length;
@@ -88,7 +138,10 @@ export function CanvasToolbar(props: CanvasToolbarProps) {
     <div className="cv-toolbar">
       {editor ? (
         <div className="cv-formatbar">
-          <RichToolbar editor={editor} label="Formatting for the text being edited" />
+          <RichToolbar
+            editor={editor}
+            label="Formatting for the text being edited"
+          />
           <span className="field__hint">Press Escape to finish editing.</span>
         </div>
       ) : null}
@@ -108,7 +161,92 @@ export function CanvasToolbar(props: CanvasToolbarProps) {
         <Btn disabled={!canRedo} onClick={a.redo} label="Redo">
           Redo
         </Btn>
+        <Btn disabled={!canUndo} onClick={a.openHistory} label="Recent changes">
+          Recent changes
+        </Btn>
       </Group>
+      <Group label="Find and focus">
+        <Btn onClick={a.openCommands} label="Commands">
+          Commands
+        </Btn>
+        <Btn onClick={a.toggleFocus} pressed={focus} label="Focus on the page">
+          Focus on the page
+        </Btn>
+      </Group>
+      <Group label="View">
+        <Btn
+          onClick={() =>
+            a.setZoom(Math.max(0.25, Math.round((zoom - 0.25) * 100) / 100))
+          }
+          label="Zoom out"
+        >
+          Zoom out
+        </Btn>
+        <label className="cv-zoom">
+          <span className="visually-hidden">Zoom</span>
+          <select
+            className="cv-select"
+            value={fitted ? "fit" : String(zoom)}
+            onChange={(e) =>
+              e.target.value === "fit"
+                ? a.fit()
+                : a.setZoom(Number(e.target.value))
+            }
+          >
+            <option value="fit">Fit width</option>
+            {ZOOMS.map((z) => (
+              <option key={z} value={z}>
+                {Math.round(z * 100)}%
+              </option>
+            ))}
+            {!fitted && !ZOOMS.includes(zoom) ? (
+              <option value={zoom}>{Math.round(zoom * 100)}%</option>
+            ) : null}
+          </select>
+        </label>
+        <Btn
+          onClick={() =>
+            a.setZoom(Math.min(3, Math.round((zoom + 0.25) * 100) / 100))
+          }
+          label="Zoom in"
+        >
+          Zoom in
+        </Btn>
+        <Btn
+          onClick={a.toggleMargins}
+          pressed={showMargins}
+          label="Show margins"
+        >
+          Show margins
+        </Btn>
+      </Group>
+      <Group label="Layout check">
+        <Btn onClick={a.toggleAts} pressed={atsOpen}>
+          {ats.safe && issues === 0
+            ? "Layout check: reads well"
+            : ats.safe
+              ? `Layout check: ${issues} ${issues === 1 ? "note" : "notes"}`
+              : `Layout check: ${issues} ${issues === 1 ? "issue" : "issues"}`}
+        </Btn>
+      </Group>
+    </div>
+  );
+}
+
+/**
+ * The tools for what is selected, floated over the bottom of the page area so they never push the
+ * page down. They appear when something is selected and are gone when nothing is.
+ */
+export function ContextToolbar({
+  actions: a,
+  count,
+  anyGrouped,
+  allLocked,
+}: Pick<CanvasToolbarProps, "actions" | "count" | "anyGrouped" | "allLocked">) {
+  const some = count > 0;
+  const several = count > 1;
+  return (
+    <div className="cv-context" aria-label="Tools for the selection">
       <Group label="Selection">
         <Btn disabled={count !== 1} onClick={a.edit} label="Edit text">
           Edit text
@@ -125,7 +263,12 @@ export function CanvasToolbar(props: CanvasToolbarProps) {
         <Btn disabled={!anyGrouped} onClick={a.ungroup}>
           Ungroup
         </Btn>
-        <Btn disabled={!some} onClick={() => a.lock(!allLocked)} pressed={allLocked} label={allLocked ? "Allow edits" : "Lock"}>
+        <Btn
+          disabled={!some}
+          onClick={() => a.lock(!allLocked)}
+          pressed={allLocked}
+          label={allLocked ? "Allow edits" : "Lock"}
+        >
           {allLocked ? "Allow edits" : "Lock"}
         </Btn>
       </Group>
@@ -144,8 +287,15 @@ export function CanvasToolbar(props: CanvasToolbarProps) {
         </Btn>
       </Group>
       <Group label="Align">
-        {(["left", "center", "right", "top", "middle", "bottom"] as AlignMode[]).map((mode) => (
-          <Btn key={mode} disabled={!some} onClick={() => a.align(mode)} label={`Align ${mode}`}>
+        {(
+          ["left", "center", "right", "top", "middle", "bottom"] as AlignMode[]
+        ).map((mode) => (
+          <Btn
+            key={mode}
+            disabled={!some}
+            onClick={() => a.align(mode)}
+            label={`Align ${mode}`}
+          >
             {mode[0]!.toUpperCase() + mode.slice(1)}
           </Btn>
         ))}
@@ -154,38 +304,6 @@ export function CanvasToolbar(props: CanvasToolbarProps) {
         </Btn>
         <Btn disabled={count < 3} onClick={() => a.distribute("y")}>
           Space down
-        </Btn>
-      </Group>
-      <Group label="View">
-        <Btn onClick={() => a.setZoom(Math.max(0.25, Math.round((zoom - 0.25) * 100) / 100))} label="Zoom out">
-          Zoom out
-        </Btn>
-        <label className="cv-zoom">
-          <span className="visually-hidden">Zoom</span>
-          <select
-            className="cv-select"
-            value={fitted ? "fit" : String(zoom)}
-            onChange={(e) => (e.target.value === "fit" ? a.fit() : a.setZoom(Number(e.target.value)))}
-          >
-            <option value="fit">Fit width</option>
-            {ZOOMS.map((z) => (
-              <option key={z} value={z}>
-                {Math.round(z * 100)}%
-              </option>
-            ))}
-            {!fitted && !ZOOMS.includes(zoom) ? <option value={zoom}>{Math.round(zoom * 100)}%</option> : null}
-          </select>
-        </label>
-        <Btn onClick={() => a.setZoom(Math.min(3, Math.round((zoom + 0.25) * 100) / 100))} label="Zoom in">
-          Zoom in
-        </Btn>
-        <Btn onClick={a.toggleMargins} pressed={showMargins} label="Show margins">
-          Show margins
-        </Btn>
-      </Group>
-      <Group label="Layout check">
-        <Btn onClick={a.toggleAts} pressed={atsOpen}>
-          {ats.safe && issues === 0 ? "Layout check: reads well" : ats.safe ? `Layout check: ${issues} ${issues === 1 ? "note" : "notes"}` : `Layout check: ${issues} ${issues === 1 ? "issue" : "issues"}`}
         </Btn>
       </Group>
     </div>
