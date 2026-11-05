@@ -146,6 +146,8 @@ test("recent changes is empty before any change", async ({ page }) => {
 
 test("selecting something does not move the page, and the tools for it float over the page", async ({ page }) => {
   await open(page);
+  // The page arrives with a short rise. Measure once it has settled.
+  await page.waitForTimeout(600);
   const before = (await page.locator("[data-page='0']").boundingBox())!;
   await expect(page.getByRole("toolbar", { name: "Selection" })).toHaveCount(0);
   await page.locator("[data-el='headline']").click();

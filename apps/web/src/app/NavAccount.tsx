@@ -8,6 +8,7 @@ export function NavAccount() {
   const navigate = useNavigate();
   if (session.state.kind !== "authenticated") return null;
   const { email } = session.state.user;
+  const initial = (email[0] ?? "?").toUpperCase();
 
   async function onSignOut() {
     await session.signOut();
@@ -16,6 +17,9 @@ export function NavAccount() {
 
   return (
     <div className="shell__account">
+      <span className="shell__avatar" aria-hidden="true">
+        {initial}
+      </span>
       <p className="shell__account-email" title={email}>
         {email}
       </p>

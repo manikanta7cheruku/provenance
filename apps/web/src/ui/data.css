@@ -19,7 +19,7 @@
 }
 .data-table th,
 .data-table td {
-  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--color-border-subtle);
   text-align: left;
   vertical-align: top;
@@ -40,6 +40,9 @@
 .data-table td.num,
 .data-table th.num {
   text-align: right;
+}
+.data-table tbody tr {
+  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 .data-table tbody tr:hover {
   background: var(--color-hover);
@@ -73,6 +76,7 @@
 }
 .action:hover {
   background: var(--color-hover);
+  border-color: var(--color-text-secondary);
 }
 .action:active {
   background: var(--color-pressed);
@@ -91,6 +95,7 @@
 .action--primary:hover {
   border-color: var(--color-accent-hover);
   background: var(--color-accent-hover);
+  box-shadow: var(--shadow-raised);
 }
 .action--primary:active {
   border-color: var(--color-accent-active);

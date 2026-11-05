@@ -38,10 +38,10 @@
 .find__item {
   display: grid;
   gap: var(--space-1);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border-control);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
+  background: var(--color-surface-base);
 }
 .find__item p {
   margin: 0;

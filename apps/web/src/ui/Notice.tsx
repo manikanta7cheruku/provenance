@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Icon } from "./Icon";
 
 interface NoticeProps {
   tone: "info" | "warn" | "danger";
@@ -10,8 +11,13 @@ interface NoticeProps {
 export function Notice({ tone, title, children }: NoticeProps) {
   return (
     <div className={`notice notice--${tone}`} role={tone === "danger" ? "alert" : "status"}>
-      {title ? <p className="notice__title">{title}</p> : null}
-      <div className="notice__body">{children}</div>
+      <span className="notice__icon">
+        <Icon name={tone === "info" ? "info" : "alert"} />
+      </span>
+      <div>
+        {title ? <p className="notice__title">{title}</p> : null}
+        <div className="notice__body">{children}</div>
+      </div>
     </div>
   );
 }

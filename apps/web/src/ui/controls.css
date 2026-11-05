@@ -151,8 +151,9 @@
   display: block;
   height: var(--space-3);
   border-radius: var(--radius-sm);
-  background: var(--color-skeleton);
-  animation: skeleton-pulse 1.4s var(--ease-standard) infinite alternate;
+  background: linear-gradient(90deg, var(--color-skeleton) 0%, var(--color-border-subtle) 50%, var(--color-skeleton) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s var(--ease-standard) infinite;
 }
 .skeleton__line + .skeleton__line {
   margin-top: var(--space-3);
@@ -160,11 +161,11 @@
 .skeleton__line[data-last="true"] {
   width: 60%;
 }
-@keyframes skeleton-pulse {
+@keyframes skeleton-shimmer {
   from {
-    opacity: 1;
+    background-position: 200% 0;
   }
   to {
-    opacity: 0.5;
+    background-position: -200% 0;
   }
 }
