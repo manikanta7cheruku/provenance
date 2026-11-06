@@ -1703,3 +1703,35 @@ class UpgradeIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     plan_id: str = Field(min_length=1, max_length=40)
+
+
+# ---- checkpoint 3.4: reports
+
+
+class ReportIn(BaseModel):
+    format: Literal["csv", "xlsx", "docx"]
+    query: dict[str, Any] = Field(default_factory=dict)
+    include_quotes: bool = False
+
+    @field_validator("query")
+    @classmethod
+    def _small_query(cls, value: dict[str, Any]) -> dict[str, Any]:
+        if len(json.dumps(value)) > 8000:
+            raise ValueError("The filters are too large.")
+        return value
+
+
+class ReportOut(BaseModel):
+    id: uuid.UUID
+    format: Literal["csv", "xlsx", "docx"]
+    format_label: str
+    ui_state: Literal["preparing", "ready", "failed"]
+    size_bytes: int | None
+    job_count: int | None
+    criteria: list[str]
+    query: dict[str, Any]
+    include_quotes: bool
+    error_message: str | None
+    created_at: datetime
+    expires_at: datetime
+    download_name: str | None

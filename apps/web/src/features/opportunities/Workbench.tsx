@@ -18,6 +18,7 @@ import type { DecisionAction, DecisionResult, Query, WorkRow } from "../../lib/w
 import { ActionButton, EmptyState, Notice, Select, Skeleton, TextField } from "../../ui";
 import { ApplyDialog } from "./ApplyDialog";
 import { jobLabel } from "./DecisionBar";
+import { ExportPanel } from "./ExportPanel";
 import { JobPane } from "./JobPane";
 import { SavedViews } from "./SavedViews";
 import { ShortcutsDialog } from "./ShortcutsDialog";
@@ -356,6 +357,7 @@ export function Workbench({ version }: { version: number }) {
         />
       ) : null}
       <SavedViews query={query} onApply={(next) => setParams(queryToParams(next))} />
+      <ExportPanel query={query} count={data.data?.total ?? 0} />
 
       <UndoToast toast={toast} busy={busy} onUndo={() => void undo()} onClose={() => setToast(null)} />
       <p className="visually-hidden" role="status" aria-live="polite">

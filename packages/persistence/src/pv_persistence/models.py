@@ -1109,3 +1109,29 @@ class UsageLedger(Base):
     event_key: Mapped[str] = mapped_column(Text)
     plan_id: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---- checkpoint 3.4: report exports (migration 0021)
+
+
+class ReportExport(Base):
+    """A report a person asked for. The file is in private storage. Protected by RLS."""
+
+    __tablename__ = "report_exports"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(Text, default="opportunities")
+    format: Mapped[str] = mapped_column(Text)
+    params: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    storage_key: Mapped[str | None] = mapped_column(Text, default=None)
+    size_bytes: Mapped[int | None] = mapped_column(Integer, default=None)
+    row_count: Mapped[int | None] = mapped_column(Integer, default=None)
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workflow_runs.id", ondelete="SET NULL"), default=None
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

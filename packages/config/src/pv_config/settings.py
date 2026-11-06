@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     worker_lease_seconds: int = 120
     worker_heartbeat_seconds: int = 10
     task_retention_days: int = 7
+    # How long a finished report stays available to download before it is deleted.
+    report_retention_days: int = 7
 
     # Private file storage (resumes). A directory today; an S3-compatible bucket in checkpoint 3.7.
     file_storage_dir: str = "./storage"
@@ -143,7 +145,12 @@ class Settings(BaseSettings):
             raise ValueError("WORKER_LEASE_SECONDS must be at least 10")
         return value
 
-    @field_validator("worker_heartbeat_seconds", "task_retention_days", "llm_embedding_dimensions")
+    @field_validator(
+        "worker_heartbeat_seconds",
+        "task_retention_days",
+        "report_retention_days",
+        "llm_embedding_dimensions",
+    )
     @classmethod
     def _check_at_least_one(cls, value: int) -> int:
         if value < 1:

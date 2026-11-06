@@ -15,6 +15,7 @@ TASK_DRAFT_APPLICATION = "draft_application"
 TASK_SEND_SHORTLIST = "send_shortlist"
 TASK_SYNC_GITHUB = "sync_github"
 TASK_PREPARE_JOB = "prepare_job"
+TASK_BUILD_REPORT = "build_report"
 
 # These carry a one-time secret (a link token) that is erased when the task finishes
 # or dead-letters, so replaying them is impossible. The user must ask for a new link.

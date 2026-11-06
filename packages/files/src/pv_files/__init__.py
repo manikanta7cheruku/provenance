@@ -4,6 +4,7 @@ from pv_files.extract import ExtractedText, ExtractionError, check_upload, extra
 from pv_files.images import ImageRejected, ProcessedImage, check_header, process_image
 from pv_files.pictures import Pictures, load_pictures
 from pv_files.render import RenderedPdf, RenderError, font_file, fonts_dir, html_to_pdf
+from pv_files.report_formats import write_csv, write_docx, write_report, write_xlsx
 from pv_files.storage import (
     FileStorage,
     LocalDiskStorage,
@@ -36,6 +37,10 @@ __all__ = [
     "fonts_dir",
     "html_to_pdf",
     "load_pictures",
+    "write_csv",
+    "write_docx",
+    "write_report",
+    "write_xlsx",
     "new_export_key",
     "new_image_key",
     "new_import_key",
