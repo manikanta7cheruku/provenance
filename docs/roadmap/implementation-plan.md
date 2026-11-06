@@ -43,7 +43,8 @@ Each phase is cut into checkpoints. Each checkpoint is runnable, tested, documen
 | 3.2 | Built on branch phase-3/checkpoint-3.2-career-preparation, awaiting review and merge |
 | 3.3 | Built on branch phase-3/checkpoint-3.3-plans-and-quotas, awaiting review and merge |
 | 3.4 | Built on branch phase-3/checkpoint-3.4-exports, awaiting review and merge |
-| 3.5 to 3.7 | Not started |
+| 3.5 | Built on branch phase-3/checkpoint-3.5-observability, awaiting review and merge |
+| 3.6 to 3.7 | Not started |
 
 ## 2. Checkpoint loop
 

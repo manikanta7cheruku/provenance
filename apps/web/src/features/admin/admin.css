@@ -98,3 +98,62 @@
 .admin h1 {
   margin-top: 0;
 }
+
+/* Health, alerts and the console's small forms */
+.console__headline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-4);
+  font-size: var(--text-body-lg);
+}
+.console__alerts {
+  list-style: none;
+  margin: var(--space-3) 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.console__alert {
+  border: 1px solid var(--color-border-subtle);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+.console__alert--critical {
+  border-left-color: var(--color-danger);
+}
+.console__alert--warning {
+  border-left-color: var(--color-warning);
+}
+.console__alert p {
+  margin: var(--space-1) 0;
+}
+.console__alerthead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+.console__how {
+  margin-top: var(--space-5);
+  max-width: 44rem;
+}
+.console__how summary {
+  cursor: pointer;
+  font-weight: var(--weight-semibold);
+}
+.console__find {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+  margin-block: var(--space-4);
+}
+.console__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+

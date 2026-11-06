@@ -10,7 +10,7 @@ const REFRESH_MS = 15000;
 const STATE_ORDER = ["queued", "running", "retry_scheduled", "dead_letter", "succeeded", "cancelled"];
 
 export function SystemPage() {
-  const heading = usePageChrome("System");
+  const heading = usePageChrome("Queue");
   const { data, error, loading, refreshing, reload } = useAsync(
     async (signal) => {
       const [system, overview] = await Promise.all([fetchSystem(signal), fetchOverview(signal)]);
@@ -45,7 +45,7 @@ export function SystemPage() {
   return (
     <>
       <h1 ref={heading} tabIndex={-1}>
-        System
+        Queue
       </h1>
       <p className="admin__muted">
         Counters and queue state only. Administrators never see resumes, profile entries,

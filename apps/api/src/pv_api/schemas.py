@@ -381,9 +381,12 @@ class RunList(BaseModel):
 class RunStepOut(BaseModel):
     ordinal: int
     step_name: str
+    step_label: str = ""
     ui_state: UiStateName
     duration_ms: int | None
     error_summary: str | None
+    # Counts the step recorded (jobs read, bytes written). Numbers only, never text.
+    counts: dict[str, int] = Field(default_factory=dict)
 
 
 class LlmCallOut(BaseModel):
@@ -398,11 +401,33 @@ class LlmCallOut(BaseModel):
     status: str
 
 
+class RunFailureOut(BaseModel):
+    what: str
+    next: str
+    retry_possible: bool
+
+
+class RunTotalsOut(BaseModel):
+    steps: int
+    steps_failed: int
+    model_calls: int
+    model_calls_failed: int
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float
+    models: list[str]
+    prompt_versions: list[str]
+
+
 class RunDetail(BaseModel):
     run: RunSummary
     error_summary: str | None
     steps: list[RunStepOut]
     llm_calls: list[LlmCallOut]
+    subject_label: str | None = None
+    subject_path: str | None = None
+    failure: RunFailureOut | None = None
+    totals: RunTotalsOut | None = None
 
 
 # ---- evidence search (checkpoint 1.7)
@@ -1735,3 +1760,151 @@ class ReportOut(BaseModel):
     created_at: datetime
     expires_at: datetime
     download_name: str | None
+
+
+# ---- checkpoint 3.5: observability (admin)
+
+
+class AlertOut(BaseModel):
+    key: str
+    severity: Literal["critical", "warning"]
+    title: str
+    detail: str
+    action: str
+    runbook: str
+
+
+class ComponentOut(BaseModel):
+    name: str
+    status: Literal["ok", "warning", "critical", "unknown"]
+    detail: str
+
+
+class RequestStatsOut(BaseModel):
+    measured: bool
+    window_minutes: int
+    requests: int
+    server_errors: int
+    client_errors: int
+    p50_ms: int | None
+    p95_ms: int | None
+
+
+class TroubleTaskOut(BaseModel):
+    id: uuid.UUID
+    task_type: str
+    state: Literal["retrying", "stuck"]
+    attempts: int
+    max_attempts: int
+    run_id: uuid.UUID | None
+    last_error: str | None
+    run_after: datetime
+
+
+class SourceHealthOut(BaseModel):
+    key: str
+    name: str
+    enabled: bool
+    status: str
+    breaker_open: bool
+    failure_streak: int
+    last_success_at: datetime | None
+    last_failure_at: datetime | None
+
+
+class ThresholdsOut(BaseModel):
+    queue_stale_warning_seconds: int
+    queue_stale_critical_seconds: int
+    source_failure_streak: int
+    llm_error_rate: float
+    daily_spend_ceiling_usd: float
+    server_error_rate: float
+    p95_ms: int
+    auth_failures_per_hour: int
+
+
+class SecurityEventOut(BaseModel):
+    action: str
+    label: str
+    count: int
+
+
+class RateLimitOut(BaseModel):
+    policy: str
+    counters_over: int
+
+
+class HealthOut(BaseModel):
+    status: Literal["ok", "warning", "critical"]
+    headline: str
+    version: str
+    environment: str
+    generated_at: datetime
+    components: list[ComponentOut]
+    alerts: list[AlertOut]
+    requests: RequestStatsOut
+    queue_by_state: dict[str, int]
+    oldest_waiting_seconds: int | None
+    trouble_tasks: list[TroubleTaskOut]
+    sources: list[SourceHealthOut]
+    security_24h: list[SecurityEventOut]
+    rate_limits_24h: list[RateLimitOut]
+    thresholds: ThresholdsOut
+
+
+class UsageRowOut(BaseModel):
+    key: str
+    calls: int
+    errors: int
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float
+
+
+class UsageOut(BaseModel):
+    days: int
+    calls: int
+    errors: int
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float
+    accounts: int
+    average_latency_ms: int | None
+    highest_account_share: float | None
+    daily_spend_ceiling_usd: float
+    by_model: list[UsageRowOut]
+    by_purpose: list[UsageRowOut]
+    by_day: list[UsageRowOut]
+
+
+class TraceTaskOut(BaseModel):
+    id: uuid.UUID
+    task_type: str
+    state: str
+    attempts: int
+    max_attempts: int
+    last_error: str | None
+    created_at: datetime
+    finished_at: datetime | None
+    owner_email: str | None
+
+
+class TraceCallOut(BaseModel):
+    purpose: str
+    provider: str
+    model: str
+    prompt_version: str | None
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float
+    latency_ms: int
+    status: str
+    error_class: str | None
+    created_at: datetime
+
+
+class TraceOut(BaseModel):
+    run_id: uuid.UUID
+    found: bool
+    tasks: list[TraceTaskOut]
+    calls: list[TraceCallOut]

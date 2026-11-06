@@ -1,6 +1,10 @@
 export { AdminLayout } from "./AdminLayout";
 export { AuditPage } from "./AuditPage";
+export { HealthPage } from "./HealthPage";
 export { InvitesPage } from "./InvitesPage";
+export { SourcesPage } from "./SourcesPage";
 export { SystemPage } from "./SystemPage";
+export { TracePage } from "./TracePage";
+export { UsagePage } from "./UsagePage";
 export { UserPage } from "./UserPage";
 export { UsersPage } from "./UsersPage";

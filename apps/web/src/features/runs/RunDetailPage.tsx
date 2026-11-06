@@ -62,12 +62,71 @@ export function RunDetailPage() {
             Started {formatDateTime(data.run.started_at ?? data.run.created_at)}. Duration:{" "}
             {formatDuration(data.run.duration_ms)}.
           </p>
-          {data.error_summary && (
+          {data.subject_label && (
+            <p>
+              About: {data.subject_path ? <Link to={data.subject_path}>{data.subject_label}</Link> : data.subject_label}.
+            </p>
+          )}
+          {data.failure && (
+            <div className="runs__error" role="alert">
+              <strong>What went wrong</strong>
+              <p>{data.failure.what}</p>
+              <p>
+                <strong>What to do:</strong> {data.failure.next}
+              </p>
+              {data.error_summary && <p className="runs__detail">Technical note: {data.error_summary}</p>}
+            </div>
+          )}
+          {!data.failure && data.error_summary && (
             <div className="runs__error">
               <strong>What went wrong</strong>
               <p>{data.error_summary}</p>
             </div>
           )}
+          {data.totals && (
+            <dl className="runs__totals" aria-label="This run in numbers">
+              <div>
+                <dt>Steps</dt>
+                <dd>
+                  {data.totals.steps}
+                  {data.totals.steps_failed > 0 ? `, ${data.totals.steps_failed} failed` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt>Model calls</dt>
+                <dd>
+                  {data.totals.model_calls}
+                  {data.totals.model_calls_failed > 0 ? `, ${data.totals.model_calls_failed} failed` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt>Tokens in and out</dt>
+                <dd>
+                  {formatNumber(data.totals.input_tokens)} and {formatNumber(data.totals.output_tokens)}
+                </dd>
+              </div>
+              <div>
+                <dt>Estimated cost</dt>
+                <dd>{formatCost(data.totals.cost_usd)}</dd>
+              </div>
+              {data.totals.models.length > 0 && (
+                <div>
+                  <dt>Models</dt>
+                  <dd>{data.totals.models.join(", ")}</dd>
+                </div>
+              )}
+              {data.totals.prompt_versions.length > 0 && (
+                <div>
+                  <dt>Prompt versions</dt>
+                  <dd>{data.totals.prompt_versions.join(", ")}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+          <p className="runs__detail">
+            Reference: <code>{data.run.id}</code>. Quote it if you ask for help. This page shows steps, counts and model
+            usage, never the text of your jobs or your resume.
+          </p>
 
           <h2>Steps</h2>
           {data.steps.length === 0 ? (
@@ -78,7 +137,15 @@ export function RunDetailPage() {
                 const info = describeState(step.ui_state);
                 return (
                   <li key={step.ordinal}>
-                    <span className="runs__step-name">{step.step_name}</span>
+                    <span className="runs__step-name">
+                      {step.step_label || step.step_name}
+                      {Object.keys(step.counts ?? {}).length > 0 && (
+                        <span className="runs__detail">
+                          {" "}
+                          ({Object.entries(step.counts ?? {}).map(([k, v]) => `${k.replaceAll("_", " ")} ${formatNumber(v)}`).join(", ")})
+                        </span>
+                      )}
+                    </span>
                     <Status tone={info.tone} label={info.label} />
                     <span>{formatDuration(step.duration_ms)}</span>
                   </li>

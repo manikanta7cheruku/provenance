@@ -32,3 +32,22 @@
   align-items: center;
   margin-block: var(--space-4);
 }
+.runs__totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-block: var(--space-4);
+}
+.runs__totals dt {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+.runs__totals dd {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+}
+.runs__detail {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
