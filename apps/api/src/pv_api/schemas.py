@@ -157,6 +157,8 @@ class ResumeOut(BaseModel):
     # Entries the model proposed that were not found in the resume text, so they were not stored.
     dropped_entry_count: int
     flagged_entry_count: int
+    # "ai" when the model read it, "rules" when the built-in reader did (no AI set up).
+    read_by: str | None
     page_count: int | None
     run_id: uuid.UUID | None
     created_at: datetime
@@ -1452,9 +1454,11 @@ class GitHubRepoOut(BaseModel):
 
 
 class GitHubOut(BaseModel):
-    # Whether the operator has set up GitHub on this server at all.
+    # Whether the operator has set up the GitHub sign-in (verifying). Pasting a link needs none.
     available: bool
     connected: bool
+    # True when the account was proven with GitHub sign-in. False for a pasted link.
+    verified: bool
     login: str | None
     profile_url: str | None
     # The permission asked of GitHub. Empty means none: public information only.
@@ -1469,6 +1473,10 @@ class GitHubOut(BaseModel):
     entries_from_github: int
     # Places that cannot be connected, and what to do instead.
     platforms: list[PlatformOut]
+
+
+class GitHubLinkIn(BaseModel):
+    link: str = Field(min_length=1, max_length=300)
 
 
 class GitHubStartOut(BaseModel):

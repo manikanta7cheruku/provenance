@@ -374,7 +374,7 @@ def test_a_clean_query_drops_what_it_does_not_know_and_never_raises() -> None:
             "company": ["not", "a", "string"],
         }
     )
-    assert q.view == "active" and q.sort == "added" and q.descending is None
+    assert q.view == "active" and q.sort == "best" and q.descending is None
     assert q.states == frozenset({"saved"}) and q.eligibility == frozenset({"eligible"})
     assert q.bands == frozenset() and q.work_modes == frozenset({"remote"})
     assert q.employment_types == frozenset({"full_time"})

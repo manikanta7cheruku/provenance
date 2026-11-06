@@ -132,7 +132,7 @@ describe("the query in the address", () => {
   it("ignores values it does not know", () => {
     const q = paramsToQuery(new URLSearchParams("view=bogus&sort=nope&desc=maybe"));
     expect(q.view).toBe("active");
-    expect(q.sort).toBe("added");
+    expect(q.sort).toBe("best");
     expect(q.desc).toBeNull();
   });
 

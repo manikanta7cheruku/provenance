@@ -16,11 +16,13 @@ from pv_api.schemas import (
     GitHubDisconnectOut,
     GitHubFinishIn,
     GitHubFinishOut,
+    GitHubLinkIn,
     GitHubOut,
     GitHubStartOut,
 )
 from pv_api.services import github_service
 from pv_domain.github import GitHubGateway
+from pv_github import oauth_configured
 
 router = APIRouter(prefix="/github", tags=["github"])
 
@@ -34,7 +36,27 @@ def get_gateway(request: Request) -> GitHubGateway | None:
 def read(
     request: Request, auth: CurrentUser, engine: EngineDep, settings: SettingsDep
 ) -> GitHubOut:
-    return github_service.status(engine, settings, get_gateway(request) is not None, auth.user_id)
+    return github_service.status(engine, settings, oauth_configured(settings), auth.user_id)
+
+
+@router.post("/link", response_model=GitHubFinishOut)
+async def link(
+    body: GitHubLinkIn,
+    request: Request,
+    auth: WriterUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    limiter: LimiterDep,
+) -> GitHubFinishOut:
+    limiter.check("github_start_user", str(auth.user_id))
+    return await run_in_threadpool(
+        github_service.link,
+        engine,
+        get_gateway(request),
+        auth.user_id,
+        body.link,
+        ip_hash_of(request, settings),
+    )
 
 
 @router.post("/start", response_model=GitHubStartOut)

@@ -92,6 +92,8 @@ class SeekerPreferences:
     remote_preference: str | None = None
     employment_types: tuple[str, ...] = ()
     exclusions: tuple[str, ...] = ()
+    # Roles the person wants. Not a gate: it only orders the list (see pv_domain.roles).
+    target_roles: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

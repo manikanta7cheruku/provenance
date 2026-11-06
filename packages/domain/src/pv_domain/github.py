@@ -104,6 +104,9 @@ ERRORS: dict[str, str] = {
     "not_connected": "GitHub is not connected.",
     "too_many_selected": f"Choose at most {MAX_REPOS_SELECTED} repositories. Fewer, better chosen ones read better.",
     "unknown_repo": "One of those repositories is not in your list. Read your repositories again, then choose.",
+    "bad_link": "That does not look like a GitHub profile link. Paste something like github.com/yourname.",
+    "user_not_found": "GitHub has no account with that name. Check the link and try again.",
+    "not_a_person": "That is an organisation, not a person. Paste your own profile link.",
 }
 
 
@@ -113,6 +116,11 @@ class GitHubGateway(Protocol):
     def exchange_code(self, code: str, redirect_uri: str, code_verifier: str) -> str: ...
 
     def get_user(self, token: str) -> GitHubUser: ...
+
+    def get_public_user(self, login: str) -> GitHubUser:
+        """A person's public account by name, without any sign-in. Raises user_not_found or
+        not_a_person."""
+        ...
 
     def list_public_repos(self, token: str, login: str, limit: int) -> list[RepoInfo]: ...
 
@@ -212,6 +220,47 @@ def valid_full_name(value: Any) -> bool:
 
 def valid_repo_name(value: Any) -> bool:
     return isinstance(value, str) and bool(_REPO_NAME.match(value))
+
+
+_LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$")
+_LINK_HOSTS = ("github.com", "www.github.com")
+# First path words on github.com that are pages, not people.
+_RESERVED = frozenset(
+    {
+        "about", "apps", "explore", "features", "login", "marketplace", "new", "notifications",
+        "orgs", "pricing", "pulls", "issues", "search", "security", "settings", "sponsors",
+        "topics", "trending", "users",
+    }
+)  # fmt: skip
+
+
+# Stored in place of a sealed token when the person pasted a link. It is not a secret: it only says
+# "no sign-in, public information only". (The column requires at least 20 characters.)
+LINK_ONLY = "link-only-no-token-stored"
+
+
+def parse_github_login(text: str) -> str | None:
+    """The GitHub username inside what a person pasted, or None.
+
+    Accepts a profile link, a repository link, a link without https, "@name" or just the name.
+    Only the name is kept, so nothing else the person pasted is ever used as an address.
+    """
+    value = text.strip()
+    if not value or len(value) > 300 or any(ch.isspace() for ch in value):
+        return None
+    lowered = value.lower()
+    if lowered.startswith(("http://", "https://")):
+        value = value.split("://", 1)[1]
+    host, _, path = value.partition("/")
+    if host.lower() in _LINK_HOSTS:
+        first = path.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    elif "/" not in value and "." not in value:
+        first = value.removeprefix("@")
+    else:
+        return None
+    if not _LOGIN.match(first) or first.lower() in _RESERVED or "--" in first:
+        return None
+    return first
 
 
 # ---------------------------------------------------------------- from a repository to evidence

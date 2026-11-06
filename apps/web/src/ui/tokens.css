@@ -11,19 +11,19 @@
 
   /* Typography. Fonts are self-hosted through @fontsource (see fonts.css). */
   --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-display: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --text-caption: 0.75rem;
-  --text-small: 0.8125rem;
-  --text-body: 0.9375rem;
-  --text-body-lg: 1rem;
-  --text-title: 1.3125rem;
-  --text-heading: 2rem;
-  --text-display: 2.5rem;
-  --leading-display: 1.1;
-  --tracking-display: -0.02em;
+  --text-small: 0.75rem;
+  --text-body: 0.8125rem;
+  --text-body-lg: 0.875rem;
+  --text-title: 0.9375rem;
+  --text-heading: 1.25rem;
+  --text-display: 1.5rem;
+  --leading-display: 1.2;
+  --tracking-display: -0.01em;
   --leading-tight: 1.25;
-  --leading-body: 1.5;
+  --leading-body: 1.45;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
@@ -40,73 +40,97 @@
   --space-7: 48px;
 
   /* Sizing */
-  --size-control: 40px;
-  --size-control-compact: 28px;
+  --size-control: 32px;
+  --size-control-compact: 26px;
   --size-touch: 44px;
   --size-sidebar: 232px;
-  --size-content-max: 1180px;
+  --size-content-max: 1120px;
   --size-detail-pane: 26rem;
   --size-dot: 8px;
   --measure: 64ch;
 
   /* Radii: small for chips and marks, medium for controls and panels, large for dialogs */
   --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 14px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 
   /* Elevation: flat by default. One step lifts a card on hover, one is for popovers and dialogs. */
-  --shadow-raised: 0 1px 2px light-dark(rgb(20 32 46 / 0.06), rgb(0 0 0 / 0.4)), 0 2px 8px light-dark(rgb(20 32 46 / 0.06), rgb(0 0 0 / 0.3));
-  --shadow-overlay: 0 12px 32px light-dark(rgb(20 32 46 / 0.16), rgb(0 0 0 / 0.6)), 0 2px 6px light-dark(rgb(20 32 46 / 0.08), rgb(0 0 0 / 0.4));
+  --shadow-raised: 0 1px 2px light-dark(rgb(0 0 0 / 0.05), rgb(0 0 0 / 0.4));
+  --shadow-overlay: 0 8px 24px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.55)), 0 0 0 1px light-dark(rgb(0 0 0 / 0.06), rgb(255 255 255 / 0.06));
 
   /* Motion: only to communicate state change */
-  --duration-fast: 140ms;
-  --duration-base: 220ms;
+  --duration-fast: 100ms;
+  --duration-base: 160ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-slow: 360ms;
+  --duration-slow: 220ms;
+
+  /* Craft: spring easing as a CSS linear() curve (a soft overshoot, settles by 45 percent), used for
+     things that move because a person touched them. */
+  --ease-spring: linear(0, 0.2 4%, 0.58 10%, 0.88 17%, 1.03 25%, 1.045 31%, 1.02 38%, 1.004 48%, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-spring: 320ms;
+  --size-rail: 76px;
+  --size-rail-open: 248px;
+  --size-tabbar: 56px;
+  --radius-xl: 10px;
+  --blur-glass: 18px;
 
   /* Focus */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
   /* Color roles: surface */
-  --color-surface-base: light-dark(#faf8f4, #0e1116);
-  --color-surface-raised: light-dark(#ffffff, #151a22);
-  --color-surface-sunken: light-dark(#f1eee7, #0a0d12);
+  --color-surface-base: light-dark(#fafafa, #0c0c0e);
+  --color-surface-raised: light-dark(#ffffff, #141417);
+  --color-surface-sunken: light-dark(#f4f4f5, #09090b);
   /* Paper in the resume canvas is white in every theme, so its inks are fixed too. */
   --color-paper: #ffffff;
   --color-paper-ink: #1b1b1b;
   --color-paper-placeholder: #6a6a6a;
   --color-paper-guide: #8a8a8a;
   --color-paper-highlight: #fff1a8;
+  /* Status inks that stay readable on the white paper in both themes (used by the sign in receipt). */
+  --color-paper-success: #1f6b44;
+  --color-paper-danger: #a6372b;
+  --color-paper-rule: #d9d4c8;
   /* The highlighter mark in resume text. Text on it must stay readable in both themes. */
   --color-highlight-bg: light-dark(#fff1a8, #5e5200);
   --color-highlight-text: light-dark(#1b1b1b, #fff8d0);
   /* Color roles: border */
-  --color-border-subtle: light-dark(#e5e1d8, #232a35);
-  --color-border-strong: light-dark(#cdc8bc, #343d4a); /* decorative only: below 3:1 */
-  --color-border-control: light-dark(#7d8794, #7b8696); /* boundaries of inputs and buttons: 3:1 or better */
+  /* The ledger dot grid behind the working canvas, and the ink "desk" that sign in sits on. */
+  --color-grid-dot: light-dark(#e7e7ea, #1b1b1f);
+  --size-grid: 24px;
+  --color-desk: #0c0c0e;
+  --color-desk-raised: #17273b;
+  --color-desk-text: #e9ecf1;
+  --color-desk-muted: #a9b4c4;
+  --color-glass: light-dark(rgb(250 248 244 / 0.82), rgb(14 17 22 / 0.78));
+  --shadow-lift: 0 1px 2px light-dark(rgb(0 0 0 / 0.05), rgb(0 0 0 / 0.4));
+  --color-border-subtle: light-dark(#e7e7ea, #232327);
+  --color-border-strong: light-dark(#d4d4d9, #34343b); /* decorative only: below 3:1 */
+  --color-border-control: light-dark(#8b8b95, #75757f); /* boundaries of inputs and buttons: 3:1 or better */
   /* Color roles: text */
-  --color-text-primary: light-dark(#14202e, #e9ecf1);
-  --color-text-secondary: light-dark(#4a5565, #a3acb9);
-  --color-text-disabled: light-dark(#8a929d, #6b7480); /* exempt from contrast rules, still readable */
-  --color-text-on-accent: light-dark(#ffffff, #0e1116);
+  --color-text-primary: light-dark(#111113, #ececee);
+  --color-text-secondary: light-dark(#52525b, #a1a1aa);
+  --color-text-disabled: light-dark(#8b8b95, #6b6b74); /* exempt from contrast rules, still readable */
+  --color-text-on-accent: light-dark(#ffffff, #04201c);
   --color-text-on-danger: light-dark(#ffffff, #0e1116);
   /* Color roles: accent */
-  --color-accent: light-dark(#1f3a5f, #9db8e6);
-  --color-accent-hover: light-dark(#182e4c, #b3c9ee);
-  --color-accent-active: light-dark(#11223a, #c6d7f3);
-  --color-accent-subtle: light-dark(#e7ecf4, #1b2740);
+  --color-accent: light-dark(#0f766e, #5eead4);
+  --color-accent-hover: light-dark(#115e59, #99f6e4);
+  --color-accent-active: light-dark(#134e4a, #ccfbf1);
+  --color-accent-subtle: light-dark(#e6f4f1, #0f2a27);
   /* Color roles: highlight (brass). The 10 percent. Text uses --color-highlight, fills use the
      subtle one, the line is decorative only. */
-  --color-highlight: light-dark(#8a5a0b, #e2b25c);
-  --color-highlight-subtle: light-dark(#f5e6c4, #2e2410);
-  --color-highlight-line: light-dark(#b07a1e, #c99a3e);
+  --color-highlight: light-dark(#a15c07, #f0b44c);
+  --color-highlight-subtle: light-dark(#fdf0d5, #2d2310);
+  --color-highlight-line: light-dark(#b06a05, #e0a030);
   /* The one gradient. Ink-blue to deep teal. Used at most once on a screen: the brand mark,
      a welcome moment, a progress ring. Text on it is always the fixed white below. */
-  --gradient-dusk: linear-gradient(135deg, #1f3a5f 0%, #0f6b6b 100%);
-  --gradient-dusk-start: #1f3a5f;
-  --gradient-dusk-end: #0f6b6b;
+  --gradient-dusk: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
+  --gradient-dusk-start: #0f766e;
+  --gradient-dusk-end: #134e4a;
   --color-text-on-gradient: #ffffff;
   /* Color roles: status. Meaning only, always paired with text and a distinct shape. */
   --color-success: light-dark(#1f6b44, #7cc49a);
@@ -116,7 +140,7 @@
   --color-danger-fill: light-dark(#a6372b, #ec9488);
   /* Color roles: overlays and placeholders */
   --color-backdrop: light-dark(rgb(20 32 46 / 0.45), rgb(0 0 0 / 0.62));
-  --color-skeleton: light-dark(#ebe7de, #1b212b);
+  --color-skeleton: light-dark(#ececee, #1b1b1f);
   /* Interaction state roles */
   --color-hover: var(--color-surface-sunken);
   --color-pressed: var(--color-border-subtle);

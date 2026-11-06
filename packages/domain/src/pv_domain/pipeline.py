@@ -186,7 +186,7 @@ _VIEW_STATES: dict[str, frozenset[str]] = {
     "all": frozenset(s.value for s in DecisionState),
 }
 
-SORTS = ("added", "title", "company", "fit", "eligibility", "applied")
+SORTS = ("best", "added", "title", "company", "fit", "eligibility", "applied")
 _ELIGIBILITY_RANK = {"eligible": 0, "uncertain": 1, "requires_user_input": 2, "not_eligible": 3}
 _BAND_RANK = {"strong": 0, "good": 1, "review": 2, "not_recommended": 3, "not_eligible": 4}
 WORK_MODES = ("remote", "hybrid", "onsite")
@@ -214,6 +214,9 @@ class WorkRow:
     created_at: datetime
     applied_at: datetime | None
     note: str = ""
+    # True when the title fits a role the person wants, False when it does not, None when they
+    # named no role.
+    role_match: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -229,7 +232,7 @@ class WorkQuery:
     sources: frozenset[str] = frozenset()
     company: str = ""
     location: str = ""
-    sort: str = "added"
+    sort: str = "best"
     descending: bool | None = None  # None means the natural direction of the sort
 
 
@@ -264,7 +267,7 @@ def clean_query(raw: dict[str, object]) -> WorkQuery:
         sources=many("sources"),
         company=text("company"),
         location=text("location"),
-        sort=sort if isinstance(sort, str) and sort in SORTS else "added",
+        sort=sort if isinstance(sort, str) and sort in SORTS else "best",
         descending=direction if isinstance(direction, bool) else None,
     )
 
@@ -335,6 +338,15 @@ def _sort_key(row: WorkRow, sort: str) -> tuple[object, ...]:
         return (row.title.casefold(),)
     if sort == "company":
         return (row.company == "", row.company.casefold())
+    if sort == "best":
+        # Jobs you can take first, then jobs that fit a wanted role, then the stronger evidence, then
+        # the newest. A hard blocker is last. Nothing here hides a job.
+        return (
+            _ELIGIBILITY_RANK.get(row.eligibility or "", 1) == 3,
+            {True: 0, None: 1, False: 2}[row.role_match],
+            _BAND_RANK.get(row.band or "", 2),
+            -row.created_at.timestamp(),
+        )
     if sort == "fit":
         return (_BAND_RANK.get(row.band or "", 9),)
     if sort == "eligibility":

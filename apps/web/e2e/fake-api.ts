@@ -158,6 +158,7 @@ export function resumeBody(
     kept_entry_count: 3,
     dropped_entry_count: 1,
     flagged_entry_count: 2,
+    read_by: "ai",
     page_count: 1,
     run_id: "run1",
     created_at: NOW,
@@ -1378,6 +1379,8 @@ export interface FakeGitHubRepo {
   has_excerpt: boolean;
 }
 export interface FakeGitHub {
+  /** False for a pasted link. Missing means verified. */
+  verified?: boolean;
   available: boolean;
   connected: boolean;
   reads: number;
@@ -1995,6 +1998,7 @@ export async function fakeApi(
       return json({
         available: g.available,
         connected: g.connected,
+        verified: g.verified !== false,
         login: g.connected ? "asha" : null,
         profile_url: g.connected ? "https://github.com/asha" : null,
         scope: "",
@@ -2021,6 +2025,24 @@ export async function fakeApi(
           },
         ],
       });
+    }
+    if (path === "/api/v1/github/link" && method === "POST") {
+      const body = request.postDataJSON() as { link: string };
+      fake.github.calls.push(`link:${body.link}`);
+      if (!/github\.com\/|^[A-Za-z0-9-]+$/.test(body.link))
+        return json(
+          {
+            code: "GITHUB_BAD_LINK",
+            message:
+              "That does not look like a GitHub profile link. Paste something like github.com/yourname.",
+          },
+          400,
+        );
+      fake.github.connected = true;
+      fake.github.verified = false;
+      fake.github.sync_state = "queued";
+      fake.github.reads = 0;
+      return json({ login: "asha" });
     }
     if (path === "/api/v1/github/start" && method === "POST") {
       fake.github.calls.push("start");
@@ -2052,6 +2074,7 @@ export async function fakeApi(
           400,
         );
       fake.github.connected = true;
+      fake.github.verified = true;
       fake.github.sync_state = "queued";
       fake.github.reads = 0;
       return json({ login: "asha" });

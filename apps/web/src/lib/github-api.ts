@@ -25,9 +25,11 @@ export interface Platform {
 export type SyncState = "idle" | "queued" | "syncing" | "failed";
 
 export interface GitHubState {
-  /** Whether GitHub is set up on this server at all. */
+  /** Whether the optional GitHub sign-in (to verify the account) is set up on this server. */
   available: boolean;
   connected: boolean;
+  /** True when the account was proven with GitHub sign-in. False for a pasted link. */
+  verified: boolean;
   login: string | null;
   profile_url: string | null;
   /** The permission asked of GitHub. Empty means none: public information only. */
@@ -47,6 +49,10 @@ const BASE = "/api/v1/github";
 
 export function fetchGitHub(signal?: AbortSignal): Promise<GitHubState> {
   return request<GitHubState>("GET", BASE, { signal });
+}
+
+export function linkGitHub(link: string): Promise<{ login: string }> {
+  return request<{ login: string }>("POST", `${BASE}/link`, { body: { link } });
 }
 
 export function startGitHub(): Promise<{ authorize_url: string }> {

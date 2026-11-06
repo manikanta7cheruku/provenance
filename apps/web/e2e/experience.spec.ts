@@ -27,14 +27,14 @@ async function open(page: Page) {
 
 // ------------------------------------------------------------------ the start screen
 
-test("the start screen is three clear steps and starts a resume", async ({ page }) => {
+test("the start screen shows the choices and the templates together and starts a resume", async ({ page }) => {
   await page.setViewportSize({ width: 1500, height: 1000 });
   const fake = await fakeApi(page);
   await page.goto("/studio");
   await expect(page.getByRole("heading", { level: 1, name: "Start your resume" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: /Where do the words come from/ })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: /How do you want to work/ })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: /Pick a design/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Start from" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Layout" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Template" })).toBeVisible();
   // Sensible choices are already made: one click starts.
   await expect(page.getByRole("radio", { name: /My profile/ })).toBeChecked();
   await expect(page.getByRole("radio", { name: /Free design/ })).toBeChecked();
@@ -52,7 +52,7 @@ test("the choices are real radio buttons that work with the arrow keys", async (
   await expect(page.getByRole("radio", { name: /A blank page/ })).toBeChecked();
   await expect(page.getByRole("radio", { name: /A blank page/ })).toBeFocused();
   await page.getByRole("radio", { name: /Guided and ATS-safe/ }).check({ force: true });
-  await expect(page.getByRole("heading", { level: 2, name: /Pick a design/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Template" })).toBeVisible();
   await expect(page.getByText("Choose a template").first()).toHaveCount(0);
 });
 

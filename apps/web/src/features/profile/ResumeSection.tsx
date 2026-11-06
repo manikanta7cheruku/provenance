@@ -240,6 +240,12 @@ function ResumeDetails({
           Delete resume
         </ActionButton>
       </div>
+      {resume.read_by === "rules" && resume.ui_state !== "failed" ? (
+        <p className="resume__hint">
+          Read with the built-in reader, so check each entry below. It copies what your resume
+          says and can miss details.
+        </p>
+      ) : null}
       {resume.can_retry && resume.ui_state !== "failed" ? (
         <p className="resume__hint">
           Reading it again replaces entries that came from the resume and that you have not edited.

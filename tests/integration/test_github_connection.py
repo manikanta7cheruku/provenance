@@ -69,6 +69,11 @@ class FakeGitHub:
     def get_user(self, token: str) -> GitHubUser:
         return GitHubUser(id=4242, login="asha")
 
+    def get_public_user(self, login: str) -> GitHubUser:
+        if login == "nobody":
+            raise GitHubError("user_not_found")
+        return GitHubUser(id=4242, login=login)
+
     def list_public_repos(self, token: str, login: str, limit: int) -> list[RepoInfo]:
         self.list_calls += 1
         self.token_seen.append(token)
@@ -607,3 +612,62 @@ def test_the_audit_trail_has_no_token_and_no_repository_text(
     ]
     blob = " ".join(str(r[1]) for r in rows)
     assert "gho_" not in blob and "repo2" not in blob and "asha/" not in blob
+
+
+# ------------------------------------------------------------ a pasted link, no sign-in
+
+
+def test_a_pasted_link_works_without_an_oauth_app_and_is_shown_as_unverified(
+    build_app: Callable[..., FastAPI],
+    make_account: MakeAccount,
+    storage: Any,
+    fake: FakeGitHub,
+    engine: Engine,
+    settings: Settings,
+) -> None:
+    app = build_app(storage=storage, github=fake)  # no OAuth app configured
+    account = make_account(app)
+    done = account.client.post(
+        f"{GITHUB}/link", json={"link": "https://github.com/asha/repo1"}, headers=account.csrf
+    )
+    assert done.status_code == 200 and done.json() == {"login": "asha"}
+    body = status(account)
+    assert body["connected"] is True and body["verified"] is False and body["available"] is False
+    sync_now(engine, settings, account, fake)
+    assert fake.token_seen == [""]  # public information only, no token
+    assert len(status(account)["repos"]) == 8
+
+
+def test_a_bad_or_unknown_link_is_a_plain_error(
+    build_app: Callable[..., FastAPI], make_account: MakeAccount, storage: Any, fake: FakeGitHub
+) -> None:
+    account = make_account(build_app(storage=storage, github=fake))
+    bad = account.client.post(
+        f"{GITHUB}/link", json={"link": "https://gitlab.com/x"}, headers=account.csrf
+    )
+    assert bad.status_code == 400 and bad.json()["code"] == "GITHUB_BAD_LINK"
+    unknown = account.client.post(f"{GITHUB}/link", json={"link": "nobody"}, headers=account.csrf)
+    assert unknown.status_code == 400 and unknown.json()["code"] == "GITHUB_USER_NOT_FOUND"
+    assert status(account)["connected"] is False
+
+
+def test_signing_in_after_pasting_a_link_makes_it_verified(
+    gh_app: FastAPI, make_account: MakeAccount
+) -> None:
+    account = make_account(gh_app)
+    account.client.post(f"{GITHUB}/link", json={"link": "asha"}, headers=account.csrf)
+    assert status(account)["verified"] is False
+    connect(account)
+    assert status(account)["verified"] is True
+    again = account.client.post(f"{GITHUB}/link", json={"link": "asha"}, headers=account.csrf)
+    assert again.status_code == 200 and status(account)["verified"] is True  # not downgraded
+
+
+def test_removing_a_pasted_link_needs_no_revoke(
+    build_app: Callable[..., FastAPI], make_account: MakeAccount, storage: Any, fake: FakeGitHub
+) -> None:
+    account = make_account(build_app(storage=storage, github=fake))
+    account.client.post(f"{GITHUB}/link", json={"link": "asha"}, headers=account.csrf)
+    done = account.client.post(f"{GITHUB}/disconnect", json={}, headers=account.csrf)
+    assert done.status_code == 200 and done.json()["revoked"] is True
+    assert fake.revoked == [] and status(account)["connected"] is False

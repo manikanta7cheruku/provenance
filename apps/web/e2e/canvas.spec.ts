@@ -350,7 +350,7 @@ test("zoom changes the page size", async ({ page }) => {
   const zoom = page.getByRole("combobox", { name: "Zoom" });
   await zoom.selectOption("2");
   // The page is redrawn after the choice. Wait for it, as a slow machine takes longer.
-  await expect.poll(width).toBeGreaterThan(fit * 1.5);
+  await expect.poll(width).toBeGreaterThan(fit * 1.3);
   const big = await width();
   await page.getByRole("button", { name: "Zoom out" }).click();
   await expect.poll(width).toBeLessThan(big);

@@ -235,11 +235,30 @@
 
 /* The GitHub connection */
 .github__connect {
+  margin-top: var(--space-3);
+}
+.github__paste {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
+  align-items: flex-end;
+  gap: var(--space-2);
+  max-width: 28rem;
+}
+.github__paste .field {
+  flex: 1;
+  min-width: 0;
+}
+.github__verify {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.github__verify:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .github__who {
   margin-top: var(--space-4);
@@ -277,4 +296,98 @@
   gap: var(--space-2);
   margin-top: var(--space-3);
   padding-left: var(--space-5);
+}
+
+/* Skills as chips, and folded long lists */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.skill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+}
+.skill[data-flagged] {
+  border-color: var(--color-warning);
+}
+.skill__name,
+.skill__remove {
+  min-height: var(--size-control);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+.skill__name {
+  padding: 0 var(--space-1) 0 var(--space-3);
+  border-radius: 999px 0 0 999px;
+}
+.skill__remove {
+  display: inline-grid;
+  place-items: center;
+  width: var(--size-control);
+  border-radius: 0 999px 999px 0;
+  color: var(--color-text-secondary);
+}
+.skill__name:hover,
+.skill__remove:hover {
+  background: var(--color-hover);
+}
+.skill__name:focus-visible,
+.skill__remove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: -2px;
+}
+.entries__more {
+  margin-top: var(--space-3);
+}
+.entries__group > .entry {
+  margin-top: var(--space-3);
+  border-bottom: 0;
+}
+
+/* A chosen repository list stays small, and a long picker scrolls inside itself */
+.github__repos ul {
+  max-height: 18rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.github__chosen {
+  margin-top: var(--space-3);
+}
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pill {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  font-size: var(--text-body);
+}
+.evidence__form + .picker__chips {
+  margin-top: var(--space-3);
+}
+
+.prefs__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+}
+.prefs__row > .picker {
+  flex: 0 0 auto;
 }

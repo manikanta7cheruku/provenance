@@ -473,7 +473,7 @@ def test_garbage_from_the_model_marks_the_resume_failed_with_a_plain_message(
     assert len(run["llm_calls"]) == 2  # both attempts were recorded
 
 
-def test_missing_ai_configuration_is_a_visible_failure_not_a_crash_loop(
+def test_missing_ai_configuration_falls_back_to_the_built_in_reader(
     app: FastAPI, make_account: MakeAccount, engine: Engine, storage: FileStorage
 ) -> None:
     account = make_account(app)
@@ -483,7 +483,9 @@ def test_missing_ai_configuration_is_a_visible_failure_not_a_crash_loop(
         storage,
         LLMError("The AI provider is not configured.", retryable=False),
     )
-    assert "not set up" in account.client.get(RESUME).json()["error_message"]
+    resume = account.client.get(RESUME).json()
+    assert resume["ui_state"] != "failed"
+    assert resume["parsed_at"] is not None
 
 
 def test_a_busy_provider_is_retried_and_only_fails_visibly_on_the_last_attempt(

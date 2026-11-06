@@ -111,6 +111,9 @@ class Settings(BaseSettings):
     # proxy can stand in for GitHub). See docs/providers/github.md.
     github_client_id: str = ""
     github_client_secret: SecretStr = SecretStr("")
+    # Optional. A GitHub personal access token with no permissions. Pasted links are read with it,
+    # which raises the limit from 60 to 5,000 requests an hour. It is never shown to anyone.
+    github_token: SecretStr = SecretStr("")
     github_api_base: str = "https://api.github.com"
     github_oauth_base: str = "https://github.com"
 

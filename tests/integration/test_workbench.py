@@ -460,7 +460,7 @@ def test_unknown_filter_values_are_dropped_not_guessed_at(
         band="gold",
         eligibility="maybe",
     )
-    assert body["query"] == {"view": "active", "sort": "added"}
+    assert body["query"] == {"view": "active", "sort": "best"}
     assert body["total"] == 5
 
 

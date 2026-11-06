@@ -62,11 +62,12 @@
 
 /* Action button used inside data screens. Meaning comes from the label, not from color. */
 .action {
-  min-height: var(--size-touch);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-control);
+  min-height: var(--size-control);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: var(--color-surface-raised);
+  font-size: var(--text-body);
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -76,7 +77,7 @@
 }
 .action:hover {
   background: var(--color-hover);
-  border-color: var(--color-text-secondary);
+  border-color: var(--color-border-control);
 }
 .action:active {
   background: var(--color-pressed);
@@ -95,7 +96,6 @@
 .action--primary:hover {
   border-color: var(--color-accent-hover);
   background: var(--color-accent-hover);
-  box-shadow: var(--shadow-raised);
 }
 .action--primary:active {
   border-color: var(--color-accent-active);
@@ -105,6 +105,10 @@
   border-color: var(--color-danger-fill);
   background: var(--color-danger-fill);
   color: var(--color-text-on-danger);
+}
+.action--danger:hover {
+  background: var(--color-danger-fill);
+  border-color: var(--color-danger-fill);
 }
 .action--danger:active {
   background: var(--color-danger-fill);
@@ -165,5 +169,13 @@
   }
   .data-table tbody tr[aria-current="true"] > :first-child {
     box-shadow: inset 4px 0 0 Highlight;
+  }
+}
+
+/* On a touch screen controls keep a full finger of room. */
+@media (pointer: coarse) {
+  .action,
+  .button {
+    min-height: var(--size-touch);
   }
 }

@@ -560,6 +560,11 @@
 .bench__check {
   width: 2.5rem;
 }
+.bench__check input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+}
 .decision > * + * {
   margin-top: var(--space-2);
 }

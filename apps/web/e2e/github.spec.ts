@@ -24,16 +24,42 @@ async function openProfile(page: Page, initial: Partial<Fake>) {
 
 test("it says what is asked of GitHub: no permissions, public information only", async ({ page }) => {
   await openProfile(page, { github: github() });
+  await panel(page).getByText("What is read").click();
   await expect(panel(page)).toContainText("no permissions at all");
   await expect(panel(page)).toContainText("public information only");
   await expect(panel(page)).toContainText("never sees your password");
-  await expect(panel(page).getByRole("button", { name: "Connect GitHub" })).toBeVisible();
+  await expect(panel(page).getByRole("button", { name: "sign in with GitHub" })).toBeVisible();
 });
 
-test("when the server has no GitHub app the screen says so and offers nothing to click", async ({ page }) => {
-  await openProfile(page, { github: github({ available: false }) });
-  await expect(panel(page)).toContainText("GitHub is not set up on this server");
-  await expect(panel(page).getByRole("button", { name: "Connect GitHub" })).toHaveCount(0);
+test("pasting a link works without any GitHub app on the server", async ({ page }) => {
+  const fake = await openProfile(page, { github: github({ available: false }) });
+  await expect(panel(page)).not.toContainText("not set up");
+  await expect(panel(page).getByRole("button", { name: "sign in with GitHub" })).toHaveCount(0);
+  await panel(page).getByLabel("GitHub link").fill("https://github.com/asha");
+  await panel(page).getByRole("button", { name: "Add" }).click();
+  expect(fake.github.calls).toEqual(["link:https://github.com/asha"]);
+  await expect(panel(page)).toContainText("Using asha");
+  await expect(panel(page)).toContainText("not proven to be your account");
+  await expect(panel(page).getByRole("group", { name: "Repositories to use as evidence" })).toBeVisible({ timeout: 10_000 });
+  await expect(panel(page).getByRole("button", { name: "Remove link" })).toBeVisible();
+});
+
+test("a link that is not a GitHub profile says what to paste", async ({ page }) => {
+  await openProfile(page, { github: github() });
+  await panel(page).getByLabel("GitHub link").fill("https://example.com/x");
+  await panel(page).getByRole("button", { name: "Add" }).click();
+  await expect(panel(page)).toContainText("Paste something like github.com/yourname");
+});
+
+test("a pasted link can be verified with GitHub, and removing it needs no revoke", async ({ page }) => {
+  const fake = await openProfile(page, { github: github({ connected: true, verified: false, repos: githubRepos() }) });
+  await expect(panel(page).getByRole("button", { name: "Verify with GitHub" })).toBeVisible();
+  await panel(page).getByRole("button", { name: "Remove link" }).click();
+  const dialog = page.getByRole("dialog", { name: "Remove the GitHub link?" });
+  await expect(dialog).not.toContainText("access token");
+  await dialog.getByRole("button", { name: "Remove" }).click();
+  await expect(page.getByText("The GitHub link is removed.")).toBeVisible();
+  expect(fake.github.calls).toContain("disconnect:false");
 });
 
 test("connecting sends the person to GitHub and back, then lists repositories to choose", async ({ page }) => {
@@ -43,7 +69,7 @@ test("connecting sends the person to GitHub and back, then lists repositories to
     const state = new URL(route.request().url()).searchParams.get("state") ?? "";
     return route.fulfill({ status: 302, headers: { location: `${new URL(page.url()).origin}/connect/github/callback?code=good&state=${state}` } });
   });
-  await panel(page).getByRole("button", { name: "Connect GitHub" }).click();
+  await panel(page).getByRole("button", { name: "sign in with GitHub" }).click();
   await expect(page).toHaveURL(/\/profile$/);
   expect(fake.github.calls).toEqual(["start", "callback:good"]);
   await expect(panel(page)).toContainText("Connected as asha");
@@ -109,7 +135,7 @@ test("disconnecting asks first, says what happens, and removes the entries", asy
   await expect(page.getByText(/GitHub is disconnected and its token is deleted/)).toBeVisible();
   await expect(page.getByText(/GitHub confirmed the access was revoked/)).toBeVisible();
   expect(fake.github.calls).toContain("disconnect:false");
-  await expect(panel(page).getByRole("button", { name: "Connect GitHub" })).toBeVisible();
+  await expect(panel(page).getByLabel("GitHub link")).toBeVisible();
   await expect(page.getByText(/^From GitHub/)).toHaveCount(0);
 });
 

@@ -170,6 +170,7 @@ def load_seeker(
             remote_preference=row.remote_preference,
             employment_types=tuple(row.employment_types or ()),
             exclusions=tuple(row.exclusions or ()),
+            target_roles=tuple(row.target_roles or ()),
         )
     entries: list[tuple[str, dict[str, Any]]] = [
         (e.entry_type, e.data) for e in list_entries(db, owner_id)

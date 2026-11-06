@@ -4,6 +4,8 @@ repository text, and what becomes evidence."""
 from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qs, urlsplit
 
+import pytest
+
 from pv_domain.github import (
     MAX_TOPICS,
     OAUTH_SCOPE,
@@ -234,3 +236,41 @@ def test_suggestions_prefer_described_recent_original_repositories() -> None:
 def test_at_most_six_are_suggested() -> None:
     repos = [repo(id=i, full_name=f"a/r{i}", name=f"r{i}") for i in range(1, 20)]
     assert len(suggest(repos, now=NOW)) == 6
+
+
+@pytest.mark.parametrize(
+    ("pasted", "login"),
+    [
+        ("https://github.com/asha-rao", "asha-rao"),
+        ("http://github.com/asha-rao/", "asha-rao"),
+        ("github.com/asha-rao/job-tracker", "asha-rao"),
+        ("www.github.com/asha-rao?tab=repositories", "asha-rao"),
+        ("  @asha-rao ", "asha-rao"),
+        ("asha-rao", "asha-rao"),
+    ],
+)
+def test_a_pasted_github_link_gives_the_username(pasted: str, login: str) -> None:
+    from pv_domain.github import parse_github_login
+
+    assert parse_github_login(pasted) == login
+
+
+@pytest.mark.parametrize(
+    "pasted",
+    [
+        "",
+        "https://gitlab.com/asha",
+        "https://github.com/settings/profile",
+        "https://github.com/",
+        "https://evil.example/github.com/asha",
+        "asha rao",
+        "-asha",
+        "asha--rao",
+        "a" * 40,
+        "https://github.com/asha@evil.example",
+    ],
+)
+def test_a_pasted_link_that_is_not_a_github_person_is_refused(pasted: str) -> None:
+    from pv_domain.github import parse_github_login
+
+    assert parse_github_login(pasted) is None

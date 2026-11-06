@@ -34,6 +34,7 @@ from pv_config import SecretBox, SecretBoxError, Settings
 from pv_domain.failures import FailureClass
 from pv_domain.github import (
     ERRORS,
+    LINK_ONLY,
     MAX_REPOS_SELECTED,
     OAUTH_SCOPE,
     SOURCE,
@@ -41,9 +42,11 @@ from pv_domain.github import (
     GitHubGateway,
     authorize_url,
     new_state,
+    parse_github_login,
     state_hash,
 )
 from pv_domain.tasks import TASK_SYNC_GITHUB
+from pv_github import oauth_configured
 from pv_persistence.audit import record_audit
 from pv_persistence.github import (
     choose_repos,
@@ -152,6 +155,7 @@ def status(engine: Engine, settings: Settings, available: bool, user_id: uuid.UU
         return GitHubOut(
             available=available,
             connected=connection is not None,
+            verified=connection is not None and connection.token_sealed != LINK_ONLY,
             login=connection.login if connection else None,
             profile_url=f"https://github.com/{connection.login}" if connection else None,
             scope=OAUTH_SCOPE,
@@ -174,7 +178,7 @@ def start(
     user_id: uuid.UUID,
     ip_hash: str | None,
 ) -> GitHubStartOut:
-    if gateway is None:
+    if gateway is None or not oauth_configured(settings):
         raise _error("not_configured")
     state, verifier = new_state()
     sealed = _box(settings).seal(verifier, context=f"github-verifier:{user_id}")
@@ -204,7 +208,7 @@ def finish(
     state: str,
     ip_hash: str | None,
 ) -> GitHubFinishOut:
-    if gateway is None:
+    if gateway is None or not oauth_configured(settings):
         raise _error("not_configured")
     now = datetime.now(UTC)
     box = _box(settings)
@@ -241,6 +245,46 @@ def finish(
         metadata={"scope": OAUTH_SCOPE or "none"},
     )  # fmt: skip
     return GitHubFinishOut(login=login)
+
+
+def link(
+    engine: Engine,
+    gateway: GitHubGateway | None,
+    user_id: uuid.UUID,
+    pasted: str,
+    ip_hash: str | None,
+) -> GitHubFinishOut:
+    """Use a pasted GitHub link. Only public information is read, with no sign-in, so the
+    connection is not proven to be the person's: it is stored with no token and shown as unverified.
+    """
+    if gateway is None:
+        raise _error("unavailable")
+    login = parse_github_login(pasted)
+    if login is None:
+        raise _error("bad_link")
+    try:
+        user = gateway.get_public_user(login)
+    except GitHubError as exc:
+        raise _error(exc.code) from exc
+    with tenant_session(engine, user_id) as db:
+        existing = get_connection(db, user_id)
+        if (
+            existing is not None
+            and existing.token_sealed != LINK_ONLY
+            and existing.github_user_id == user.id
+        ):
+            return GitHubFinishOut(login=existing.login)  # already verified for this account
+        connection = save_connection(
+            db, owner_id=user_id, github_user_id=user.id, login=user.login, token_sealed=LINK_ONLY
+        )
+        set_sync_state(db, user_id, "queued")
+        _queue_sync(db, user_id)
+        saved = connection.login
+    record_audit(
+        engine, category="audit", action="github.link_added", actor_user_id=user_id,
+        target_type="github", target_id=str(user_id), ip_hash=ip_hash,
+    )  # fmt: skip
+    return GitHubFinishOut(login=saved)
 
 
 def _queue_sync(db: Session, user_id: uuid.UUID) -> None:
@@ -297,8 +341,8 @@ def disconnect(
         if connection is None:
             raise _error("not_connected")
         sealed = connection.token_sealed
-    revoked = False
-    if gateway is not None and sealed:
+    revoked = sealed == LINK_ONLY  # a pasted link has no token, so there is nothing to revoke
+    if gateway is not None and sealed and sealed != LINK_ONLY:
         try:
             token = _box(settings).open(sealed, context=f"github-token:{user_id}")
             revoked = gateway.revoke(token)

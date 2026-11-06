@@ -81,7 +81,7 @@ test("the whole journey: upload, reading, review, edit, add, remove, confirm, pr
   await expect(page.getByText("This is required.")).toBeVisible();
   await page.getByLabel("Skill", { exact: true }).fill("Tableau");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator("li.entry", { hasText: "Tableau" })).toContainText("Added or edited by you");
+  await expect(page.locator("li.skill", { hasText: "Tableau" })).toBeVisible();
 
   // Remove with a confirmation that names what is kept.
   await page.getByRole("button", { name: "Remove Python" }).click();
@@ -89,16 +89,19 @@ test("the whole journey: upload, reading, review, edit, add, remove, confirm, pr
   await expect(dialog).toContainText("Your resume file is not affected");
   await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
   await dialog.getByRole("button", { name: "Remove entry" }).click();
-  await expect(page.locator("li.entry", { hasText: "Python" })).toHaveCount(0);
+  await expect(page.locator("li.skill", { hasText: "Python" })).toHaveCount(0);
 
   // Confirm the profile.
   await page.getByRole("button", { name: "Confirm anyway" }).click();
   await expect(page.getByText("Confirmed", { exact: true })).toBeVisible();
 
   // Preferences.
-  await page.getByLabel("Roles you want").fill("Data analyst\nBackend engineer");
-  await page.getByLabel("Where do you want to work from?").selectOption("hybrid");
-  await page.getByLabel("Lowest yearly pay you would accept (optional)").fill("600000");
+  await page.getByRole("button", { name: "Data analyst", exact: true }).click();
+  await page.getByLabel("Add your own: Roles you want").fill("Backend engineer");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Backend engineer", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Hybrid", exact: true }).click();
+  await page.getByLabel("Lowest yearly pay (optional)").fill("600000");
   await page.getByRole("button", { name: "Save preferences" }).click();
   await expect(page.getByText("Choose a currency.")).toBeVisible();
   await page.getByLabel("Currency").selectOption("INR");
