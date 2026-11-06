@@ -65,6 +65,7 @@ def test_registry_knows_the_task_types() -> None:
         "sync_github",
         "prepare_job",
         "build_report",
+        "delete_account",
     }
 
 

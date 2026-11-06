@@ -22,6 +22,7 @@ from pv_api.logging_config import configure_logging
 from pv_api.metrics import RequestStats
 from pv_api.ratelimiter import RateLimiter
 from pv_api.routes import (
+    account,
     admin,
     auth,
     evidence,
@@ -183,5 +184,6 @@ def create_app(
     app.include_router(reports.router, prefix="/api/v1")
     app.include_router(runs.router, prefix="/api/v1")
     app.include_router(search.router, prefix="/api/v1")
+    app.include_router(account.router, prefix="/api/v1")
     app.include_router(admin.router, prefix="/api/v1")
     return app

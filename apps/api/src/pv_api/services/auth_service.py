@@ -165,6 +165,22 @@ def revoke_sessions(db: Session, user_id: uuid.UUID) -> None:
     )
 
 
+def revoke_all_sessions(engine: Engine) -> int:
+    """Sign every person out, everywhere (a security incident). Returns how many sessions ended."""
+    with Session(engine) as db, db.begin():
+        result = db.execute(
+            update(UserSession).where(UserSession.revoked_at.is_(None)).values(revoked_at=_now())
+        )
+        count = int(getattr(result, "rowcount", 0) or 0)
+    record_audit(
+        engine,
+        category="security",
+        action="admin.all_sessions_revoked",
+        metadata={"sessions": count},
+    )
+    return count
+
+
 def resolve_session(engine: Engine, settings: Settings, token: str) -> AuthContext | None:
     """Look up a session cookie value. Returns None when it is unknown, expired or revoked."""
     now = _now()

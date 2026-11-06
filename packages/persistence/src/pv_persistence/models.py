@@ -25,6 +25,9 @@ class User(Base):
         DateTime(timezone=True), default=None
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    deletion_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -1159,3 +1162,23 @@ class EvaluationRun(Base):
     metrics: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
     suites: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     failures: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+
+
+# ---- checkpoint 3.7: account deletion (migration 0023)
+
+
+class AccountDeletion(Base):
+    """That a deletion happened. No user id, no email, nothing traceable to a person."""
+
+    __tablename__ = "account_deletions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    requested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    status: Mapped[str] = mapped_column(Text, default="queued")
+    files_removed: Mapped[int] = mapped_column(Integer, default=0)
+    stray_rows_removed: Mapped[int] = mapped_column(Integer, default=0)
+    error_code: Mapped[str | None] = mapped_column(Text, default=None)

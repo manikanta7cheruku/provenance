@@ -85,3 +85,10 @@
     line-height: var(--leading-body);
   }
 }
+.auth__legal {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  font-size: var(--text-small);
+}
+

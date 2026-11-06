@@ -104,7 +104,7 @@ def _redirect_uri(settings: Settings) -> str:
 
 
 def _box(settings: Settings) -> SecretBox:
-    return SecretBox(settings.secret_key.get_secret_value())
+    return SecretBox.for_settings(settings)
 
 
 def _error(code: str) -> ApiError:

@@ -62,7 +62,7 @@ def run_sync(ctx: TaskContext, *, gateway_factory: GatewayFactory) -> None:
     if gateway is None:
         _fail(ctx, owner, "not_configured")
         return
-    box = SecretBox(ctx.settings.secret_key.get_secret_value())
+    box = SecretBox.for_settings(ctx.settings)
 
     with tenant_session(ctx.engine, owner) as db:
         connection = get_connection(db, owner)

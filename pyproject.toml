@@ -53,6 +53,8 @@ known-first-party = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106", "E501"]
+# Table and column names in these checks come from the database catalog, never from input.
+"tests/integration/test_account.py" = ["S101", "S105", "S106", "E501", "S608"]
 # User-facing sentences stay whole on one line so a person can search the code for the text on screen.
 "packages/domain/src/pv_domain/eligibility.py" = ["E501"]
 "packages/domain/src/pv_domain/github.py" = ["E501"]
@@ -61,6 +63,12 @@ known-first-party = [
 "packages/domain/src/pv_domain/billing.py" = ["E501"]
 "packages/domain/src/pv_domain/report.py" = ["E501"]
 "packages/domain/src/pv_domain/alerts.py" = ["E501"]
+"packages/config/src/pv_config/*.py" = ["E501"]
+"apps/api/src/pv_api/readiness.py" = ["E501"]
+"packages/persistence/src/pv_persistence/account.py" = ["E501"]
+"apps/api/src/pv_api/services/account_service.py" = ["E501"]
+"apps/worker/src/pv_worker/handlers/delete_account.py" = ["E501"]
+"apps/api/src/pv_api/cli.py" = ["E501"]
 "packages/domain/src/pv_domain/evaluation.py" = ["E501"]
 "packages/evaluation/src/pv_eval/*.py" = ["E501"]
 "packages/persistence/src/pv_persistence/evaluation.py" = ["E501"]

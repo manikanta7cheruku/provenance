@@ -1968,3 +1968,11 @@ class EvalDetailOut(BaseModel):
     suites: list[EvalSuiteOut]
     failures: list[EvalFailureOut]
     against: EvalRunOut | None
+
+
+# ---- checkpoint 3.7: your own data
+
+
+class DeleteAccountIn(BaseModel):
+    password: str = Field(min_length=1, max_length=256)
+    confirm: str = Field(max_length=100)

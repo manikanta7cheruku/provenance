@@ -24,7 +24,12 @@ export function Dialog({ open, title, children, actions, onClose }: DialogProps)
   useEffect(() => {
     const element = dialog.current;
     if (!element) return;
-    if (open && !element.open) element.showModal();
+    if (open && !element.open) {
+      element.showModal();
+      // The safest button asks for focus with data-initial-focus. A form field placed before it
+      // in the dialog must not take focus first.
+      element.querySelector<HTMLElement>("[data-initial-focus]")?.focus();
+    }
     if (!open && element.open) element.close();
   }, [open]);
 

@@ -1,0 +1,25 @@
+# The edge. It gets and renews a TLS certificate for SITE_ADDRESS by itself, redirects http to https,
+# and passes everything to the web container, which serves the app and proxies /api/ to the API.
+#
+# The security headers for the pages are set by the web container and for the API by the API. HSTS is
+# set here because TLS ends here.
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	# One place for access logs, in a form that can be read and searched. Paths only, no bodies.
+	log {
+		output stdout
+		format json
+	}
+
+	reverse_proxy web:8080 {
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}

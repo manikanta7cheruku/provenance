@@ -1335,6 +1335,8 @@ export interface Fake {
   reports: FakeReports;
   /** The person's plan and usage. */
   plan: FakePlan;
+  /** Account deletion: what the next request does, and what was asked. */
+  account: { deleted: boolean; refuse: "password" | "server" | null; calls: string[] };
   /** Application drafts per job. Each is working for two reads, then ready. */
   drafts: Record<string, FakeDraft[]>;
   /** Whether the evidence check of every job is complete, so drafts can be written. */
@@ -1600,6 +1602,7 @@ export async function fakeApi(
     prep: newPrep(),
     reports: newReports(),
     plan: newPlan(),
+    account: { deleted: false, refuse: null, calls: [] },
     github: {
       available: false,
       connected: false,
@@ -1694,11 +1697,24 @@ export async function fakeApi(
         ready: true,
         checks: { database: "ok", migrations: "ok" },
       });
+    if (path === "/api/v1/account/delete" && method === "POST") {
+      const body = request.postDataJSON() as { password: string; confirm: string };
+      fake.account.calls.push(`delete:${body.confirm}`);
+      if (fake.account.refuse === "password")
+        return json(
+          { code: "VALIDATION_FAILED", message: "Some details need fixing.", fields: { password: "Your password is not correct." } },
+          422,
+        );
+      if (fake.account.refuse === "server")
+        return json({ code: "INTERNAL_ERROR", message: "Something went wrong on our side." }, 500);
+      fake.account.deleted = true;
+      return json({ message: "Your account is being deleted and you are signed out. This can take a few minutes." }, 202);
+    }
     if (path === "/api/v1/auth/session")
       return json({
-        authenticated: true,
-        user: USER,
-        csrf_token: "t",
+        authenticated: !fake.account.deleted,
+        user: fake.account.deleted ? null : USER,
+        csrf_token: fake.account.deleted ? null : "t",
         config: { signup_mode: "invite", email_verification_required: false },
       });
     if (path === "/api/v1/profile/schema") return json(SPECS);

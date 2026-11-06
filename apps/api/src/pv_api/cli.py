@@ -6,6 +6,9 @@
   set-plan --email someone@example.com --plan pro
   show-plan --email someone@example.com
   check-alerts
+  check-config
+  reseal-tokens
+  revoke-all-sessions
 
 Invite codes are printed once and stored only as hashes.
 seed-demo-run creates one finished demo run with three steps for that user, so the Runs
@@ -48,6 +51,18 @@ def main(argv: list[str] | None = None) -> int:
     demo = sub.add_parser("seed-demo-run", help="create one finished demo run for a user")
     demo.add_argument("--email", required=True)
     sub.add_parser(
+        "check-config",
+        help="check this deployment is safe to use. Exit code 1 when any check is a FAIL",
+    )
+    sub.add_parser(
+        "revoke-all-sessions",
+        help="sign every person out everywhere (for a security incident)",
+    )
+    sub.add_parser(
+        "reseal-tokens",
+        help="finish a token key rotation: re-seal stored connector tokens with the newest key",
+    )
+    sub.add_parser(
         "check-alerts",
         help="print what needs attention now. Exit code 1 when anything is critical",
     )
@@ -60,7 +75,37 @@ def main(argv: list[str] | None = None) -> int:
     showplan.add_argument("--email", required=True)
     args = parser.parse_args(argv)
 
+    if args.command == "check-config":
+        from pv_api.readiness import FAIL, run_checks, worst
+
+        checks = run_checks(
+            get_settings, lambda s: create_db_engine(s.database_url.get_secret_value())
+        )
+        for check in checks:
+            print(f"[{check.level:7}] {check.name}: {check.detail}")
+        verdict = worst(checks)
+        print()
+        print(
+            "Not safe to use: fix every FAIL."
+            if verdict == FAIL
+            else "No FAIL. Read the warnings and decide."
+        )
+        return 1 if verdict == FAIL else 0
     engine = create_db_engine(get_settings().database_url.get_secret_value())
+    if args.command == "revoke-all-sessions":
+        from pv_api.services.auth_service import revoke_all_sessions
+
+        count = revoke_all_sessions(engine)
+        print(f"Signed out {count} sessions. Everyone must sign in again.")
+        return 0
+    if args.command == "reseal-tokens":
+        from pv_api.services.secret_rotation import reseal_github_tokens
+
+        result = reseal_github_tokens(engine, get_settings())
+        print(
+            f"Re-sealed {result.resealed}, already current {result.already_current}, unreadable {result.unreadable}."
+        )
+        return 1 if result.unreadable else 0
     if args.command == "check-alerts":
         from pv_api.services.observability_service import build_snapshot, thresholds_for
         from pv_domain.alerts import CRITICAL, evaluate

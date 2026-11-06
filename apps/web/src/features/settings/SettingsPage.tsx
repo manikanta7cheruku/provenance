@@ -1,6 +1,7 @@
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { PageHeader, Section } from "../../ui";
 import { AccountSection } from "./AccountSection";
+import { DataSection } from "./DataSection";
 import { PlanSection } from "./PlanSection";
 import { ShortlistSection } from "./ShortlistSection";
 import { SystemStatusPanel } from "./SystemStatusPanel";
@@ -13,6 +14,7 @@ export function SettingsPage() {
       <PageHeader title="Settings" description="Your account, your shortlist email and the state of the system." />
       <AccountSection />
       <PlanSection />
+      <DataSection />
       <ShortlistSection />
       <Section title="System status">
         <SystemStatusPanel />
