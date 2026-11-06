@@ -19,10 +19,13 @@ from pv_api.schemas import (
     EvalMetricOut,
     EvalRunOut,
     EvalSuiteOut,
+    RankerOut,
 )
+from pv_domain.evaluation import ranker_decision
 from pv_domain.failures import FailureClass
 from pv_persistence.evaluation import get_run, latest_per_suite, list_runs
 from pv_persistence.models import EvaluationRun
+from pv_persistence.observability import feedback_counts
 
 
 def _out(run: EvaluationRun) -> EvalRunOut:
@@ -49,9 +52,25 @@ def _not_found() -> ApiError:
 
 def listing(engine: Engine, limit: int = 30) -> EvalListOut:
     with Session(engine) as db:
+        latest = latest_per_suite(db)
+        counts = feedback_counts(db)
+        agreement = 0.0
+        run = latest.get("deterministic")
+        if run is not None:
+            agreement = next(
+                (float(m["value"]) for m in run.metrics if m.get("name") == "pairwise_agreement"),
+                0.0,
+            )
+        decision = ranker_decision(counts.labels, counts.people, agreement, None)
         return EvalListOut(
             runs=[_out(r) for r in list_runs(db, limit)],
-            latest={suite: _out(r) for suite, r in latest_per_suite(db).items()},
+            latest={suite: _out(r) for suite, r in latest.items()},
+            ranker=RankerOut(
+                adopt=decision.adopt,
+                labels=counts.labels,
+                people=counts.people,
+                reasons=list(decision.reasons),
+            ),
         )
 
 

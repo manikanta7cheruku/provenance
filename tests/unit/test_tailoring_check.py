@@ -172,9 +172,14 @@ class TestClaims:
         assert extract_claims("Led a migration\nReporting for finance\nDashboards") == []
 
     def test_a_job_word_is_a_claim_only_if_the_job_asks_for_it(self) -> None:
-        text = "improved kubernetes deployment reliability"
+        text = "improved scheduling throughput"
         assert extract_claims(text) == []
-        assert ("kubernetes", "job term") in extract_claims(text, ["kubernetes", "terraform"])
+        assert ("scheduling", "job term") in extract_claims(text, ["scheduling", "forecasting"])
+
+    def test_a_known_tool_is_a_claim_in_any_case(self) -> None:
+        assert ("kubernetes", "name") in extract_claims("improved kubernetes deployment")
+        assert ("python", "name") in extract_claims("Python services for billing")
+        assert ("postgres", "name") in extract_claims("Tuned POSTGRES queries")
 
     def test_job_vocabulary_drops_plain_words(self) -> None:
         words = job_vocabulary(

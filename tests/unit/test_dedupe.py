@@ -74,11 +74,10 @@ class TestNormalising:
             ("Remote, United States", "Remote, Canada", "different"),
             ("Remote", "Remote, United States", "unknown"),
             ("", "London", "unknown"),
-            (
-                "Bengaluru, India",
-                "Bangalore",
-                "different",
-            ),  # the spellings are not known to be one place
+            ("Bengaluru, India", "Bangalore", "same"),
+            ("Bombay, India", "Mumbai", "same"),
+            ("New Delhi", "Delhi, India", "same"),
+            ("Bangalore", "Chennai", "different"),
         ],
     )
     def test_places_agree_differ_or_are_unknown(self, a: str, b: str, expected: str) -> None:

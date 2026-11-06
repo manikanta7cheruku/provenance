@@ -75,6 +75,11 @@ class Settings(BaseSettings):
     task_retention_days: int = 7
     # How long a finished report stays available to download before it is deleted.
     report_retention_days: int = 7
+    # How long a listing that a source has closed is kept before it is deleted.
+    closed_job_retention_days: int = 90
+    # Email the administrators about alerts (once, then a reminder after the cooldown).
+    alert_email_enabled: bool = False
+    alert_email_cooldown_hours: int = 24
 
     # Private file storage (resumes). A directory today; an S3-compatible bucket in checkpoint 3.7.
     file_storage_dir: str = "./storage"
@@ -168,6 +173,8 @@ class Settings(BaseSettings):
         "worker_heartbeat_seconds",
         "task_retention_days",
         "report_retention_days",
+        "closed_job_retention_days",
+        "alert_email_cooldown_hours",
         "llm_embedding_dimensions",
     )
     @classmethod

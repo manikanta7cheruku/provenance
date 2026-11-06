@@ -20,8 +20,9 @@ Call inside a plain session for the public side and inside tenant_session for th
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
+from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.orm import Session
 
 from pv_domain.dedupe import (
@@ -31,6 +32,7 @@ from pv_domain.dedupe import (
     compare,
     components,
     normalize_company,
+    normalize_title,
     ordered_pair,
 )
 from pv_persistence.models import JobPosting, JobSource, PostingLink, SourceJob, SourceJobLink
@@ -38,6 +40,12 @@ from pv_persistence.source_jobs import usable_where
 
 ACTIVE = ("auto", "confirmed")
 MAX_CANDIDATES = 400
+
+
+def _closest_title(title_norm: str) -> ColumnElement[Any]:
+    """Order candidates by how close their title is, so a company with more than MAX_CANDIDATES
+    listings still has the likely twin among the ones compared (C-65)."""
+    return func.similarity(func.coalesce(SourceJob.title_norm, ""), title_norm).desc()
 
 
 def job_facts(job: SourceJob) -> JobFacts:
@@ -92,6 +100,7 @@ def link_jobs(db: Session, job_ids: tuple[uuid.UUID, ...] | list[uuid.UUID]) -> 
             db.execute(
                 select(SourceJob)
                 .where(SourceJob.company_norm == job.company_norm, SourceJob.id != job.id)
+                .order_by(_closest_title(job.title_norm or normalize_title(job.title)))
                 .limit(MAX_CANDIDATES)
             ).scalars()
         )
@@ -213,6 +222,7 @@ def posting_matches(
             select(SourceJob, JobSource)
             .join(JobSource, JobSource.key == SourceJob.source_key)
             .where(SourceJob.company_norm == company, *usable_where(today, window_days))
+            .order_by(_closest_title(normalize_title(posting.title or "")))
             .limit(MAX_CANDIDATES)
         ).all()
     )

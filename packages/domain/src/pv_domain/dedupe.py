@@ -30,6 +30,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from pv_domain.company import normalize as normalize_company_name
 from pv_domain.company import similarity
+from pv_domain.places import canonical_phrase, canonical_word
 from pv_domain.search_intent import COUNTRIES
 
 SHINGLE_WORDS = 5
@@ -123,7 +124,7 @@ def normalize_title(title: str) -> str:
 
 def place_tokens(location: str) -> tuple[frozenset[str], bool]:
     """(place words, is_remote). Country names and their short forms become one word."""
-    lowered = location.lower()
+    lowered = canonical_phrase(location.lower())
     remote = bool(re.search(r"\bremote\b", lowered))
     tokens: set[str] = set()
     for chunk in re.split(r"[,;|/()]| - ", lowered):
@@ -135,7 +136,9 @@ def place_tokens(location: str) -> tuple[frozenset[str], bool]:
             tokens.add(_COUNTRY_NAMES[phrase])
             continue
         tokens.update(
-            w for w in phrase.split() if w not in _PLACE_STOP and w not in ("remote", "hybrid")
+            canonical_word(w)
+            for w in phrase.split()
+            if w not in _PLACE_STOP and w not in ("remote", "hybrid")
         )
     return frozenset(tokens), remote
 

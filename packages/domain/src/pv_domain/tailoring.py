@@ -349,8 +349,24 @@ def _words(text: str) -> set[str]:
     return {_norm(t) for t in _TOKEN.findall(text) if _norm(t)}
 
 
+# Tools and languages that are claims however they are capitalised: "kubernetes", or "Python" at the
+# start of a sentence, would otherwise slip past the check for proper names (C-28).
+TOOL_LEXICON = frozenset(
+    {
+        "python", "java", "kotlin", "swift", "golang", "rust", "ruby", "scala", "typescript",
+        "javascript", "kubernetes", "docker", "terraform", "ansible", "jenkins", "kafka",
+        "spark", "hadoop", "airflow", "postgres", "postgresql", "mysql", "mongodb", "redis",
+        "elasticsearch", "snowflake", "react", "angular", "django", "flask", "fastapi",
+        "spring", "tensorflow", "pytorch", "pandas", "numpy", "graphql", "grpc", "linux",
+        "aws", "azure", "gcp", "kubeflow", "mlflow", "tableau", "looker", "salesforce",
+    }
+)  # fmt: skip
+
+
 def _is_name(token: str, at_start: bool) -> bool:
     bare = token.strip(".,;:()[]'\"")
+    if bare.lower() in TOOL_LEXICON:
+        return True
     if len(bare) < 2 or bare.lower() in _COMMON:
         return False
     if any(ch.isdigit() for ch in bare) and not bare.replace(",", "").replace(".", "").isdigit():

@@ -37,6 +37,9 @@ Check the provider's status page and that the key and model name are right (`GEM
 ## Daily model spend is nearing the ceiling / over the ceiling
 Open Cost and usage, find the dearest operation and the heaviest day. Lower the plan limits for that operation (a data change, ADR-0051) or pause the feature. Raise `LLM_DAILY_SPEND_CEILING_USD` only on purpose. The ceiling is 0 (off) until it is set.
 
+## The database is running out of connections
+Connections in use are above 80 percent of the limit. Look for a stuck worker or API holding sessions open, restart it, and raise the limit or add pooling only if the load is real.
+
 ## The API is returning server errors
 Read the API log for `unhandled_exception` lines. Each carries a request id that the person saw. Roll back the last release if it started after a deploy. Request statistics are for the process that answered.
 

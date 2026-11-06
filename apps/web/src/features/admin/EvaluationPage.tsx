@@ -341,12 +341,28 @@ export function EvaluationPage() {
 
       <h2>A learned ranker</h2>
       <p>
-        Not adopted. The scorer is deterministic and explainable, and a learned
-        ranker may only reorder results when it beats the rules by at least 5
-        points of agreement with people, on held-out labels, from at least 1,000
-        labels given by at least 30 people. Today there are far fewer labels, so
-        the answer is no (ADR-0054).
+        {list.data?.ranker.adopt
+          ? "A learned ranker may be tried."
+          : "Not adopted."}{" "}
+        The scorer is deterministic and explainable, and a learned ranker may
+        only reorder results when it beats the rules by at least 5 points of
+        agreement with people, on held-out labels, from at least 1,000 labels
+        given by at least 30 people (ADR-0054).
       </p>
+      {list.data && (
+        <>
+          <p>
+            Today there are {formatNumber(list.data.ranker.labels)} labels from{" "}
+            {formatNumber(list.data.ranker.people)}{" "}
+            {list.data.ranker.people === 1 ? "person" : "people"}.
+          </p>
+          <ul>
+            {list.data.ranker.reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <h2>How to run it</h2>
       <ul>
