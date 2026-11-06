@@ -7,6 +7,7 @@ const LINKS = [
   { to: "/admin/sources", label: "Sources", end: false },
   { to: "/admin/usage", label: "Cost and usage", end: false },
   { to: "/admin/runs", label: "Find a run", end: false },
+  { to: "/admin/evaluation", label: "Evaluation", end: false },
   { to: "/admin/users", label: "Users", end: false },
   { to: "/admin/invites", label: "Invites", end: false },
   { to: "/admin/audit", label: "Audit log", end: false },

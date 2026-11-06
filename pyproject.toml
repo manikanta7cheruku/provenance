@@ -42,6 +42,7 @@ known-first-party = [
     "pv_api",
     "pv_config",
     "pv_domain",
+    "pv_eval",
     "pv_files",
     "pv_github",
     "pv_llm",
@@ -60,6 +61,11 @@ known-first-party = [
 "packages/domain/src/pv_domain/billing.py" = ["E501"]
 "packages/domain/src/pv_domain/report.py" = ["E501"]
 "packages/domain/src/pv_domain/alerts.py" = ["E501"]
+"packages/domain/src/pv_domain/evaluation.py" = ["E501"]
+"packages/evaluation/src/pv_eval/*.py" = ["E501"]
+"packages/persistence/src/pv_persistence/evaluation.py" = ["E501"]
+"packages/persistence/src/pv_persistence/migrations/versions/0022_evaluation_runs.py" = ["E501"]
+"apps/api/src/pv_api/services/evaluation_service.py" = ["E501"]
 "packages/domain/src/pv_domain/run_explain.py" = ["E501"]
 "packages/persistence/src/pv_persistence/observability.py" = ["E501"]
 "apps/api/src/pv_api/services/observability_service.py" = ["E501"]
@@ -125,6 +131,7 @@ mypy_path = [
     "apps/worker/src",
     "packages/config/src",
     "packages/domain/src",
+    "packages/evaluation/src",
     "packages/files/src",
     "packages/github/src",
     "packages/llm/src",

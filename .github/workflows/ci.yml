@@ -63,6 +63,9 @@ jobs:
       - name: Unit tests
         run: uv run pytest -m "not integration"
 
+      - name: Evaluation gate (the numbers, in the log)
+        run: uv run python -m pv_eval run
+
       - name: Integration tests
         run: uv run pytest -m integration
 

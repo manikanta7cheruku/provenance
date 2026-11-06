@@ -55,5 +55,6 @@
 | [0051](0051-plans-entitlements-and-quotas.md) | Plans, entitlements and quotas | Accepted |
 | [0052](0052-server-side-reports.md) | Server-side reports (CSV, Excel, Word) | Accepted |
 | [0053](0053-observability-and-the-admin-console.md) | Observability, the Run Inspector and the Admin Console | Accepted |
+| [0054](0054-evaluation-harness-and-the-ranker-decision.md) | The evaluation harness and the learned-ranker decision | Accepted |
 
 Use [template.md](template.md) for new ADRs. Create an ADR only for meaningful decisions.

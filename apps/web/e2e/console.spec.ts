@@ -515,6 +515,7 @@ test("the console navigation answers each operational question and marks where y
     "Sources",
     "Cost and usage",
     "Find a run",
+    "Evaluation",
     "Users",
     "Invites",
     "Audit log",

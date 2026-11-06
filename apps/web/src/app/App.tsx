@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import {
   AdminLayout,
   AuditPage,
+  EvaluationPage,
   HealthPage,
   InvitesPage,
   SourcesPage,
@@ -88,6 +89,7 @@ function ProductApp() {
                   <Route path="sources" element={<SourcesPage />} />
                   <Route path="usage" element={<UsagePage />} />
                   <Route path="runs" element={<TracePage />} />
+                  <Route path="evaluation" element={<EvaluationPage />} />
                   <Route path="users" element={<UsersPage />} />
                   <Route path="users/:userId" element={<UserPage />} />
                   <Route path="invites" element={<InvitesPage />} />

@@ -2,6 +2,7 @@
 root_packages =
     pv_api
     pv_worker
+    pv_eval
     pv_llm
     pv_mail
     pv_files
@@ -30,6 +31,7 @@ forbidden_modules =
     pv_llm
     pv_mail
     pv_files
+    pv_eval
     pv_persistence
     pv_config
 
@@ -37,7 +39,7 @@ forbidden_modules =
 name = Dependencies point downward only
 type = layers
 layers =
-    pv_api | pv_worker
+    pv_api | pv_worker | pv_eval
     pv_llm
     pv_mail | pv_files | pv_github
     pv_persistence

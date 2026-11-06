@@ -216,6 +216,16 @@ The product runs end to end without a key and says so honestly. These items need
 | C-146 | 3.5 | A screen reader pass of the console and the run page | Axe passes. No screen reader was used on the tables, statuses and forms | Do it at 3.7 | open |
 | C-147 | 3.5 | Database, disk, connection and backup alerts | They need the deployment (3.7) and a backup process | Add the snapshot fields and rules when production exists | open |
 
+## W. The evaluation harness (added at 3.6)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-148 | 3.6 | Real postings labeled by people | The dataset is synthetic and its labels are true by construction. It shows our checks behave as written, not how a real model reads real postings | Collect 50 to 100 real postings with permission, remove the company and any person, write the labels under the guidelines (someone other than the author of the extraction), and add them as a new dataset version with its own baseline | open |
+| C-149 | 3.6 | A real-model baseline | The LLM suite was tested with stand-in models. It has never run against a real model, and its limits are starting points | With a key set, run `python -m pv_eval run --llm` on all 100 postings, read the numbers, set the limits in `pv_eval/llm.py` from them, then `--llm --update-baseline` and `--store` | open |
+| C-150 | 3.6 | Generation and preparation metrics | Only the claim check is measured. Contradiction rate, human preference and preparation relevance and resource links are not | Add cases and a small human rating, with the claim check as the authority on facts | open |
+| C-151 | 3.6 | Count the feedback labels | The learned-ranker decision needs the number of labels and of people. They are in a tenant table that administrators cannot read | Add an aggregate counter table kept by a trigger (a count and a distinct count, no content) and show it on the Evaluation page | open |
+| C-152 | 3.6 | Schedule the model run | The LLM suite is manual | At 3.7, run it weekly in its own job, store the result with trigger `scheduled`, and alert on a drop | open |
+| C-153 | 3.6 | A screen reader pass of the Evaluation page | Axe passes. No screen reader was used on the tables and the selects | Do it at 3.7 | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

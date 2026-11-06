@@ -49,6 +49,9 @@ class Snapshot:
     p95_ms: int | None = None
     auth_failures_1h: int = 0
     origin_rejections_1h: int = 0
+    # The suites whose latest evaluation did not pass, and whether any evaluation was ever stored.
+    evaluation_failed: tuple[str, ...] = ()
+    evaluation_seen: bool = False
 
 
 @dataclass(frozen=True)
@@ -273,6 +276,19 @@ def evaluate(snapshot: Snapshot, limits: Thresholds | None = None) -> tuple[Aler
                 "Many requests from the wrong origin",
                 f"{s.origin_rejections_1h} requests were blocked for their origin in the last hour.",
                 "Check ALLOWED_ORIGINS is right for this deployment, then the audit log for a pattern.",
+            )
+        )
+
+    if s.evaluation_failed:
+        found.append(
+            Alert(
+                "evaluation_regressed",
+                WARNING,
+                "The latest evaluation did not pass",
+                "These suites are outside their limits or worse than their baseline: "
+                + ", ".join(s.evaluation_failed)
+                + ".",
+                "Open Evaluation, read the metrics marked regressed and the failed cases, and fix or accept the change on purpose.",
             )
         )
 

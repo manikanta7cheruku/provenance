@@ -1908,3 +1908,63 @@ class TraceOut(BaseModel):
     found: bool
     tasks: list[TraceTaskOut]
     calls: list[TraceCallOut]
+
+
+# ---- checkpoint 3.6: evaluation (admin)
+
+
+class EvalMetricOut(BaseModel):
+    name: str
+    label: str
+    suite: str
+    value: float
+    baseline: float | None
+    limit: float
+    direction: Literal["higher", "lower"]
+    status: Literal["ok", "regressed", "below_limit", "new"]
+    delta: float | None
+    cases: int
+    previous: float | None = None
+    change: float | None = None
+
+
+class EvalFailureOut(BaseModel):
+    suite: str
+    case_id: str
+    expected: str
+    got: str
+    note: str
+
+
+class EvalRunOut(BaseModel):
+    id: uuid.UUID
+    created_at: datetime
+    suite: Literal["deterministic", "llm"]
+    trigger: str
+    dataset_version: str
+    git_sha: str | None
+    model: str | None
+    passed: bool
+    case_count: int
+    failure_count: int
+    regressions: list[str]
+
+
+class EvalListOut(BaseModel):
+    runs: list[EvalRunOut]
+    latest: dict[str, EvalRunOut]
+
+
+class EvalSuiteOut(BaseModel):
+    name: str
+    cases: int
+    failed: int
+
+
+class EvalDetailOut(BaseModel):
+    run: EvalRunOut
+    versions: dict[str, str]
+    metrics: list[EvalMetricOut]
+    suites: list[EvalSuiteOut]
+    failures: list[EvalFailureOut]
+    against: EvalRunOut | None
