@@ -80,10 +80,11 @@ export const VIEW_LABELS: Record<View, string> = {
   all: "All",
 };
 
-export const SORTS = ["added", "title", "company", "fit", "eligibility", "applied"] as const;
+export const SORTS = ["best", "added", "title", "company", "fit", "eligibility", "applied"] as const;
 export type Sort = (typeof SORTS)[number];
 
 export const SORT_LABELS: Record<Sort, string> = {
+  best: "Best match",
   added: "Date added",
   title: "Job title",
   company: "Company",
@@ -121,7 +122,7 @@ export const EMPTY_QUERY: Query = {
   source: [],
   company: "",
   location: "",
-  sort: "added",
+  sort: "best",
   desc: null,
 };
 
@@ -134,7 +135,7 @@ export function queryToParams(query: Query): URLSearchParams {
   for (const key of LISTS) for (const value of query[key]) params.append(key, value);
   if (query.company) params.set("company", query.company);
   if (query.location) params.set("location", query.location);
-  if (query.sort !== "added") params.set("sort", query.sort);
+  if (query.sort !== "best") params.set("sort", query.sort);
   if (query.desc !== null) params.set("desc", String(query.desc));
   return params;
 }
@@ -154,7 +155,7 @@ export function paramsToQuery(params: URLSearchParams): Query {
     source: params.getAll("source"),
     company: params.get("company") ?? "",
     location: params.get("location") ?? "",
-    sort: SORTS.find((s) => s === sort) ?? "added",
+    sort: SORTS.find((s) => s === sort) ?? "best",
     desc: desc === "true" ? true : desc === "false" ? false : null,
   };
 }
@@ -183,7 +184,7 @@ export function storedToQuery(stored: Record<string, unknown>): Query {
     source: list("sources"),
     company: text("company"),
     location: text("location"),
-    sort: SORTS.find((s) => s === sort) ?? "added",
+    sort: SORTS.find((s) => s === sort) ?? "best",
     desc: typeof stored.descending === "boolean" ? stored.descending : null,
   };
 }

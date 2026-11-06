@@ -4,7 +4,16 @@ import { fetchPreferences, savePreferences } from "../../lib/profile-api";
 import type { Preferences } from "../../lib/profile-api";
 import { useAsync } from "../../lib/useAsync";
 import { useFormSubmit } from "../../lib/useFormSubmit";
-import { ActionButton, Button, Checkbox, Notice, Section, Select, Skeleton, TextArea, TextField } from "../../ui";
+import {
+  ActionButton,
+  Button,
+  ChipPicker,
+  Notice,
+  Section,
+  Select,
+  Skeleton,
+  TextField,
+} from "../../ui";
 
 const EMPLOYMENT_TYPES = [
   { value: "full_time", label: "Full time" },
@@ -14,57 +23,124 @@ const EMPLOYMENT_TYPES = [
   { value: "freelance", label: "Freelance" },
 ] as const;
 
-const CURRENCIES = ["INR", "USD", "CAD", "GBP", "EUR", "AED", "SGD", "AUD"] as const;
+const pick = (...names: string[]) =>
+  names.map((name) => ({ value: name, label: name }));
+
+const ROLE_OPTIONS = pick(
+  "Software engineer",
+  "Frontend developer",
+  "Backend developer",
+  "Full stack developer",
+  "Mobile developer",
+  "Data analyst",
+  "Data scientist",
+  "ML engineer",
+  "DevOps engineer",
+  "Cloud engineer",
+  "QA engineer",
+  "Business analyst",
+  "Product manager",
+  "UI/UX designer",
+);
+const COUNTRY_OPTIONS = pick(
+  "India",
+  "United States",
+  "Canada",
+  "United Kingdom",
+  "Germany",
+  "United Arab Emirates",
+  "Singapore",
+  "Australia",
+);
+const PLACE_OPTIONS = pick(
+  "Bengaluru",
+  "Hyderabad",
+  "Pune",
+  "Mumbai",
+  "Delhi",
+  "Chennai",
+  "Kolkata",
+  "Remote",
+);
+const AVOID_OPTIONS = pick("Gambling", "Crypto", "Tobacco", "Adult content");
+const YES_NO = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+];
+const WORK_FROM = [
+  { value: "remote", label: "Remote" },
+  { value: "hybrid", label: "Hybrid" },
+  { value: "onsite", label: "On-site" },
+  { value: "any", label: "Any" },
+];
+
+const CURRENCIES = [
+  "INR",
+  "USD",
+  "CAD",
+  "GBP",
+  "EUR",
+  "AED",
+  "SGD",
+  "AUD",
+] as const;
 
 interface FormValues {
-  target_roles: string;
-  authorized_countries: string;
+  target_roles: string[];
+  authorized_countries: string[];
   needs_sponsorship: string;
-  locations: string;
+  locations: string[];
   open_to_relocate: string;
   remote_preference: string;
   employment_types: string[];
   min_salary_amount: string;
   min_salary_currency: string;
-  exclusions: string;
+  exclusions: string[];
 }
 
-const lines = (value: string): string[] => value.split("\n").map((line) => line.trim()).filter(Boolean);
-const triState = (value: boolean | null): string => (value === null ? "" : value ? "yes" : "no");
-const fromTriState = (value: string): boolean | null => (value === "" ? null : value === "yes");
+const triState = (value: boolean | null): string =>
+  value === null ? "" : value ? "yes" : "no";
+const fromTriState = (value: string): boolean | null =>
+  value === "" ? null : value === "yes";
 
 function toValues(preferences: Preferences): FormValues {
   return {
-    target_roles: preferences.target_roles.join("\n"),
-    authorized_countries: preferences.authorized_countries.join("\n"),
+    target_roles: preferences.target_roles,
+    authorized_countries: preferences.authorized_countries,
     needs_sponsorship: triState(preferences.needs_sponsorship),
-    locations: preferences.locations.join("\n"),
+    locations: preferences.locations,
     open_to_relocate: triState(preferences.open_to_relocate),
     remote_preference: preferences.remote_preference ?? "",
     employment_types: preferences.employment_types,
     min_salary_amount: preferences.min_salary_amount?.toString() ?? "",
     min_salary_currency: preferences.min_salary_currency ?? "",
-    exclusions: preferences.exclusions.join("\n"),
+    exclusions: preferences.exclusions,
   };
 }
 
 function toPreferences(values: FormValues): Preferences {
   return {
-    target_roles: lines(values.target_roles),
-    authorized_countries: lines(values.authorized_countries),
+    target_roles: values.target_roles,
+    authorized_countries: values.authorized_countries,
     needs_sponsorship: fromTriState(values.needs_sponsorship),
-    locations: lines(values.locations),
+    locations: values.locations,
     open_to_relocate: fromTriState(values.open_to_relocate),
-    remote_preference: (values.remote_preference || null) as Preferences["remote_preference"],
+    remote_preference: (values.remote_preference ||
+      null) as Preferences["remote_preference"],
     employment_types: values.employment_types,
-    min_salary_amount: values.min_salary_amount ? Number(values.min_salary_amount) : null,
+    min_salary_amount: values.min_salary_amount
+      ? Number(values.min_salary_amount)
+      : null,
     min_salary_currency: values.min_salary_currency || null,
-    exclusions: lines(values.exclusions),
+    exclusions: values.exclusions,
   };
 }
 
 export function PreferencesSection() {
-  const { data, error, loading, reload } = useAsync((signal) => fetchPreferences(signal), []);
+  const { data, error, loading, reload } = useAsync(
+    (signal) => fetchPreferences(signal),
+    [],
+  );
   const form = useFormSubmit();
   const [values, setValues] = useState<FormValues | null>(null);
   const [saved, setSaved] = useState(false);
@@ -95,14 +171,19 @@ export function PreferencesSection() {
 
   const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
     setSaved(false);
-    setValues((previous) => (previous ? { ...previous, [key]: value } : previous));
+    setValues((previous) =>
+      previous ? { ...previous, [key]: value } : previous,
+    );
   };
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!values) return;
     const errors: Record<string, string> = {};
-    if (values.min_salary_amount && !/^\d{1,10}$/.test(values.min_salary_amount)) {
+    if (
+      values.min_salary_amount &&
+      !/^\d{1,10}$/.test(values.min_salary_amount)
+    ) {
       errors.min_salary_amount = "Enter a whole number, without commas.";
     }
     if (values.min_salary_amount && !values.min_salary_currency) {
@@ -120,87 +201,74 @@ export function PreferencesSection() {
   return (
     <Section title="What you are looking for">
       <p className="entries__lead">
-        These answers decide which jobs are not for you before any scoring happens, such as the wrong
-        country or a role type you rule out. Leave a question blank if you are not sure yet.
+        Jobs that clearly do not fit are set aside before any scoring. Skip
+        anything you are unsure about.
       </p>
       <form ref={form.formRef} className="prefs" onSubmit={onSubmit} noValidate>
-        {form.notice ? <Notice tone={form.notice.tone}>{form.notice.text}</Notice> : null}
-        {form.fieldErrors.request ? <Notice tone="danger">{form.fieldErrors.request}</Notice> : null}
-        <TextArea
-          label="Roles you want"
-          hint="One per line. For example Data analyst."
-          rows={3}
-          value={values.target_roles}
+        {form.notice ? (
+          <Notice tone={form.notice.tone}>{form.notice.text}</Notice>
+        ) : null}
+        {form.fieldErrors.request ? (
+          <Notice tone="danger">{form.fieldErrors.request}</Notice>
+        ) : null}
+        <ChipPicker
+          legend="Roles you want"
+          options={ROLE_OPTIONS}
+          values={values.target_roles}
+          onChange={(next) => set("target_roles", next)}
+          custom={{ placeholder: "Another role" }}
           error={form.fieldErrors.target_roles}
-          onChange={(e) => set("target_roles", e.target.value)}
         />
-        <TextArea
-          label="Countries where you can work without a visa"
-          hint="One per line."
-          rows={2}
-          value={values.authorized_countries}
+        <ChipPicker
+          legend="Where you can work without a visa"
+          options={COUNTRY_OPTIONS}
+          values={values.authorized_countries}
+          onChange={(next) => set("authorized_countries", next)}
+          custom={{ placeholder: "Another country" }}
           error={form.fieldErrors.authorized_countries}
-          onChange={(e) => set("authorized_countries", e.target.value)}
         />
-        <Select
-          label="Do you need a company to sponsor your visa?"
-          value={values.needs_sponsorship}
-          onChange={(e) => set("needs_sponsorship", e.target.value)}
-        >
-          <option value="">Not answered</option>
-          <option value="no">No</option>
-          <option value="yes">Yes</option>
-        </Select>
-        <TextArea
-          label="Places you would work"
-          hint="Cities or countries, one per line."
-          rows={3}
-          value={values.locations}
+        <div className="prefs__row">
+          <ChipPicker
+            legend="Need visa sponsorship?"
+            single
+            options={YES_NO}
+            values={values.needs_sponsorship ? [values.needs_sponsorship] : []}
+            onChange={(next) => set("needs_sponsorship", next[0] ?? "")}
+          />
+          <ChipPicker
+            legend="Would you relocate?"
+            single
+            options={YES_NO}
+            values={values.open_to_relocate ? [values.open_to_relocate] : []}
+            onChange={(next) => set("open_to_relocate", next[0] ?? "")}
+          />
+        </div>
+        <ChipPicker
+          legend="Places you would work"
+          options={PLACE_OPTIONS}
+          values={values.locations}
+          onChange={(next) => set("locations", next)}
+          custom={{ placeholder: "Another city or country" }}
           error={form.fieldErrors.locations}
-          onChange={(e) => set("locations", e.target.value)}
         />
-        <Select
-          label="Would you relocate?"
-          value={values.open_to_relocate}
-          onChange={(e) => set("open_to_relocate", e.target.value)}
-        >
-          <option value="">Not answered</option>
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-        </Select>
-        <Select
-          label="Where do you want to work from?"
-          value={values.remote_preference}
-          onChange={(e) => set("remote_preference", e.target.value)}
-        >
-          <option value="">No preference stated</option>
-          <option value="remote">Remote</option>
-          <option value="hybrid">Hybrid</option>
-          <option value="onsite">On-site</option>
-          <option value="any">Any of these</option>
-        </Select>
-        <fieldset className="prefs__group">
-          <legend className="prefs__legend">Kinds of work you will consider</legend>
-          {EMPLOYMENT_TYPES.map((type) => (
-            <Checkbox
-              key={type.value}
-              label={type.label}
-              checked={values.employment_types.includes(type.value)}
-              onChange={(e) =>
-                set(
-                  "employment_types",
-                  e.target.checked
-                    ? [...values.employment_types, type.value]
-                    : values.employment_types.filter((value) => value !== type.value),
-                )
-              }
-            />
-          ))}
-        </fieldset>
+        <ChipPicker
+          legend="Work from"
+          single
+          options={WORK_FROM}
+          values={values.remote_preference ? [values.remote_preference] : []}
+          onChange={(next) => set("remote_preference", next[0] ?? "")}
+        />
+        <ChipPicker
+          legend="Kinds of work you will consider"
+          options={EMPLOYMENT_TYPES}
+          values={values.employment_types}
+          onChange={(next) => set("employment_types", next)}
+        />
         <div className="prefs__salary">
           <TextField
-            label="Lowest yearly pay you would accept (optional)"
+            label="Lowest yearly pay (optional)"
             inputMode="numeric"
+            placeholder="600000"
             value={values.min_salary_amount}
             error={form.fieldErrors.min_salary_amount}
             onChange={(e) => set("min_salary_amount", e.target.value)}
@@ -219,16 +287,22 @@ export function PreferencesSection() {
             ))}
           </Select>
         </div>
-        <TextArea
-          label="Companies, industries or words to avoid"
-          hint="One per line. Jobs that match are marked as not for you."
-          rows={3}
-          value={values.exclusions}
+        <ChipPicker
+          legend="Avoid"
+          hint="Companies, industries or words. Matching jobs are marked not for you."
+          options={AVOID_OPTIONS}
+          values={values.exclusions}
+          onChange={(next) => set("exclusions", next)}
+          custom={{ placeholder: "A company or word" }}
           error={form.fieldErrors.exclusions}
-          onChange={(e) => set("exclusions", e.target.value)}
         />
         <div className="prefs__actions">
-          <Button type="submit" variant="primary" busy={form.busy} disabled={form.blocked}>
+          <Button
+            type="submit"
+            variant="primary"
+            busy={form.busy}
+            disabled={form.blocked}
+          >
             Save preferences
           </Button>
           <span role="status" className="prefs__saved">

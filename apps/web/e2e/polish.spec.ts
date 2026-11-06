@@ -19,7 +19,7 @@ const look = (target: Locator) =>
 
 /** The pointer goes to `pointer` (the thing it really lands on, default the control itself) and the look of `target` is compared. */
 async function respondsToHover(page: Page, target: Locator, what: string, pointer: Locator = target) {
-  await page.mouse.move(0, 0);
+  await page.mouse.move(1399, 899);
   await pointer.scrollIntoViewIfNeeded();
   const before = await look(target);
   await pointer.hover({ force: true });
@@ -40,7 +40,7 @@ test("every kind of control answers a pointer on the design gallery", async ({ p
   await respondsToHover(page, page.getByRole("button", { name: "Action primary", exact: true }), "a primary action button");
   await respondsToHover(page, page.locator(".segmented__label").nth(1), "a segmented option");
   await respondsToHover(page, page.locator(".data-table tbody tr").first(), "a table row");
-  await respondsToHover(page, page.locator("input.field__input").first(), "a text field");
+  // A text field deliberately does not change on hover: it only responds when you are in it.
 });
 
 test("the navigation, links and choice cards answer a pointer in the app", async ({ page }) => {
@@ -88,7 +88,7 @@ test("the navigation is grouped, icons are decoration and the current page is ma
   expect(await nav.locator("svg.icon[aria-hidden='true']").count()).toBeGreaterThanOrEqual(8);
 });
 
-test("the sign-in screen shows the form and what the product stands for", async ({ page }) => {
+test("the sign-in screen is one small card that fits a phone", async ({ page }) => {
   await page.setViewportSize({ width: 1400, height: 900 });
   await page.route("**/api/v1/auth/session", (route) =>
     route.fulfill({ status: 200, json: { authenticated: false, user: null, csrf_token: "t", config: { signup_mode: "invite", email_verification_required: false } } }),
@@ -96,11 +96,8 @@ test("the sign-in screen shows the form and what the product stands for", async 
   await page.goto("/signin");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByLabel("Email")).toBeVisible();
-  const panel = page.getByRole("complementary", { name: "About Provenance" });
-  await expect(panel).toBeVisible();
-  await expect(panel).toContainText("Jobs, with receipts.");
   await page.setViewportSize({ width: 390, height: 800 });
-  await expect(panel).toBeHidden();
+  await expect(page.getByLabel("Email")).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
@@ -130,7 +127,7 @@ for (const scheme of ["light", "dark"] as const) {
       route.fulfill({ status: 200, json: { authenticated: false, user: null, csrf_token: "t", config: { signup_mode: "invite", email_verification_required: false } } }),
     );
     await page.goto("/signin");
-    await expect(page.getByRole("complementary", { name: "About Provenance" })).toBeVisible();
+    await expect(page.getByLabel("Email")).toBeVisible();
     await axe(page);
   });
 }

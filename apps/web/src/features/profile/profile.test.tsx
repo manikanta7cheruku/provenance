@@ -147,6 +147,7 @@ function resume(overrides: Partial<Resume> = {}): Resume {
     kept_entry_count: 6,
     dropped_entry_count: 0,
     flagged_entry_count: 0,
+    read_by: "ai",
     page_count: 1,
     run_id: "run1",
     created_at: "2026-10-30T09:00:00Z",

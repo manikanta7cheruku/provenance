@@ -56,7 +56,7 @@ test("makes no request to another origin, so fonts are self-hosted", async ({ pa
   await page.evaluate(() => document.fonts.ready);
   expect(foreign).toEqual([]);
   const families = await page.evaluate(() => [...document.fonts].map((face) => face.family.replaceAll('"', "")));
-  expect(families).toEqual(expect.arrayContaining(["IBM Plex Sans", "Newsreader", "IBM Plex Mono"]));
+  expect(families).toEqual(expect.arrayContaining(["IBM Plex Sans", "IBM Plex Mono"]));
 });
 
 test("theme choice applies before first paint, persists and can return to system", async ({ page }) => {
@@ -76,7 +76,7 @@ test("theme choice applies before first paint, persists and can return to system
   expect(await page.evaluate(() => (window as unknown as { themeAtDcl: string | null }).themeAtDcl)).toBe("dark");
   await expect(page.getByRole("radio", { name: "Dark" })).toBeChecked();
   const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(background).toBe("rgb(14, 17, 22)");
+  expect(background).toBe("rgb(12, 12, 14)");
 
   await page.getByRole("radio", { name: "System" }).check({ force: true });
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.*/);
@@ -86,10 +86,10 @@ test("theme choice applies before first paint, persists and can return to system
 test("system theme follows the operating system preference", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/design");
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(14, 17, 22)");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(12, 12, 14)");
   await page.emulateMedia({ colorScheme: "light" });
   // Reduced motion makes a change last a frame instead of no time, so wait for it to land.
-  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(250, 248, 244)");
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(250, 250, 250)");
 });
 
 test("the confirmation dialog traps focus, starts on Cancel, closes on Escape and returns focus", async ({ page }) => {

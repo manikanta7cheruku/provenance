@@ -226,83 +226,67 @@ function StartScreen({
       <StudioFonts />
       <PageHeader
         title="Start your resume"
-        description={`Three quick choices. Each can be changed later without losing a word. Your free plan keeps ${options.max_resumes} ${options.max_resumes === 1 ? "resume" : "resumes"}.`}
+        description={`Pick a look and a starting point. You can change both later. Your plan keeps ${options.max_resumes} ${options.max_resumes === 1 ? "resume" : "resumes"}.`}
       />
       <div className="start">
-        <section className="start__step" aria-labelledby="start-words">
-          <h2 id="start-words" className="start__heading">
-            <span className="start__number" aria-hidden="true">
-              1
-            </span>
-            Where do the words come from?
-          </h2>
-          <ChoiceCards<StartKind>
-            legend="Starting words"
-            value={start}
-            onChange={setStart}
-            options={[
-              {
-                value: "profile",
-                title: "My profile",
-                description:
-                  "A first draft from what you already entered in your profile. Every word can be changed.",
-              },
-              {
-                value: "blank",
-                title: "A blank page",
-                description: "Start empty and write it yourself.",
-              },
-            ]}
-          />
-        </section>
-        <section className="start__step" aria-labelledby="start-way">
-          <h2 id="start-way" className="start__heading">
-            <span className="start__number" aria-hidden="true">
-              2
-            </span>
-            How do you want to work?
-          </h2>
-          <ChoiceCards<Layout>
-            legend="Way of working"
-            value={layout}
-            onChange={setLayout}
-            options={[
-              {
-                value: "canvas",
-                title: "Free design",
-                description:
-                  "Drag, resize and edit right on the page. A layout check warns you if a tracking system may misread it.",
-              },
-              {
-                value: "guided",
-                title: "Guided and ATS-safe",
-                description:
-                  "One column that flows by itself, the easiest for applicant tracking systems. You choose the content and the look.",
-              },
-            ]}
-          />
-        </section>
-        <section className="start__step" aria-labelledby="start-design">
+        <div className="start__options">
+          <section aria-labelledby="start-words">
+            <h2 id="start-words" className="start__heading">
+              Start from
+            </h2>
+            <ChoiceCards<StartKind>
+              legend="Starting words"
+              value={start}
+              onChange={setStart}
+              options={[
+                {
+                  value: "profile",
+                  title: "My profile",
+                  description: "A first draft from what you entered.",
+                },
+                {
+                  value: "blank",
+                  title: "A blank page",
+                  description: "Write it yourself.",
+                },
+              ]}
+            />
+          </section>
+          <section aria-labelledby="start-way">
+            <h2 id="start-way" className="start__heading">
+              Layout
+            </h2>
+            <ChoiceCards<Layout>
+              legend="Way of working"
+              value={layout}
+              onChange={setLayout}
+              options={[
+                {
+                  value: "canvas",
+                  title: "Free design",
+                  description: "Drag and resize on the page.",
+                },
+                {
+                  value: "guided",
+                  title: "Guided and ATS-safe",
+                  description: "One column that flows by itself.",
+                },
+              ]}
+            />
+          </section>
+        </div>
+        <section className="start__gallery" aria-labelledby="start-design">
           <h2 id="start-design" className="start__heading">
-            <span className="start__number" aria-hidden="true">
-              3
-            </span>
-            Pick a design
+            Template
           </h2>
           {layout === "canvas" ? (
-            <>
-              <p className="field__hint">
-                The previews use sample words. Yours are filled in when you
-                start, and you can change the template later.
-              </p>
-              <TemplateGallery
-                content={SAMPLE_CONTENT}
-                paper="a4"
-                value={spec.id}
-                onChange={setSpec}
-                legend="Choose a template"
-              />
-            </>
+            <TemplateGallery
+              content={SAMPLE_CONTENT}
+              paper="a4"
+              value={spec.id}
+              onChange={setSpec}
+              legend="Choose a template"
+            />
           ) : (
             <TemplateChoice
               options={options}
@@ -312,12 +296,12 @@ function StartScreen({
             />
           )}
         </section>
-        {problem ? (
-          <Notice tone="danger">
-            <p>{problem}</p>
-          </Notice>
-        ) : null}
         <div className="start__go">
+          {problem ? (
+            <Notice tone="danger">
+              <p>{problem}</p>
+            </Notice>
+          ) : null}
           <ActionButton
             variant="primary"
             onClick={() => void create()}
@@ -325,10 +309,6 @@ function StartScreen({
           >
             {busy ? "Starting" : "Start my resume"}
           </ActionButton>
-          <span className="field__hint">
-            It takes a few seconds. You will land on your first page, ready to
-            edit.
-          </span>
         </div>
       </div>
     </>

@@ -6,6 +6,7 @@ import {
   disconnectGitHub,
   fetchGitHub,
   isSyncing,
+  linkGitHub,
   startGitHub,
   syncGitHub,
 } from "../../lib/github-api";
@@ -19,6 +20,7 @@ import {
   Section,
   Skeleton,
   Status,
+  TextField,
 } from "../../ui";
 
 const POLL_MS = 2000;
@@ -81,6 +83,8 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [keepEntries, setKeepEntries] = useState(false);
+  const [link, setLink] = useState("");
+  const [changing, setChanging] = useState(false);
 
   // While a read is running, look again every couple of seconds. When it finishes, the entries moved.
   const syncing = data ? isSyncing(data.sync_state) : false;
@@ -118,6 +122,23 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
     }
   }
 
+  async function addLink(event: React.FormEvent) {
+    event.preventDefault();
+    if (!link.trim()) return;
+    setBusy(true);
+    setProblem(null);
+    setMessage(null);
+    try {
+      await linkGitHub(link.trim());
+      setLink("");
+      reload();
+    } catch (caught) {
+      fail(caught, "That link could not be used. Nothing was changed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function readAgain() {
     setBusy(true);
     setProblem(null);
@@ -141,6 +162,7 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
     try {
       await chooseRepos([...chosen]);
       setPicked(null);
+      setChanging(false);
       setMessage(
         chosen.size === 0
           ? "No repositories are used as evidence."
@@ -162,7 +184,7 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
       setLeaving(false);
       setPicked(null);
       setMessage(
-        `GitHub is disconnected and its token is deleted. ${result.revoked ? "GitHub confirmed the access was revoked." : "GitHub did not confirm the revoke, so also remove Provenance at github.com/settings/applications."} ${keepEntries ? "The entries stay as yours." : result.entries_removed > 0 ? `${result.entries_removed} ${result.entries_removed === 1 ? "entry was" : "entries were"} removed.` : ""}`.trim(),
+        `${data?.verified === false ? "The GitHub link is removed." : `GitHub is disconnected and its token is deleted. ${result.revoked ? "GitHub confirmed the access was revoked." : "GitHub did not confirm the revoke, so also remove Provenance at github.com/settings/applications."}`} ${keepEntries ? "The entries stay as yours." : result.entries_removed > 0 ? `${result.entries_removed} ${result.entries_removed === 1 ? "entry was" : "entries were"} removed.` : ""}`.trim(),
       );
       reload();
       onChanged();
@@ -194,16 +216,19 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
     );
   }
   const changed = picked !== null;
+  const chosenRepos = data.repos.filter((repo) => repo.selected);
+  const showPicker = changing || chosenRepos.length === 0 || picked !== null;
   const over = chosen.size > data.max_selected;
   return (
     <Section title="GitHub">
       <p>
-        Connect GitHub and pick the projects that show what you can do. Each one
-        becomes an entry you can read, edit and delete, marked as coming from
-        GitHub, and a job is then checked against it like anything else in your
-        profile.
+        Paste your GitHub link and pick the projects that show what you can do.
+        Each becomes an entry you can edit or delete.
       </p>
-      <p className="field__hint">{data.scope_sentence}</p>
+      <details className="github__others">
+        <summary>What is read</summary>
+        <p className="field__hint">{data.scope_sentence}</p>
+      </details>
       {message ? (
         <Notice tone="info">
           <p>{message}</p>
@@ -215,27 +240,30 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
         </Notice>
       ) : null}
 
-      {!data.available ? (
-        <Notice tone="warn" title="GitHub is not set up on this server">
-          <p>
-            The person running Provenance has to create a GitHub OAuth app and
-            add its client id and secret to the server settings first. Until
-            then nothing can be connected, and nothing is lost.
-          </p>
-        </Notice>
-      ) : !data.connected ? (
+      {!data.connected ? (
         <div className="github__connect">
-          <ActionButton
-            variant="primary"
-            onClick={() => void connect()}
-            disabled={busy}
-          >
-            {busy ? "Opening GitHub" : "Connect GitHub"}
-          </ActionButton>
-          <span className="field__hint">
-            You will sign in on github.com and be sent back here. Provenance
-            never sees your password.
-          </span>
+          <form className="github__paste" onSubmit={(e) => void addLink(e)}>
+            <TextField
+              label="GitHub link"
+              placeholder="github.com/yourname"
+              value={link}
+              onChange={(event) => setLink(event.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <ActionButton type="submit" variant="primary" disabled={busy || !link.trim()}>
+              {busy ? "Looking" : "Add"}
+            </ActionButton>
+          </form>
+          {data.available ? (
+            <p className="field__hint">
+              Or{" "}
+              <button type="button" className="github__verify" onClick={() => void connect()} disabled={busy}>
+                sign in with GitHub
+              </button>{" "}
+              to prove the account is yours.
+            </p>
+          ) : null}
         </div>
       ) : (
         <>
@@ -248,7 +276,7 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
                     ? "neutral"
                     : "ok"
               }
-              label={`Connected as ${data.login ?? ""}`}
+              label={`${data.verified ? "Connected as" : "Using"} ${data.login ?? ""}`}
             />
             {data.profile_url ? (
               <>
@@ -263,6 +291,19 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
               </>
             ) : null}
           </p>
+          {!data.verified ? (
+            <p className="field__hint">
+              Added from a link, so it is not proven to be your account.
+              {data.available ? (
+                <>
+                  {" "}
+                  <button type="button" className="github__verify" onClick={() => void connect()} disabled={busy}>
+                    Verify with GitHub
+                  </button>
+                </>
+              ) : null}
+            </p>
+          ) : null}
           <p className="field__hint" role="status">
             {isSyncing(data.sync_state)
               ? "Reading your repositories."
@@ -278,7 +319,20 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
             </Notice>
           ) : null}
 
-          {data.repos.length === 0 && !isSyncing(data.sync_state) ? (
+          {chosenRepos.length > 0 && !showPicker ? (
+            <div className="github__chosen">
+              <p className="group__title">
+                In your profile
+              </p>
+              <ul className="pills">
+                {chosenRepos.map((repo) => (
+                  <li key={repo.id} className="pill">
+                    {repo.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : data.repos.length === 0 && !isSyncing(data.sync_state) ? (
             <p className="job__note">
               No public repositories were found. Only public ones are ever read.
             </p>
@@ -319,13 +373,20 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
           )}
 
           <div className="github__actions">
-            <ActionButton
-              variant="primary"
-              onClick={() => void saveChoice()}
-              disabled={busy || !changed || over}
-            >
-              Use these as evidence
-            </ActionButton>
+            {showPicker && data.repos.length > 0 ? (
+              <ActionButton
+                variant="primary"
+                onClick={() => void saveChoice()}
+                disabled={busy || !changed || over}
+              >
+                Use these as evidence
+              </ActionButton>
+            ) : null}
+            {!showPicker ? (
+              <ActionButton onClick={() => setChanging(true)} disabled={busy}>
+                Change repositories
+              </ActionButton>
+            ) : null}
             <ActionButton
               onClick={() => void readAgain()}
               disabled={busy || isSyncing(data.sync_state)}
@@ -333,7 +394,7 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
               Read my repositories again
             </ActionButton>
             <ActionButton onClick={() => setLeaving(true)} disabled={busy}>
-              Disconnect GitHub
+              {data.verified ? "Disconnect GitHub" : "Remove link"}
             </ActionButton>
           </div>
         </>
@@ -356,17 +417,18 @@ export function GitHubSection({ onChanged }: GitHubSectionProps) {
 
       <ConfirmDialog
         open={leaving}
-        title="Disconnect GitHub?"
-        confirmLabel="Disconnect"
+        title={data.verified ? "Disconnect GitHub?" : "Remove the GitHub link?"}
+        confirmLabel={data.verified ? "Disconnect" : "Remove"}
         danger
         busy={busy}
         onCancel={() => setLeaving(false)}
         onConfirm={() => void leave()}
       >
         <p>
-          The stored access token is deleted and Provenance asks GitHub to
-          revoke it. The entries made from your repositories are removed from
-          your profile.
+          {data.verified
+            ? "The stored access token is deleted and Provenance asks GitHub to revoke it. "
+            : ""}
+          The entries made from your repositories are removed from your profile.
         </p>
         <Checkbox
           label="Keep those entries as mine"

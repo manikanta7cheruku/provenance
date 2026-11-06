@@ -9,13 +9,13 @@ interface AuthFrameProps {
   children: ReactNode;
 }
 
-/** The sign-in family of screens: the form on one side and, on wide screens, what the product stands for. */
+/** The sign-in family of screens: one small card in the middle of a quiet page. */
 export function AuthFrame({ title, description, children }: AuthFrameProps) {
   return (
-    <div className="auth-shell">
-      <main id="main" className="auth">
+    <div className="auth">
+      <main id="main" className="auth__card">
         <p className="auth__brand">
-          <BrandMark size={32} />
+          <BrandMark size={24} />
           Provenance
         </p>
         <PageHeader title={title} {...(description ? { description } : {})} />
@@ -24,20 +24,6 @@ export function AuthFrame({ title, description, children }: AuthFrameProps) {
           <Link to="/privacy">Privacy policy</Link> <Link to="/terms">Terms of use</Link>
         </p>
       </main>
-      <aside className="auth-panel" aria-label="About Provenance">
-        <p className="auth-panel__line">Jobs, with receipts.</p>
-        <ul className="auth-panel__points">
-          <li>
-            <strong>Every claim has a source.</strong> A match points back to the line of your evidence and the line of the posting it came from.
-          </li>
-          <li>
-            <strong>Nothing is sent for you.</strong> Drafts are yours to check and to send.
-          </li>
-          <li>
-            <strong>Your documents stay private.</strong> Only you can open them, and you can delete them any time.
-          </li>
-        </ul>
-      </aside>
     </div>
   );
 }

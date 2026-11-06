@@ -82,6 +82,7 @@ test("start from the profile, edit, and see it saved and previewed", async ({ pa
 test("the formatting toolbar works with the keyboard and saves marks", async ({ page }) => {
   const fake = await fakeApi(page, { studio: withDoc() });
   await page.goto("/studio");
+  await page.getByRole("button", { name: "Experience", exact: true }).click();
   const toolbar = page.getByRole("toolbar", { name: /Formatting for Details: Data Intern/ });
   await expect(toolbar).toBeVisible();
   const bold = toolbar.getByRole("button", { name: "Bold" });
@@ -106,8 +107,10 @@ test("the formatting toolbar works with the keyboard and saves marks", async ({ 
 test("sections move, with an announcement, and can be removed after a confirmation", async ({ page }) => {
   const fake = await fakeApi(page, { studio: withDoc() });
   await page.goto("/studio");
+  await page.getByRole("button", { name: "Experience", exact: true }).click();
   await page.getByRole("button", { name: "Move down, Experience" }).click();
   await expect(page.getByText("Experience moved down to position 2.")).toBeAttached();
+  await page.getByRole("button", { name: "Education", exact: true }).click();
   await page.getByRole("button", { name: "Remove section, Education" }).click();
   await page.getByRole("button", { name: "Remove section", exact: true }).click();
   await expect(page.getByText(/All changes saved/)).toBeVisible({ timeout: 8000 });

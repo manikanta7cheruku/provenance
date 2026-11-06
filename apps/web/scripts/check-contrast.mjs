@@ -61,6 +61,8 @@ const PAIRS = [
   ["--color-paper-ink", "--color-paper", TEXT, "text on the resume page"],
   ["--color-paper-placeholder", "--color-paper", TEXT, "placeholder text on the resume page"],
   ["--color-paper-ink", "--color-paper-highlight", TEXT, "highlighted text on the resume page"],
+  ["--color-paper-success", "--color-paper", TEXT, "supported verdict on the receipt"],
+  ["--color-paper-danger", "--color-paper", TEXT, "unsupported verdict on the receipt"],
   ...SURFACES.map((s) => ["--color-text-secondary", s, TEXT, "supporting text"]),
   ["--color-text-secondary", "--color-selected", TEXT, "supporting text on a selected row"],
   ...SURFACES.map((s) => ["--color-accent", s, TEXT, "links and accent text"]),

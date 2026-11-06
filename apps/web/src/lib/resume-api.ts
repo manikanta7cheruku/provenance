@@ -14,6 +14,8 @@ export interface Resume {
   /** Entries the model proposed that were not found in the resume text, so they were left out. */
   dropped_entry_count: number;
   flagged_entry_count: number;
+  /** "rules" when the built-in reader was used because no AI reader is set up. */
+  read_by: "ai" | "rules" | null;
   page_count: number | null;
   run_id: string | null;
   created_at: string;

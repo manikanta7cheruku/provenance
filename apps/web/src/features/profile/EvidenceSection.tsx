@@ -6,6 +6,15 @@ import { useAsync } from "../../lib/useAsync";
 import { useFormSubmit } from "../../lib/useFormSubmit";
 import { ActionButton, Button, Notice, Section, Skeleton, TextField } from "../../ui";
 
+const SUGGESTIONS = [
+  "Python",
+  "SQL",
+  "A project where I led a team",
+  "Have I worked with data?",
+  "Internship experience",
+  "Computer science degree",
+];
+
 const TYPE_LABELS: Record<string, string> = {
   education: "Education",
   work: "Work experience",
@@ -45,14 +54,18 @@ export function EvidenceSection({ version }: EvidenceSectionProps) {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<EvidenceSearch | null>(null);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function run(text: string) {
     const errors: Record<string, string> = {};
-    if (!query.trim()) errors.query = "Enter a word, a phrase or a question.";
+    if (!text.trim()) errors.query = "Enter a word, a phrase or a question.";
     await form.submit(errors, async () => {
-      setResult(await searchEvidence(query.trim()));
+      setResult(await searchEvidence(text.trim()));
       status.reload();
     });
+  }
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await run(query);
   }
 
   if (status.error) {
@@ -75,11 +88,11 @@ export function EvidenceSection({ version }: EvidenceSectionProps) {
     );
   }
 
+  const indexed = status.data.indexed;
   return (
     <Section title="Search your evidence">
       <p className="entries__lead">
-        This is how a job is checked against you: each requirement is looked up in your own entries.
-        Try it here to see what a job would find. It searches only what you have stored.
+        A job is checked by looking up each requirement in your entries. Try one here to see what it finds.
       </p>
       <p className="evidence__status" role="status">
         {describeStatus(status.data)}
@@ -88,7 +101,7 @@ export function EvidenceSection({ version }: EvidenceSectionProps) {
       <form ref={form.formRef} className="evidence__form" onSubmit={onSubmit} noValidate>
         <TextField
           label="Search your entries"
-          hint="Words, a phrase in quotes, or a short question. Put a minus before a word to leave it out."
+          placeholder="For example: Python, or a short question"
           type="search"
           value={query}
           error={form.fieldErrors.query}
@@ -98,6 +111,22 @@ export function EvidenceSection({ version }: EvidenceSectionProps) {
           Search
         </Button>
       </form>
+      <div className="picker__chips" role="group" aria-label="Searches to try">
+        {SUGGESTIONS.map((text) => (
+          <button
+            key={text}
+            type="button"
+            className="chip"
+            disabled={form.busy || indexed === 0}
+            onClick={() => {
+              setQuery(text);
+              void run(text);
+            }}
+          >
+            {text}
+          </button>
+        ))}
+      </div>
       {form.notice ? <Notice tone={form.notice.tone}>{form.notice.text}</Notice> : null}
 
       <div aria-live="polite" className="evidence__results">

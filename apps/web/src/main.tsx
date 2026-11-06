@@ -7,6 +7,7 @@ import "./ui/tokens.css";
 import "./ui/base.css";
 import "./ui/components.css";
 import "./app/shell.css";
+import "./ui/craft.css";
 
 const container = document.getElementById("root");
 if (!container) throw new Error("Root element not found");

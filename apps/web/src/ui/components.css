@@ -315,3 +315,35 @@
 .field__input::placeholder {
   color: var(--color-text-disabled);
 }
+
+/* Password field with a show or hide control inside its right edge */
+.field__wrap {
+  position: relative;
+}
+.field__input--revealable {
+  padding-right: var(--size-touch);
+}
+.field__reveal {
+  position: absolute;
+  top: var(--space-1);
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: var(--size-touch);
+  height: var(--size-touch);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.field__reveal:hover {
+  color: var(--color-text-primary);
+}
+.field__reveal:active {
+  transform: scale(0.96);
+}
+.field__reveal:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}

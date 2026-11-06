@@ -48,7 +48,7 @@ export function SignInPage() {
   }
 
   return (
-    <AuthFrame title="Sign in" description="Welcome back. Sign in to continue.">
+    <AuthFrame title="Sign in">
       <form ref={form.formRef} onSubmit={onSubmit} noValidate>
         {expired ? (
           <Notice tone="info" title="Your session ended.">
@@ -61,6 +61,7 @@ export function SignInPage() {
           name="email"
           type="email"
           autoComplete="email"
+          autoFocus
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           error={form.fieldErrors.email}
@@ -70,6 +71,7 @@ export function SignInPage() {
           name="password"
           type="password"
           autoComplete="current-password"
+          reveal
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           error={form.fieldErrors.password}

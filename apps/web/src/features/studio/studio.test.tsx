@@ -157,19 +157,23 @@ describe("the content editor", () => {
     const announce = vi.fn();
     const user = userEvent.setup();
     render(<Harness announce={announce} />);
+    await user.click(screen.getByRole("button", { name: "Experience" }));
     await user.click(screen.getByRole("button", { name: "Move down, Experience" }));
     expect(announce).toHaveBeenCalledWith("Experience moved down to position 2.");
     expect(JSON.parse(screen.getByTestId("json").textContent ?? "{}").sections[0].id).toBe("s2");
   });
 
-  it("disables moves at the ends", () => {
+  it("disables moves at the ends", async () => {
+    const user = userEvent.setup();
     render(<Harness />);
+    await user.click(screen.getByRole("button", { name: "Experience" }));
     expect((screen.getByRole("button", { name: "Move up, Experience" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("asks before removing a section", async () => {
     const user = userEvent.setup();
     render(<Harness />);
+    await user.click(screen.getByRole("button", { name: "Education" }));
     await user.click(screen.getByRole("button", { name: "Remove section, Education" }));
     expect(JSON.parse(screen.getByTestId("json").textContent ?? "{}").sections).toHaveLength(2);
     await user.click(await screen.findByRole("button", { name: /^Remove section$/ }));
@@ -181,6 +185,7 @@ describe("the content editor", () => {
     render(<Harness />);
     await user.click(screen.getByRole("button", { name: "Add section" }));
     expect(JSON.parse(screen.getByTestId("json").textContent ?? "{}").sections).toHaveLength(3);
+    await user.click(screen.getByRole("button", { name: "Education" }));
     await user.click(screen.getByRole("button", { name: "Add an item to Education" }));
     expect(JSON.parse(screen.getByTestId("json").textContent ?? "{}").sections[1].blocks).toHaveLength(1);
   });
@@ -370,6 +375,6 @@ describe("routing smoke", () => {
         <ContentEditor doc={content()} onChange={() => undefined} problems={{}} epoch={0} announce={() => undefined} />
       </MemoryRouter>,
     );
-    expect(within(view.container).getByText("Your details")).toBeTruthy();
+    expect(within(view.container).getAllByText("Your details").length).toBeGreaterThan(0);
   });
 });

@@ -79,9 +79,11 @@ for (const theme of ["light", "dark"] as const) {
 test("the theme control in the shell changes the whole application and is remembered", async ({ page }) => {
   await mockApi(page, true);
   await page.goto("/runs");
+  await page.getByRole("button", { name: "Account menu" }).click();
   await page.getByRole("radio", { name: "Dark" }).check({ force: true });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.goto("/settings");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Account menu" }).click();
   await expect(page.getByRole("radio", { name: "Dark" })).toBeChecked();
 });

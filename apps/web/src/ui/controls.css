@@ -16,16 +16,16 @@
 .check {
   display: flex;
   gap: var(--space-3);
-  align-items: flex-start;
+  align-items: center;
 }
 .check + .check {
-  margin-top: var(--space-3);
+  margin-top: var(--space-4);
 }
 .check__input {
   flex: none;
-  width: var(--space-4);
-  height: var(--space-4);
-  margin: var(--space-2) 0 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
   accent-color: var(--color-accent);
 }
 .check__label {
