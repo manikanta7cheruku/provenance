@@ -42,6 +42,10 @@ jobs:
       - name: Native libraries for the resume PDF engine
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
       - run: uv sync --all-packages --frozen
+      - name: Dependency audit (known vulnerabilities in what ships)
+        run: |
+          uv export --no-dev --all-packages --frozen --no-hashes --no-emit-workspace > /tmp/requirements.txt
+          uvx pip-audit -r /tmp/requirements.txt --disable-pip --no-deps
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
@@ -84,6 +88,8 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci
+      - name: Dependency audit (known vulnerabilities in what ships)
+        run: npm audit --omit=dev --audit-level=high
       - run: npm run check:boundaries
       - run: npm run check:states
       - run: npm run check:tokens
@@ -96,6 +102,25 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser and accessibility checks (axe, keyboard, themes)
         run: npm run test:e2e
+
+  images:
+    # The production images must keep building, and the production stack must keep being valid.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Production stack is valid
+        run: |
+          IMAGE_TAG=ci POSTGRES_PASSWORD=x APP_DB_PASSWORD=x SECRET_KEY=x TOKEN_ENCRYPTION_KEYS=x           SMTP_HOST=x MAIL_FROM=x PUBLIC_BASE_URL=https://x SITE_ADDRESS=x           docker compose -f compose.prod.yaml config -q
+      - name: Scripts parse
+        run: for f in deploy/*.sh; do bash -n "$f"; done
+      - name: Build the API image
+        run: docker build -f infra/docker/api.prod.Dockerfile -t provenance-api:ci .
+      - name: The API image runs as a normal user and holds no development tools
+        run: |
+          test "$(docker run --rm provenance-api:ci id -u)" = "10001"
+          ! docker run --rm provenance-api:ci sh -c 'command -v uv || command -v pytest || command -v ruff'
+      - name: Build the web image
+        run: docker build -f infra/docker/web.prod.Dockerfile -t provenance-web:ci .
 
   secrets:
     runs-on: ubuntu-24.04

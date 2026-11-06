@@ -36,7 +36,7 @@ export function ConfirmDialog({
       }}
       actions={
         <>
-          <ActionButton onClick={onCancel} disabled={busy} autoFocus>
+          <ActionButton onClick={onCancel} disabled={busy} autoFocus data-initial-focus>
             Cancel
           </ActionButton>
           <ActionButton variant={danger ? "danger" : "primary"} onClick={onConfirm} disabled={busy}>

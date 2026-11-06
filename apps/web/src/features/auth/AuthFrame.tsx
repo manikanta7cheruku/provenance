@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { BrandMark, PageHeader } from "../../ui";
 import "./auth.css";
 
@@ -19,6 +20,9 @@ export function AuthFrame({ title, description, children }: AuthFrameProps) {
         </p>
         <PageHeader title={title} {...(description ? { description } : {})} />
         {children}
+        <p className="auth__legal">
+          <Link to="/privacy">Privacy policy</Link> <Link to="/terms">Terms of use</Link>
+        </p>
       </main>
       <aside className="auth-panel" aria-label="About Provenance">
         <p className="auth-panel__line">Jobs, with receipts.</p>

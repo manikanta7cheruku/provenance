@@ -23,6 +23,7 @@ PRODUCTION = {
     "cors_origins": "https://app.example.org",
     "public_base_url": "https://app.example.org",
     "smtp_host": "smtp.example.org",
+    "token_encryption_keys": "t" * 40,
 }
 
 

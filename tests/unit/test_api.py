@@ -53,6 +53,7 @@ def test_docs_are_hidden_in_production(make_settings: Make) -> None:
         cors_origins="https://app.example.com",
         public_base_url="https://app.example.com",
         smtp_host="smtp.example.com",
+        token_encryption_keys="t" * 40,
     )
     with TestClient(create_app(settings)) as prod_client:
         assert prod_client.get("/api/docs").status_code == 404

@@ -26,6 +26,7 @@ x-api-env: &api-env
   # Private file storage (resumes). The api and the worker share this volume.
   FILE_STORAGE_DIR: ${FILE_STORAGE_DIR:-/data/files}
   # AI provider. The worker uses it to read resumes and embed evidence, the api to embed search queries.
+  TOKEN_ENCRYPTION_KEYS: ${TOKEN_ENCRYPTION_KEYS:-}
   DEFAULT_PLAN: ${DEFAULT_PLAN:-free}
   LLM_DAILY_SPEND_CEILING_USD: ${LLM_DAILY_SPEND_CEILING_USD:-0}
   REPORT_RETENTION_DAYS: ${REPORT_RETENTION_DAYS:-7}

@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Typed settings that fail fast on missing or insecure configuration."
 requires-python = ">=3.12"
 dependencies = [
-    "cryptography>=43,<48",
+    "cryptography>=50,<51",
     "pydantic-settings>=2.6,<3",
 ]
 

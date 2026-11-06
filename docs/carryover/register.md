@@ -226,6 +226,24 @@ The product runs end to end without a key and says so honestly. These items need
 | C-152 | 3.6 | Schedule the model run | The LLM suite is manual | At 3.7, run it weekly in its own job, store the result with trigger `scheduled`, and alert on a drop | open |
 | C-153 | 3.6 | A screen reader pass of the Evaluation page | Axe passes. No screen reader was used on the tables and the selects | Do it at 3.7 | open |
 
+## X. Production, security and your data (added at 3.7)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-155 | 3.7 | A lawyer reads the privacy policy and terms | They are drafts that describe what the product does. They are not legal advice | Have a qualified person read both, add the company name, contact address and governing law, remove the draft banner, and decide whether sign-up needs an explicit tick and a record of the version accepted | open |
+| C-156 | 3.7 | Breach notification duty | The runbook says to tell people and check the law. Which law applies and by when is not known | Decide with the lawyer who must be told (people, a regulator) and within what time, and write it into the runbook | open |
+| C-157 | 3.7 | Confirm RPO and RTO | They are proposed (24 hours, 4 hours) and measured on a laptop | Decide the targets, and change backups (more often, or point-in-time recovery) if the data loss tolerated is smaller | open |
+| C-158 | 3.7 | Drills on the real host | The nine drills ran on a laptop | Repeat drills 1, 2, 3b, 4, 5, 8 and 9 on the real host, add losing the machine and rebuilding, and update drills.md | open |
+| C-159 | 3.7 | Point-in-time recovery | A nightly dump loses up to a day | If a day is too much, use a managed database with point-in-time recovery or continuous archiving | open |
+| C-160 | 3.7 | Copy backups off the machine, automatically | Backups are written next to the data. A lost machine loses them | Schedule `deploy/backup.sh` nightly and copy the folder to another machine or a bucket, with the same 30 day rule. Test a restore from the copy | open |
+| C-161 | 3.7 | A second person who can act | One operator is a single point of failure | Name a second person with access to the host, the password manager and the runbooks, and rehearse the tabletop together | open |
+| C-162 | 3.7 | Restore one person's data | Only a whole restore exists | If support ever needs it, restore into a scratch database and copy that person's rows back, and write the runbook | open |
+| C-163 | 3.7 | Image vulnerability scanning | Dependencies are audited, the operating system packages in the images are not | Add an image scanner (for example Trivy) to the `images` CI job and decide the severity that fails the build | open |
+| C-164 | 3.7 | A penetration test | The author tested their own work | Have someone else test the production site before sign-up opens | open |
+| C-165 | 3.7 | Bot protection on sign-up and sign-in | Rate limits and invites exist; a CAPTCHA or similar does not | Decide whether open sign-up needs it, and add it before opening sign-up | open |
+| C-166 | 3.7 | A screen reader pass of Your data and the legal pages | Axe passes. No screen reader was used | Do it with the other passes | open |
+| C-167 | 3.7 | Firefox and Safari | The browser suite runs in Chromium and Edge | Add Firefox and WebKit projects to the Playwright config, fix what differs | open |
+| C-168 | 3.7 | Host, domain, mail provider, model plan | They are accounts and money | Follow docs/operations/going-live.md steps 1 to 4 (this also closes C-41 and C-42) | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

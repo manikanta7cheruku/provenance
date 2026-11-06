@@ -3,6 +3,7 @@
 from pv_domain.tasks import (
     TASK_ANALYZE_JOB,
     TASK_BUILD_REPORT,
+    TASK_DELETE_ACCOUNT,
     TASK_DEMO,
     TASK_DRAFT_APPLICATION,
     TASK_EMBED_EVIDENCE,
@@ -21,6 +22,7 @@ from pv_domain.tasks import (
 from pv_worker.contract import Handler
 from pv_worker.handlers.analyze_job import handle_analyze_job
 from pv_worker.handlers.build_report import handle_build_report
+from pv_worker.handlers.delete_account import handle_delete_account
 from pv_worker.handlers.demo import handle_demo
 from pv_worker.handlers.draft_application import handle_draft_application
 from pv_worker.handlers.embed_evidence import handle_embed_evidence
@@ -55,4 +57,5 @@ def build_registry() -> dict[str, Handler]:
         TASK_SYNC_GITHUB: handle_sync_github,
         TASK_PREPARE_JOB: handle_prepare_job,
         TASK_BUILD_REPORT: handle_build_report,
+        TASK_DELETE_ACCOUNT: handle_delete_account,
     }

@@ -47,6 +47,12 @@ If PowerShell refuses to run the script: `Set-ExecutionPolicy -Scope CurrentUser
 | Promote admin | `docker compose exec api python -m pv_api.cli promote-admin --email someone@example.com` |
 | Demo task | `docker compose exec worker python -m pv_worker.cli enqueue-demo --seconds 20` |
 | Demo run | `docker compose exec api python -m pv_api.cli seed-demo-run --email someone@example.com` |
+| Is this deployment safe? | `docker compose exec api python -m pv_api.cli check-config` (exit code 1 when any check is a FAIL) |
+| Sign everyone out | `docker compose exec api python -m pv_api.cli revoke-all-sessions` |
+| Finish a token key rotation | `docker compose exec api python -m pv_api.cli reseal-tokens` |
+| Deploy (production) | `deploy/deploy.sh` then `deploy/rollback.sh` if needed |
+| Back up / drill a restore | `deploy/backup.sh`, `deploy/restore.sh <folder> --drill` |
+| Smoke test a site | `deploy/smoke.sh https://your.domain` |
 | What needs attention | `docker compose exec api python -m pv_api.cli check-alerts` (exit code 1 when anything is critical) |
 | Evaluation (free) | `uv run python -m pv_eval run` (exit code 1 when a metric regresses) |
 | Evaluation, stored | `uv run python -m pv_eval run --store` |

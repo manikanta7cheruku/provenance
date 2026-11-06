@@ -12,6 +12,7 @@ PROD = {
     "cors_origins": "https://app.example.com",
     "public_base_url": "https://app.example.com",
     "smtp_host": "smtp.example.com",
+    "token_encryption_keys": "t" * 40,
 }
 
 
@@ -95,3 +96,28 @@ def test_secrets_never_appear_in_repr(make_settings: Make) -> None:
     assert "k" * 40 not in text
     assert "apppw" not in text
     assert "ownerpw" not in text
+
+
+def test_production_requires_token_encryption_keys(make_settings: Make) -> None:
+    with pytest.raises(ValidationError, match="TOKEN_ENCRYPTION_KEYS"):
+        make_settings(**{**PROD, "token_encryption_keys": ""})
+
+
+def test_production_rejects_a_placeholder_token_key(make_settings: Make) -> None:
+    with pytest.raises(ValidationError, match="TOKEN_ENCRYPTION_KEYS"):
+        make_settings(**{**PROD, "token_encryption_keys": "change-me-" + "x" * 30})
+
+
+def test_a_token_key_must_be_long_and_not_repeated(make_settings: Make) -> None:
+    with pytest.raises(ValidationError, match="at least 32"):
+        make_settings(token_encryption_keys="short")
+    key = "a" * 40
+    with pytest.raises(ValidationError, match="twice"):
+        make_settings(token_encryption_keys=f"{key},{key}")
+    assert make_settings(
+        token_encryption_keys=f"{key}, {'b' * 40}"
+    ).token_encryption_keys.get_secret_value()
+
+
+def test_development_does_not_need_token_encryption_keys(make_settings: Make) -> None:
+    assert make_settings().token_encryption_keys.get_secret_value() == ""

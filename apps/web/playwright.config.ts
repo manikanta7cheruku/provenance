@@ -4,6 +4,9 @@ import { defineConfig } from "@playwright/test";
 // CI installs Playwright's Chromium. On a developer machine set PW_CHANNEL=msedge (or chrome) to
 // reuse the browser already installed instead of downloading another one.
 const channel = process.env.PW_CHANNEL;
+// To run the same checks against a running deployment (for example the production stack on a laptop,
+// to prove its security headers do not break the app), set PW_BASE_URL. No preview server is started.
+const remote = process.env.PW_BASE_URL;
 
 export default defineConfig({
   testDir: "e2e",
@@ -12,7 +15,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
   use: {
-    baseURL: "http://localhost:4173",
+    baseURL: remote ?? "http://localhost:4173",
+    ...(remote ? { ignoreHTTPSErrors: true } : {}),
     // Pages rise and fade in. A scan that lands mid-animation reads half-faded text as low contrast and
     // a click lands where the element is about to be, so tests run with motion reduced. The base styles
     // already stop all animation under this preference.
@@ -20,10 +24,12 @@ export default defineConfig({
     ...(channel ? { channel } : {}),
     trace: "retain-on-failure",
   },
-  webServer: {
-    command: "npm run preview -- --port 4173 --strictPort",
-    url: "http://localhost:4173/design",
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: remote
+    ? undefined
+    : {
+        command: "npm run preview -- --port 4173 --strictPort",
+        url: "http://localhost:4173/design",
+        reuseExistingServer: !process.env.CI,
+        timeout: 60_000,
+      },
 });

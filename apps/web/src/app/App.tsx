@@ -20,6 +20,7 @@ import {
   SignUpPage,
   VerifyEmailPage,
 } from "../features/auth";
+import { PrivacyPage, TermsPage } from "../features/legal";
 import { NotFoundPage } from "../features/notfound";
 import { ImportReportPage, JobDetailPage, OpportunitiesPage } from "../features/opportunities";
 import { PlannedPage } from "../features/planned";
@@ -66,6 +67,8 @@ function ProductApp() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route element={<RequireAuth />}>
             <Route element={<Shell />}>
               <Route index element={<Navigate to="/opportunities" replace />} />

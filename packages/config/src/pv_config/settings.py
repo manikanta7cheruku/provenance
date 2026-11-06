@@ -15,6 +15,8 @@ from urllib.parse import urlsplit
 from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from pv_config.secretbox import MIN_KEY_LENGTH, parse_ring
+
 _DB_SCHEME = "postgresql+psycopg://"
 _MIN_SECRET_LENGTH = 32
 _PLACEHOLDER = "change-me"
@@ -40,6 +42,9 @@ class Settings(BaseSettings):
     database_url: SecretStr
     migration_database_url: SecretStr
     secret_key: SecretStr
+    # Keys that seal stored connector tokens, newest first, comma separated. Empty means tokens are
+    # sealed with a key derived from SECRET_KEY (v1). See pv_config.secretbox for rotation.
+    token_encryption_keys: SecretStr = SecretStr("")
     cors_origins: str = ""
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
@@ -119,6 +124,18 @@ class Settings(BaseSettings):
             raise ValueError(f"database URL must start with {_DB_SCHEME}")
         return value
 
+    @field_validator("token_encryption_keys")
+    @classmethod
+    def _check_token_keys(cls, value: SecretStr) -> SecretStr:
+        ring = parse_ring(value.get_secret_value())
+        if any(len(k) < MIN_KEY_LENGTH for k in ring):
+            raise ValueError(
+                f"every token encryption key must be at least {MIN_KEY_LENGTH} characters"
+            )
+        if len(set(ring)) != len(ring):
+            raise ValueError("a token encryption key appears twice in TOKEN_ENCRYPTION_KEYS")
+        return value
+
     @field_validator("secret_key")
     @classmethod
     def _check_secret_length(cls, value: SecretStr) -> SecretStr:
@@ -189,6 +206,7 @@ class Settings(BaseSettings):
             problems: list[str] = []
             for name, secret in (
                 ("SECRET_KEY", self.secret_key),
+                ("TOKEN_ENCRYPTION_KEYS", self.token_encryption_keys),
                 ("DATABASE_URL", self.database_url),
                 ("MIGRATION_DATABASE_URL", self.migration_database_url),
             ):
@@ -198,6 +216,11 @@ class Settings(BaseSettings):
                 problems.append("CORS_ORIGINS must all be https:// in production")
             if not self.public_base_url.startswith("https://"):
                 problems.append("PUBLIC_BASE_URL must be https:// in production")
+            if not self.token_encryption_keys.get_secret_value():
+                problems.append(
+                    "TOKEN_ENCRYPTION_KEYS is required in production "
+                    "(connector tokens must not depend on SECRET_KEY)"
+                )
             if not self.smtp_host:
                 problems.append(
                     "SMTP_HOST is required in production "

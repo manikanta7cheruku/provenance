@@ -1,6 +1,6 @@
 # Production Operations Plan
 
-Status: Decided (Phase 0). Describes how the same architecture evolves from laptop to production. Docker is a deployment unit, not only a development convenience.
+Status: Decided (Phase 0). Describes how the same architecture evolves from laptop to production. Docker is a deployment unit, not only a development convenience. Stage 1 was built and run on a laptop in checkpoint 3.7 (see [ADR-0055](../adr/0055-production-security-and-your-data.md), [going live](going-live.md), [disaster recovery](disaster-recovery.md) and [drills](drills.md)).
 
 ## 1. Container evolution
 

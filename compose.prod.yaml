@@ -1,0 +1,221 @@
+name: provenance-prod
+
+# Production on one machine (stage 1 of docs/operations/production-operations.md).
+#
+#   docker compose -f compose.prod.yaml --env-file .env.production up -d
+#
+# What is different from compose.yaml (development):
+#   - images are built from the production Dockerfiles and tagged with the git commit (IMAGE_TAG)
+#   - no source is mounted and nothing reloads
+#   - the database and the API are never published on a host port: only the proxy listens, on 80 and 443
+#   - the proxy gets and renews the TLS certificate by itself
+#   - containers run as non-root, with a read-only filesystem, no extra privileges and memory limits
+#   - every secret is required: a missing one stops the stack from starting
+#
+# Run `deploy/deploy.sh` rather than this file by hand: it checks the configuration, takes a backup,
+# migrates, starts the new version, waits until it is ready and smoke tests it.
+
+x-api-image: &api-image
+  image: provenance-api:${IMAGE_TAG:?Set IMAGE_TAG to the git commit being deployed}
+  build:
+    context: .
+    dockerfile: infra/docker/api.prod.Dockerfile
+
+x-hardening: &hardening
+  init: true
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+x-app-env: &app-env
+  ENVIRONMENT: production
+  DATABASE_URL: postgresql+psycopg://provenance_app:${APP_DB_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-provenance}
+  MIGRATION_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-provenance}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-provenance}
+  SECRET_KEY: ${SECRET_KEY:?}
+  TOKEN_ENCRYPTION_KEYS: ${TOKEN_ENCRYPTION_KEYS:?}
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?}
+  CORS_ORIGINS: ${PUBLIC_BASE_URL:?}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  SIGNUP_MODE: ${SIGNUP_MODE:-invite}
+  EMAIL_VERIFICATION_REQUIRED: ${EMAIL_VERIFICATION_REQUIRED:-true}
+  SMTP_HOST: ${SMTP_HOST:?}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+  MAIL_FROM: ${MAIL_FROM:?}
+  FILE_STORAGE_DIR: /data/files
+  DEFAULT_PLAN: ${DEFAULT_PLAN:-free}
+  LLM_DAILY_SPEND_CEILING_USD: ${LLM_DAILY_SPEND_CEILING_USD:-0}
+  REPORT_RETENTION_DAYS: ${REPORT_RETENTION_DAYS:-7}
+  GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+  GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  GEMINI_BASE_URL: ${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+  LLM_MODEL: ${LLM_MODEL:-}
+  LLM_EMBEDDING_MODEL: ${LLM_EMBEDDING_MODEL:-}
+  LLM_EMBEDDING_DIMENSIONS: ${LLM_EMBEDDING_DIMENSIONS:-768}
+  LLM_MIN_INTERVAL_SECONDS: ${LLM_MIN_INTERVAL_SECONDS:-0}
+  LLM_INPUT_PRICE_PER_MILLION: ${LLM_INPUT_PRICE_PER_MILLION:-0}
+  LLM_OUTPUT_PRICE_PER_MILLION: ${LLM_OUTPUT_PRICE_PER_MILLION:-0}
+  LLM_EMBEDDING_PRICE_PER_MILLION: ${LLM_EMBEDDING_PRICE_PER_MILLION:-0}
+  EVIDENCE_MIN_SIMILARITY: ${EVIDENCE_MIN_SIMILARITY:-0}
+  WORKER_POLL_INTERVAL_SECONDS: ${WORKER_POLL_INTERVAL_SECONDS:-1.0}
+  WORKER_LEASE_SECONDS: ${WORKER_LEASE_SECONDS:-120}
+  WORKER_HEARTBEAT_SECONDS: ${WORKER_HEARTBEAT_SECONDS:-10}
+  TASK_RETENTION_DAYS: ${TASK_RETENTION_DAYS:-7}
+
+services:
+  postgres:
+    <<: *hardening
+    image: pgvector/pgvector:0.8.0-pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-provenance}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:-provenance}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks: [internal]
+    # The database image needs a few capabilities of its own to start (changing file owner).
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  migrate:
+    <<: *api-image
+    init: true
+    command: ["alembic", "-c", "/app/alembic.ini", "upgrade", "head"]
+    environment: *app-env
+    networks: [internal]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs: [/tmp]
+
+  api:
+    <<: [*hardening, *api-image]
+    environment: *app-env
+    networks: [internal]
+    volumes:
+      - files:/data/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp
+    stop_grace_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+  worker:
+    <<: [*hardening, *api-image]
+    command: ["python", "-m", "pv_worker"]
+    environment: *app-env
+    networks: [internal]
+    volumes:
+      - files:/data/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp
+    # SIGTERM lets the worker finish the task in hand. Give it time before SIGKILL.
+    stop_grace_period: 30s
+    healthcheck:
+      # The worker touches a file every heartbeat. Healthy means "touched in the last minute".
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os,sys,tempfile,time; p=os.path.join(tempfile.gettempdir(),'pv_worker_alive'); sys.exit(0 if time.time()-os.path.getmtime(p)<60 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+  web:
+    <<: *hardening
+    image: provenance-web:${IMAGE_TAG:?}
+    build:
+      context: .
+      dockerfile: infra/docker/web.prod.Dockerfile
+    networks: [internal, edge]
+    depends_on:
+      api:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+  # The only thing that listens on the host. It gets and renews the certificate by itself.
+  proxy:
+    <<: *hardening
+    image: caddy:2.8-alpine
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Set SITE_ADDRESS to the domain name people will use}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+    cap_add: [NET_BIND_SERVICE]
+    depends_on:
+      web:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+networks:
+  # The services talk to each other here. Nothing on it is published on a host port. The API and the
+  # worker can still reach out (the model provider, mail, job sources, GitHub).
+  internal: {}
+  # The proxy and the web container only.
+  edge: {}
+
+volumes:
+  pgdata:
+  files:
+  caddy_data:
+  caddy_config:

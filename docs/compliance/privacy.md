@@ -36,6 +36,26 @@ View and correct profile, export data, delete account (see identity-and-data-lif
 
 To research and confirm with qualified advice before launch, per market: India DPDP Act, EU and UK GDPR, CCPA and other US state laws, Canada PIPEDA, UAE, Singapore PDPA, Australia Privacy Act. Cross-border transfer implications for LLM and hosting providers. Cookie consent obligations. No conclusions are drawn here.
 
-## 6. Open decisions
+## 6. Decisions made in checkpoint 3.7
 
-Retention period for backups, retention for audit events, whether usage records are anonymized or deleted, hosting region.
+| Decision | Choice | Where it is built |
+|---|---|---|
+| Backup retention | 30 days, then gone | `BACKUP_KEEP_DAYS` in `deploy/backup.sh`; stated in the privacy policy page |
+| Deleted data in backups | Stays until the backup expires. After a restore, deletions made since that backup are repeated | Runbook "data deletion request" |
+| Data export | One JSON file of what the person put in, from Settings, Your data (not their password, sessions, tokens or uploaded files) | `GET /api/v1/account/export` |
+| Account deletion | A durable task removes the stored files first and then every row; sessions end at once; a minimal record with no person in it is kept | `delete_account`, migration 0023 |
+| Usage records after deletion | Model call counts and cost stay, without the person or any text (the link to the person is cleared) | Foreign keys set to null; tested |
+| Audit events after deletion | Kept without the person (the actor is cleared) and with no email in them | Tested |
+| Reports | Deleted after 7 days | `REPORT_RETENTION_DAYS` |
+| Sessions | End after 7 days idle or 30 days at most | Settings |
+| Public documents | A privacy policy and terms of use, as a draft, at `/privacy` and `/terms`, linked from sign-in and Settings | `features/legal` |
+
+## 7. Still open (the owner, with a lawyer)
+
+- A lawyer reads the privacy policy and the terms, and the draft banner is removed (C-155).
+- The contact address, the company name and the governing law are added.
+- The hosting region is chosen, and the regulation research list above is worked through for the markets in scope.
+- The model provider plan is confirmed to be one whose terms say inputs are not used to train models (C-42). Until then the policy tells people not to enter anything they would not want a provider to see.
+- Whether sign-up needs an explicit tick for the terms, and a record of the version accepted.
+- Whether and when a regulator and the people affected must be told of a breach (C-156).
+- Hosting backups: where the copy off the machine lives, and that it is covered by the same 30-day rule (C-160).

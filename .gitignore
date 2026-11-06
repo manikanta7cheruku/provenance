@@ -15,6 +15,7 @@ playwright-report/
 .env
 .env.*
 !.env.example
+!.env.production.example
 *.pem
 storage/
 # OS and editors
@@ -22,3 +23,7 @@ storage/
 Thumbs.db
 .vscode/
 .idea/
+# Backups and the record of what is deployed
+backups/
+deploy/.current
+deploy/.previous
