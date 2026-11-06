@@ -12,6 +12,7 @@ from pv_domain.eligibility import evaluate_eligibility
 from pv_domain.job import JobParseStatus, job_ui_state
 from pv_domain.job_facts import posting_facts_from_record
 from pv_domain.pipeline import WorkRow
+from pv_domain.roles import role_matches
 from pv_persistence.jobs import list_postings, load_seeker
 from pv_persistence.models import JobDecision, JobPosting
 from pv_persistence.workbench import decisions_for, fit_scores, state_of
@@ -28,7 +29,11 @@ def fact_value(posting: JobPosting, key: str) -> str | None:
 
 
 def make_row(
-    posting: JobPosting, decision: JobDecision | None, eligibility: str | None, band: str | None
+    posting: JobPosting,
+    decision: JobDecision | None,
+    eligibility: str | None,
+    band: str | None,
+    role_match: bool | None = None,
 ) -> WorkRow:
     return WorkRow(
         id=str(posting.id),
@@ -47,6 +52,7 @@ def make_row(
         created_at=posting.created_at,
         applied_at=decision.applied_at if decision else None,
         note=decision.note if decision else "",
+        role_match=role_match,
     )
 
 
@@ -72,6 +78,7 @@ def load_rows(
             decisions.get(p.id),
             eligibility.get(p.id),
             scores[p.id].band.value if p.id in scores else None,
+            role_matches(p.title or "", prefs.target_roles),
         )
         for p in postings
     ]

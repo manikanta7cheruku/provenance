@@ -39,7 +39,12 @@ Read private repositories, read other people's repositories, read code, issues, 
 
 GitHub OAuth tokens are long-lived unless the app opts in to expiry. We store the token sealed (AES-256-GCM, bound to the person, see ADR-0049) and delete it on disconnect, after asking GitHub to revoke it (`DELETE /applications/{client_id}/token`). If GitHub does not confirm, the product says so and tells the person where to remove the app (github.com/settings/applications). A person can also revoke from GitHub at any time, after which the next read fails with "connect GitHub again".
 
-## Setup (the operator)
+## Two ways in
+
+1. **Paste a link** (default, no setup). The person pastes `github.com/name`. The server reads that account's public repositories with no token. It is not proven to be theirs, so the panel shows "not proven". Without a token GitHub allows 60 requests an hour per server address.
+2. **Sign in with GitHub** (optional, needs the OAuth app below). Proves the account is theirs. Signing in after pasting a link upgrades it.
+
+## Setup of the optional sign-in (the operator)
 
 1. Create an OAuth app at https://github.com/settings/developers.
 2. Homepage URL: your public address. Authorization callback URL: `<PUBLIC_BASE_URL>/connect/github/callback` (for local use `http://localhost:5173/connect/github/callback`).

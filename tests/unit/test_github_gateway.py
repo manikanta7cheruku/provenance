@@ -209,8 +209,9 @@ def test_revoking_uses_the_app_credentials_and_a_missing_token_counts() -> None:
     assert gateway(boom).revoke("t") is False
 
 
-def test_no_gateway_is_built_without_an_oauth_app() -> None:
+def test_a_gateway_exists_without_an_oauth_app_but_sign_in_is_off() -> None:
     from pv_config import Settings
+    from pv_github import oauth_configured
 
     settings = Settings(
         environment="test",
@@ -218,4 +219,38 @@ def test_no_gateway_is_built_without_an_oauth_app() -> None:
         migration_database_url="postgresql+psycopg://owner:p@h/d",
         secret_key="k" * 40,
     )
-    assert build_gateway(settings) is None
+    assert build_gateway(settings) is not None
+    assert oauth_configured(settings) is False
+
+
+def test_a_public_account_is_read_without_any_token() -> None:
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["auth"] = request.headers.get("authorization")
+        return httpx.Response(200, json={"id": 7, "login": "asha-rao", "type": "User"})
+
+    user = gateway(handler).get_public_user("asha-rao")
+    assert user.id == 7 and user.login == "asha-rao"
+    assert seen["url"] == f"{API}/users/asha-rao" and seen["auth"] is None
+
+
+@pytest.mark.parametrize(
+    ("response", "code"),
+    [
+        (httpx.Response(404, json={}), "user_not_found"),
+        (
+            httpx.Response(200, json={"id": 1, "login": "acme", "type": "Organization"}),
+            "not_a_person",
+        ),
+        (httpx.Response(200, text="nope"), "unavailable"),
+        (httpx.Response(403, headers={"x-ratelimit-remaining": "0"}), "rate_limited"),
+    ],
+)
+def test_a_public_account_lookup_fails_with_a_plain_code(
+    response: httpx.Response, code: str
+) -> None:
+    with pytest.raises(GitHubError) as caught:
+        gateway(lambda r: response).get_public_user("someone")
+    assert caught.value.code == code

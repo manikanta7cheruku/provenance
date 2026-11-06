@@ -25,6 +25,7 @@ from pv_domain.resume import (
     resume_ui_state,
     safe_display_filename,
 )
+from pv_domain.resume_rules import RULES_PARSER_VERSION
 from pv_domain.tasks import TASK_PARSE_RESUME
 from pv_files import FileStorage, StorageError, check_upload, new_resume_key
 from pv_persistence.audit import record_audit
@@ -58,6 +59,13 @@ def to_out(resume: Resume, flagged: int) -> ResumeOut:
         kept_entry_count=resume.kept_entry_count,
         dropped_entry_count=resume.dropped_entry_count,
         flagged_entry_count=flagged,
+        read_by=(
+            None
+            if resume.parser_version is None
+            else "rules"
+            if resume.parser_version == RULES_PARSER_VERSION
+            else "ai"
+        ),
         page_count=resume.page_count,
         run_id=resume.run_id,
         created_at=resume.created_at,

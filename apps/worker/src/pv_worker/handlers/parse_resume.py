@@ -15,10 +15,19 @@ import time
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
+from typing import Any
 
 from pv_domain.resume import ParseErrorCode, ParseStatus, ReviewStatus
+from pv_domain.resume_rules import RULES_PARSER_VERSION, parse_resume_rules
 from pv_domain.states import RunState, StepState
-from pv_files import ExtractionError, FileStorage, StorageError, build_storage, extract_text
+from pv_files import (
+    ExtractedText,
+    ExtractionError,
+    FileStorage,
+    StorageError,
+    build_storage,
+    extract_text,
+)
 from pv_llm import (
     PROMPT_VERSION,
     GenerationResult,
@@ -161,8 +170,21 @@ def run_parse(ctx: TaskContext, *, storage: FileStorage, provider_factory: Provi
     try:
         provider = provider_factory()
     except LLMError:
-        _record_step(ctx, 3, "structure_profile", StepState.FAILED, started)
-        _finish_failed(ctx, owner, resume_id, ParseErrorCode.AI_NOT_CONFIGURED)
+        # No AI reader set up: read the resume with the built-in rules instead of failing.
+        rules = parse_resume_rules(extracted.text)
+        _record_step(
+            ctx,
+            3,
+            "structure_profile",
+            StepState.SUCCEEDED,
+            started,
+            calls=0,
+            entries_kept=len(rules.entries),
+            entries_dropped=rules.dropped,
+        )
+        _save_parsed(
+            ctx, owner, resume_id, extracted, rules.entries, rules.dropped, RULES_PARSER_VERSION
+        )
         return
     model = ctx.settings.llm_model
     input_hash = content_hash(extracted.text)
@@ -221,7 +243,19 @@ def run_parse(ctx: TaskContext, *, storage: FileStorage, provider_factory: Provi
         entries_dropped=outcome.dropped,
     )
 
-    # 4. save. Replaces only entries this parse created earlier and the person never edited.
+    _save_parsed(ctx, owner, resume_id, extracted, outcome.entries, outcome.dropped, PROMPT_VERSION)
+
+
+def _save_parsed(
+    ctx: TaskContext,
+    owner: uuid.UUID,
+    resume_id: uuid.UUID,
+    extracted: ExtractedText,
+    entries: list[tuple[str, dict[str, Any]]],
+    dropped: int,
+    parser_version: str,
+) -> None:
+    """Save the entries. Replaces only entries an earlier parse made and the person never edited."""
     started = time.perf_counter()
     with tenant_session(ctx.engine, owner) as db:
         resume = get_resume(db, owner)
@@ -230,10 +264,8 @@ def run_parse(ctx: TaskContext, *, storage: FileStorage, provider_factory: Provi
             or resume.id != resume_id
             or resume.parse_generation != ctx.args.get("generation")
         ):
-            return  # deleted or replaced while the model was working
-        stored = replace_parsed_entries(
-            db, owner_id=owner, resume_id=resume_id, entries=outcome.entries
-        )
+            return  # deleted or replaced while the reader was working
+        stored = replace_parsed_entries(db, owner_id=owner, resume_id=resume_id, entries=entries)
         sync_evidence(db, owner)  # chunks follow the new entries in the same transaction
         now = datetime.now(UTC)
         resume.parse_status = ParseStatus.PARSED.value
@@ -242,8 +274,8 @@ def run_parse(ctx: TaskContext, *, storage: FileStorage, provider_factory: Provi
         resume.page_count = extracted.pages
         resume.char_count = len(extracted.text)
         resume.kept_entry_count = stored
-        resume.dropped_entry_count = outcome.dropped
-        resume.parser_version = PROMPT_VERSION
+        resume.dropped_entry_count = dropped
+        resume.parser_version = parser_version
         resume.parsed_at = now
         resume.updated_at = now
         if ctx.run_id is not None:

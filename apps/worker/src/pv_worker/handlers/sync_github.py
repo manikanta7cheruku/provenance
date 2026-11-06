@@ -24,6 +24,7 @@ from collections.abc import Callable
 from pv_config import SecretBox, SecretBoxError
 from pv_domain.github import (
     ERRORS,
+    LINK_ONLY,
     MAX_REPOS_LISTED,
     GitHubError,
     GitHubGateway,
@@ -71,7 +72,8 @@ def run_sync(ctx: TaskContext, *, gateway_factory: GatewayFactory) -> None:
         sealed, login = connection.token_sealed, connection.login
         set_sync_state(db, owner, "syncing")
     try:
-        token = box.open(sealed, context=f"github-token:{owner}")
+        # A pasted link has no token: public information is read without one.
+        token = "" if sealed == LINK_ONLY else box.open(sealed, context=f"github-token:{owner}")
     except SecretBoxError:
         _fail(ctx, owner, "token_invalid")
         return
