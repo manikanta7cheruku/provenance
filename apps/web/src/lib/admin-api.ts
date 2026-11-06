@@ -278,6 +278,7 @@ export interface Usage {
   by_model: UsageRow[];
   by_purpose: UsageRow[];
   by_day: UsageRow[];
+  by_plan: UsageRow[];
 }
 
 export interface Trace {
@@ -402,7 +403,16 @@ export interface EvalDetail {
   against: EvalRun | null;
 }
 
-export function fetchEvaluations(signal?: AbortSignal): Promise<{ runs: EvalRun[]; latest: Record<string, EvalRun> }> {
+export interface Ranker {
+  adopt: boolean;
+  labels: number;
+  people: number;
+  reasons: string[];
+}
+
+export function fetchEvaluations(
+  signal?: AbortSignal,
+): Promise<{ runs: EvalRun[]; latest: Record<string, EvalRun>; ranker: Ranker }> {
   return request("GET", `${BASE}/evaluation`, { signal });
 }
 

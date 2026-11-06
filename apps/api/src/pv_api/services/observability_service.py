@@ -33,19 +33,16 @@ from pv_api.schemas import (
 )
 from pv_config import Settings
 from pv_domain.alerts import Alert, Snapshot, Thresholds, evaluate, worst
-from pv_persistence.evaluation import latest_per_suite
-from pv_persistence.health import check_readiness
 from pv_persistence.models import JobSource
 from pv_persistence.observability import (
-    llm_totals,
     queue_numbers,
     rate_limit_pressure,
     security_counts,
-    source_health,
     trace_run,
     trouble_tasks,
     usage_report,
 )
+from pv_persistence.snapshot import build_snapshot as snapshot_of
 
 USAGE_DAYS = (7, 30)
 
@@ -64,36 +61,12 @@ def thresholds_for(settings: Settings) -> Thresholds:
 def build_snapshot(
     engine: Engine, stats: RequestStatsSnapshot | None, now: datetime | None = None
 ) -> Snapshot:
-    moment = now or datetime.now(UTC)
-    report = check_readiness(engine)
-    with Session(engine) as db:
-        queue = queue_numbers(db, moment)
-        sources = source_health(db)
-        model = llm_totals(db, moment - timedelta(hours=24))
-        security = security_counts(db, moment - timedelta(hours=1))
-        latest = latest_per_suite(db)
-    return Snapshot(
-        database_ok=report.database,
-        migrations=report.migrations,
-        workers_alive=queue.workers_alive,
-        workers_stale=queue.workers_stale,
-        queue_waiting=queue.waiting,
-        oldest_waiting_seconds=queue.oldest_waiting_seconds,
-        stuck_tasks=queue.stuck,
-        dead_letters_24h=queue.dead_letters_24h,
-        dead_letters_total=queue.dead_letters_total,
-        sources=tuple(sources),
-        llm_calls_24h=model.calls,
-        llm_errors_24h=model.errors,
-        llm_cost_24h_usd=model.cost_usd,
+    return snapshot_of(
+        engine,
         requests=None if stats is None else stats.requests,
         server_errors=None if stats is None else stats.server_errors,
         p95_ms=None if stats is None else stats.p95_ms,
-        auth_failures_1h=security.get("auth.login_failed", 0)
-        + security.get("auth.password_change_failed", 0),
-        origin_rejections_1h=security.get("origin_rejected", 0),
-        evaluation_failed=tuple(sorted(s for s, r in latest.items() if not r.passed)),
-        evaluation_seen=bool(latest),
+        now=now,
     )
 
 
@@ -327,6 +300,7 @@ def usage(engine: Engine, settings: Settings, days: int) -> UsageOut:
         by_model=rows(report.by_model),
         by_purpose=rows(report.by_purpose),
         by_day=rows(report.by_day),
+        by_plan=rows(report.by_plan),
     )
 
 

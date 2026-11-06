@@ -357,6 +357,9 @@ class LlmCall(Base):
     status: Mapped[str] = mapped_column(Text, default="ok")
     error_class: Mapped[str | None] = mapped_column(Text, default=None)
     content_hash: Mapped[str | None] = mapped_column(Text, default=None)
+    # The plan the person was on when the call was made (NULL: the default plan). Lets cost be added
+    # up by plan without reading any tenant table.
+    plan_id: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

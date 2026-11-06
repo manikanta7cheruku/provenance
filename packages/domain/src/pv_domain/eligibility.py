@@ -21,6 +21,8 @@ import re
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from pv_domain.places import canonical_phrase, canonical_word
+
 RULES_VERSION = "eligibility-1"
 
 # A requirement this many years above the person's experience is treated as a hard blocker.
@@ -120,7 +122,8 @@ def _countries(values: tuple[str, ...] | str) -> set[str]:
 
 
 def _place_tokens(value: str) -> set[str]:
-    return {t for t in _WORD.findall(value.casefold()) if t not in _SMALL_WORDS}
+    words = _WORD.findall(canonical_phrase(value.casefold()))
+    return {canonical_word(t) for t in words if t not in _SMALL_WORDS}
 
 
 _COUNTRY_WORDS = frozenset(

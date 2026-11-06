@@ -1875,6 +1875,7 @@ class UsageOut(BaseModel):
     by_model: list[UsageRowOut]
     by_purpose: list[UsageRowOut]
     by_day: list[UsageRowOut]
+    by_plan: list[UsageRowOut]
 
 
 class TraceTaskOut(BaseModel):
@@ -1950,9 +1951,17 @@ class EvalRunOut(BaseModel):
     regressions: list[str]
 
 
+class RankerOut(BaseModel):
+    adopt: bool
+    labels: int
+    people: int
+    reasons: list[str]
+
+
 class EvalListOut(BaseModel):
     runs: list[EvalRunOut]
     latest: dict[str, EvalRunOut]
+    ranker: RankerOut
 
 
 class EvalSuiteOut(BaseModel):

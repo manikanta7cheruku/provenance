@@ -248,6 +248,24 @@ const USAGE = (days: number) => ({
       cost_usd: 0.024,
     },
   ],
+  by_plan: [
+    {
+      key: "free",
+      calls: 30,
+      errors: 2,
+      input_tokens: 8000,
+      output_tokens: 2000,
+      cost_usd: 0.05,
+    },
+    {
+      key: "default plan",
+      calls: 12,
+      errors: 1,
+      input_tokens: 4000,
+      output_tokens: 1400,
+      cost_usd: 0.034,
+    },
+  ],
   by_day: [
     {
       key: "2026-11-04",
@@ -644,6 +662,9 @@ test("cost is added up by model, operation and day, and names nobody", async ({
   await expect(
     page.getByRole("table", { name: "Cost by day, last 7 days" }),
   ).toContainText("2026-11-05");
+  await expect(
+    page.getByRole("table", { name: "Cost by plan, last 7 days" }),
+  ).toContainText("default plan");
   await expect(
     page.getByText(
       "The account that used the most made up 50 percent of the cost.",

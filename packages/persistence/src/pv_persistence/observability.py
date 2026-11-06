@@ -236,6 +236,7 @@ class UsageReport:
     by_model: list[UsageRow]
     by_purpose: list[UsageRow]
     by_day: list[UsageRow]
+    by_plan: list[UsageRow]
     average_latency_ms: int | None
     highest_account_share: float | None
 
@@ -288,9 +289,51 @@ def usage_report(db: Session, days: int, now: datetime | None = None) -> UsageRe
         by_model=_rows(_usage(db, since, LlmCall.provider, LlmCall.model), 2),
         by_purpose=_rows(_usage(db, since, LlmCall.purpose), 1),
         by_day=by_day,
+        by_plan=_plan_rows(db, since),
         average_latency_ms=None if latency is None else round(float(latency)),
         highest_account_share=share,
     )
+
+
+def _plan_rows(db: Session, since: datetime) -> list[UsageRow]:
+    """Cost by the plan the person was on when the call was made. NULL is the default plan."""
+    plan = func.coalesce(LlmCall.plan_id, "default plan")
+    return _rows(_usage(db, since, plan), 1)
+
+
+@dataclass(frozen=True)
+class FeedbackCounts:
+    labels: int
+    people: int
+
+
+def feedback_counts(db: Session) -> FeedbackCounts:
+    """How many "was this right?" labels exist and from how many people. Counters kept by triggers:
+    no label and no person is read here."""
+    labels = db.execute(
+        text("SELECT labels FROM feedback_totals WHERE id = 1")
+    ).scalar_one_or_none()
+    people: object = db.execute(text("SELECT count(*) FROM feedback_people")).scalar_one()
+    return FeedbackCounts(int(str(labels or 0)), int(str(people)))
+
+
+@dataclass(frozen=True)
+class DatabaseNumbers:
+    connections: int
+    max_connections: int
+    size_bytes: int
+
+
+def database_numbers(db: Session) -> DatabaseNumbers:
+    """How busy and how big the database is. A connection count and a size, nothing else."""
+    connections: object = db.execute(
+        text("SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()")
+    ).scalar_one()
+    maximum: object = db.execute(
+        text("SELECT setting::int FROM pg_settings WHERE name = 'max_connections'")
+    ).scalar_one()
+    size: object = db.execute(text("SELECT pg_database_size(current_database())")).scalar_one()
+    return DatabaseNumbers(int(str(connections)), int(str(maximum)), int(str(size)))
 
 
 # ---- one run, from the system tables only

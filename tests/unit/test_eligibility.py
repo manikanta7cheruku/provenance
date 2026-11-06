@@ -109,6 +109,9 @@ class TestLocation:
             ("Bengaluru", "Bengaluru, India"),
             ("Pune, India", "India"),
             ("Bengaluru, Karnataka", "Bengaluru"),
+            ("Bangalore", "Bengaluru"),
+            ("Gurgaon, India", "Gurugram"),
+            ("Madras", "Chennai, India"),
         ],
     )
     def test_a_listed_place_matches_in_either_direction(self, posting: str, wanted: str) -> None:

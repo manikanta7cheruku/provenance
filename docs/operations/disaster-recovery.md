@@ -35,7 +35,7 @@ These grow with the data. At 100 times the data the restore is minutes, still fa
 A compressed dump of the database (every table, owners and privileges, the vector extension is recreated by the init script) and an archive of the stored files, with a checksum for each and a manifest (time, migration, sizes). It does not hold `.env.production`. Keep that, and the keys in it, in a password manager. Losing `TOKEN_ENCRYPTION_KEYS` loses the GitHub tokens by design: people reconnect.
 
 ## Retention
-30 days (`BACKUP_KEEP_DAYS`). The privacy policy tells people that deleted data can stay in a backup for up to 30 days. After a restore, repeat any account deletions made after the backup date (`account_deletions` shows them).
+30 days (`BACKUP_KEEP_DAYS`). Job listings fetched from sources and closed for more than `CLOSED_JOB_RETENTION_DAYS` (90) are deleted by the worker. The privacy policy tells people that deleted data can stay in a backup for up to 30 days. After a restore, repeat any account deletions made after the backup date (`account_deletions` shows them).
 
 ## Where backups go
 `./backups` on the machine, and then somewhere else. Copying off the machine is not automated yet (carryover C-160): until it is, a lost machine loses the backups too. Nothing here should be called disaster recovery until that is done.

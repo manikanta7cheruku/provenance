@@ -25,6 +25,7 @@ from pv_config import Settings, get_settings
 from pv_domain.redaction import error_summary
 from pv_domain.retry import backoff_seconds
 from pv_domain.states import RunState
+from pv_files import build_storage
 from pv_mail import Mailer, build_mailer
 from pv_persistence import queue, workers
 from pv_persistence.engine import create_db_engine
@@ -33,11 +34,13 @@ from pv_persistence.tenancy import tenant_session
 from pv_worker.contract import Handler, TaskContext, TaskFailure
 from pv_worker.handlers import build_registry
 from pv_worker.logging_config import configure_logging
+from pv_worker.maintenance import run_maintenance
 
 logger = logging.getLogger("pv_worker")
 
 ALIVE_FILE = Path(tempfile.gettempdir()) / "pv_worker_alive"
 MAINTENANCE_INTERVAL_SECONDS = 600.0
+HOURLY_SECONDS = 3600.0
 MAX_IDLE_BACKOFF_SECONDS = 30.0
 
 
@@ -163,6 +166,8 @@ class Worker:
             extra={"worker_id": self.worker_id, "types": sorted(self._registry)},
         )
         last_maintenance = time.monotonic()
+        last_hourly = 0.0  # the first round runs the hourly sweeps too
+        storage = build_storage(self._settings)
         failures = 0
         while not stop.is_set():
             try:
@@ -173,6 +178,12 @@ class Worker:
                         self._engine, older_than_days=self._settings.task_retention_days
                     )
                     last_maintenance = time.monotonic()
+                    hourly = time.monotonic() - last_hourly > HOURLY_SECONDS
+                    run_maintenance(
+                        self._engine, self._settings, self._mailer, storage, hourly=hourly
+                    )
+                    if hourly:
+                        last_hourly = time.monotonic()
             except SQLAlchemyError:
                 # Database restart or network blip. Back off and keep the process alive.
                 failures += 1

@@ -12,6 +12,7 @@ broken: the screen says "not measured".
 """
 
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 
 CRITICAL = "critical"
 WARNING = "warning"
@@ -52,6 +53,8 @@ class Snapshot:
     # The suites whose latest evaluation did not pass, and whether any evaluation was ever stored.
     evaluation_failed: tuple[str, ...] = ()
     evaluation_seen: bool = False
+    # Database connections in use as a share of the most allowed, or None when not measured.
+    connection_share: float | None = None
 
 
 @dataclass(frozen=True)
@@ -70,6 +73,7 @@ class Thresholds:
     p95_ms: int = 3000
     auth_failures_per_hour: int = 50
     origin_rejections_per_hour: int = 20
+    connection_share: float = 0.8
 
 
 @dataclass(frozen=True)
@@ -279,6 +283,16 @@ def evaluate(snapshot: Snapshot, limits: Thresholds | None = None) -> tuple[Aler
             )
         )
 
+    if s.connection_share is not None and s.connection_share >= t.connection_share:
+        found.append(
+            Alert(
+                "connections_high",
+                WARNING,
+                "The database is running out of connections",
+                f"{s.connection_share:.0%} of the connections the database allows are in use.",
+                "Look for something holding connections open (a stuck worker or request), restart it, then raise the limit or add pooling.",
+            )
+        )
     if s.evaluation_failed:
         found.append(
             Alert(
@@ -300,3 +314,46 @@ def worst(alerts: tuple[Alert, ...]) -> str:
     if any(a.severity == CRITICAL for a in alerts):
         return CRITICAL
     return WARNING if alerts else "ok"
+
+
+# ---- telling the operator
+
+
+@dataclass(frozen=True)
+class DeliveryPlan:
+    send: tuple[Alert, ...]
+    clear: tuple[str, ...]
+
+
+def plan_delivery(
+    alerts: tuple[Alert, ...], sent: dict[str, datetime], now: datetime, cooldown: timedelta
+) -> DeliveryPlan:
+    """Which alerts to email now, and which delivery records to forget.
+
+    An alert is emailed when it is new, and again once the cooldown has passed while it is still
+    there (a reminder, not a flood). When an alert is gone its record is cleared, so if it comes
+    back it is a new alert and is emailed at once. Nothing is emailed when nothing is wrong."""
+    active = {a.key for a in alerts}
+    send = tuple(a for a in alerts if a.key not in sent or now - sent[a.key] >= cooldown)
+    clear = tuple(sorted(key for key in sent if key not in active))
+    return DeliveryPlan(send, clear)
+
+
+def render_digest(alerts: tuple[Alert, ...], site: str) -> tuple[str, str]:
+    """(subject, body) for the email. Plain text: what is wrong, what to do first, where to look."""
+    critical = sum(1 for a in alerts if a.severity == CRITICAL)
+    noun = "alert" if len(alerts) == 1 else "alerts"
+    subject = f"Provenance: {len(alerts)} {noun}" + (f", {critical} critical" if critical else "")
+    lines = ["These need a look:", ""]
+    for alert in alerts:
+        lines += [
+            f"[{alert.severity.upper()}] {alert.title}",
+            f"  {alert.detail}",
+            f"  Do first: {alert.action}",
+            "",
+        ]
+    lines += [
+        f"Open the Health page: {site.rstrip('/')}/admin",
+        f"Runbook: docs/{alerts[0].runbook}",
+    ]
+    return subject, "\n".join(lines)

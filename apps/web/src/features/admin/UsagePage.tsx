@@ -156,6 +156,13 @@ export function UsagePage() {
             first="Operation"
             rows={data.by_purpose}
           />
+          <h2>By plan</h2>
+          <Table
+            caption={`Cost by plan, last ${data.days} days`}
+            first="Plan"
+            rows={data.by_plan}
+          />
+
           <h2>By day</h2>
           <Table
             caption={`Cost by day, last ${data.days} days`}

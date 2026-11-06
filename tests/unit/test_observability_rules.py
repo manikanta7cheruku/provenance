@@ -4,6 +4,8 @@ Every alert rule is tested at its edge (just under, at and over its threshold) a
 measurement is shown not to fire anything.
 """
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from pv_api.metrics import RequestStats
@@ -15,6 +17,8 @@ from pv_domain.alerts import (
     SourceHealth,
     Thresholds,
     evaluate,
+    plan_delivery,
+    render_digest,
     worst,
 )
 from pv_domain.run_explain import FAILURES, explain_failure, step_label, subject_for
@@ -258,3 +262,47 @@ def test_steps_have_readable_labels() -> None:
     assert step_label("Extract requirements") == "Extract requirements"
     assert step_label("some_new_step") == "Some new step"
     assert step_label("") == "Step"
+
+
+# ------------------------------------------------------------------ connections and telling the operator
+
+
+def test_connections_alert_at_the_share_and_not_before() -> None:
+    assert "connections_high" not in keys(Snapshot(connection_share=0.79))
+    assert only(Snapshot(connection_share=0.8), "connections_high").severity == WARNING
+    assert "connections_high" not in keys(Snapshot(connection_share=None))  # not measured
+
+
+NOW = datetime(2026, 11, 6, 12, 0, tzinfo=UTC)
+A = Alert("a", WARNING, "A title", "A detail.", "Do a thing.")
+B = Alert("b", CRITICAL, "B title", "B detail.", "Do b.")
+
+
+def test_a_new_alert_is_sent_and_a_known_one_waits_for_the_cooldown() -> None:
+    day = timedelta(hours=24)
+    assert plan_delivery((A, B), {}, NOW, day).send == (A, B)
+    inside = plan_delivery((A, B), {"a": NOW - timedelta(hours=1)}, NOW, day)
+    assert inside.send == (B,) and inside.clear == ()
+    reminder = plan_delivery((A,), {"a": NOW - timedelta(hours=24)}, NOW, day)
+    assert reminder.send == (A,)
+
+
+def test_a_resolved_alert_is_forgotten_so_it_is_sent_again_if_it_comes_back() -> None:
+    day = timedelta(hours=24)
+    gone = plan_delivery((B,), {"a": NOW, "b": NOW}, NOW, day)
+    assert gone.clear == ("a",) and gone.send == ()
+    back = plan_delivery((A,), {}, NOW + timedelta(hours=1), day)
+    assert back.send == (A,)
+
+
+def test_nothing_is_sent_when_nothing_is_wrong() -> None:
+    plan = plan_delivery((), {"a": NOW}, NOW, timedelta(hours=24))
+    assert plan.send == () and plan.clear == ("a",)
+
+
+def test_the_email_says_what_is_wrong_what_to_do_and_where_to_look() -> None:
+    subject, body = render_digest((A, B), "https://app.example.com/")
+    assert subject == "Provenance: 2 alerts, 1 critical"
+    assert "[CRITICAL] B title" in body and "Do first: Do a thing." in body
+    assert "https://app.example.com/admin" in body and "runbooks/alerts.md" in body
+    assert render_digest((A,), "https://x")[0] == "Provenance: 1 alert"

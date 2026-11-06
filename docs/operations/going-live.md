@@ -10,7 +10,7 @@ Everything below needs an account, money, a decision or a person. Do them in ord
 6. **Deploy:** `git clone`, `cp .env.production.example .env.production` and fill it, then `deploy/deploy.sh`. Done when the smoke test prints `15 passed, 0 failed`.
 7. **Make yourself administrator:** register with an invite from `create-invite`, then `promote-admin`. Turn on nothing else yet.
 8. **Backups:** schedule `deploy/backup.sh` nightly (cron), copy `./backups` to a second place (C-160), and run `deploy/restore.sh <backup> --drill` once. Done when a backup exists off the machine and the drill passed on the real host.
-9. **Alerts:** schedule `pv_api.cli check-alerts` every 5 minutes and send a message when it exits 1 (C-141).
+9. **Alerts:** schedule `pv_api.cli check-alerts` every 5 minutes and send a message when it exits 1. Or, once a real mail provider works (C-41), set `ALERT_EMAIL_ENABLED=true` and the worker emails administrators about new alerts, again only after `ALERT_EMAIL_COOLDOWN_HOURS` (C-141).
 10. **Legal:** a lawyer reads the privacy policy and the terms. Add the company name, the contact address and the governing law, and remove the draft banner (C-155).
 11. **Drills on the real host:** stop the worker, stop the database, deploy and roll back (docs/operations/drills.md). Done when each behaves as recorded there.
 12. **Invite a few people**, watch Health for a week, then set the alert thresholds from what you saw (C-140).

@@ -211,7 +211,19 @@ async function open(page: Page, path = "/admin/evaluation", mock: Mock = {}) {
     if (p === "/api/v1/admin/evaluation") {
       const latest: Record<string, unknown> = {};
       for (const r of [...runs].reverse()) latest[r.suite] = r;
-      return json({ runs, latest });
+      return json({
+        runs,
+        latest,
+        ranker: {
+          adopt: false,
+          labels: 39,
+          people: 5,
+          reasons: [
+            "39 labels, and 1000 are needed before a comparison means anything.",
+            "No candidate has been evaluated on held-out labels yet.",
+          ],
+        },
+      });
     }
     const m = p.match(/^\/api\/v1\/admin\/evaluation\/([^/]+)$/);
     if (m) {
@@ -370,6 +382,10 @@ test("the learned ranker decision and the commands are on the page", async ({
   ).toBeVisible();
   await expect(page.getByText("Not adopted.")).toBeVisible();
   await expect(page.getByText("at least 1,000 labels")).toBeVisible();
+  await expect(
+    page.getByText("Today there are 39 labels from 5 people."),
+  ).toBeVisible();
+  await expect(page.getByText("No candidate has been evaluated")).toBeVisible();
   await expect(
     page.getByText("python -m pv_eval run --update-baseline"),
   ).toBeVisible();
