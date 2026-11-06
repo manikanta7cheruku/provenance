@@ -47,6 +47,7 @@ If PowerShell refuses to run the script: `Set-ExecutionPolicy -Scope CurrentUser
 | Promote admin | `docker compose exec api python -m pv_api.cli promote-admin --email someone@example.com` |
 | Demo task | `docker compose exec worker python -m pv_worker.cli enqueue-demo --seconds 20` |
 | Demo run | `docker compose exec api python -m pv_api.cli seed-demo-run --email someone@example.com` |
+| What needs attention | `docker compose exec api python -m pv_api.cli check-alerts` (exit code 1 when anything is critical) |
 | AI check | `uv run python -m pv_llm.check` |
 | Unit tests | `uv run pytest` |
 | Integration tests | `docker compose stop worker; uv run pytest -m integration; docker compose start worker` |

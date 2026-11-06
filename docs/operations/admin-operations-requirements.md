@@ -1,6 +1,6 @@
 # Admin and Operational Requirements
 
-Status: Decided (Phase 0). Basic instrumentation starts in Phase 1. Full console in checkpoint 3.5.
+Status: Decided (Phase 0). Basic instrumentation starts in Phase 1. Full console built in checkpoint 3.5 (see [checkpoint 3.5](../checkpoints/checkpoint-3.5.md) and ADR-0053 for what was built and what is carried over).
 
 ## 1. Phase 1 observability baseline
 

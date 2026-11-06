@@ -178,3 +178,186 @@ export function fetchAudit(
   if (before) params.set("before", before);
   return request<AuditList>("GET", `${BASE}/audit?${params.toString()}`, { signal });
 }
+
+// ---- checkpoint 3.5: health, cost, run trace, sources
+
+export type Level = "ok" | "warning" | "critical" | "unknown";
+
+export interface AdminAlert {
+  key: string;
+  severity: "critical" | "warning";
+  title: string;
+  detail: string;
+  action: string;
+  runbook: string;
+}
+
+export interface HealthComponent {
+  name: string;
+  status: Level;
+  detail: string;
+}
+
+export interface TroubleTask {
+  id: string;
+  task_type: string;
+  state: "retrying" | "stuck";
+  attempts: number;
+  max_attempts: number;
+  run_id: string | null;
+  last_error: string | null;
+  run_after: string;
+}
+
+export interface SourceHealth {
+  key: string;
+  name: string;
+  enabled: boolean;
+  status: string;
+  breaker_open: boolean;
+  failure_streak: number;
+  last_success_at: string | null;
+  last_failure_at: string | null;
+}
+
+export interface Health {
+  status: "ok" | "warning" | "critical";
+  headline: string;
+  version: string;
+  environment: string;
+  generated_at: string;
+  components: HealthComponent[];
+  alerts: AdminAlert[];
+  requests: {
+    measured: boolean;
+    window_minutes: number;
+    requests: number;
+    server_errors: number;
+    client_errors: number;
+    p50_ms: number | null;
+    p95_ms: number | null;
+  };
+  queue_by_state: Record<string, number>;
+  oldest_waiting_seconds: number | null;
+  trouble_tasks: TroubleTask[];
+  sources: SourceHealth[];
+  security_24h: { action: string; label: string; count: number }[];
+  rate_limits_24h: { policy: string; counters_over: number }[];
+  thresholds: {
+    queue_stale_warning_seconds: number;
+    queue_stale_critical_seconds: number;
+    source_failure_streak: number;
+    llm_error_rate: number;
+    daily_spend_ceiling_usd: number;
+    server_error_rate: number;
+    p95_ms: number;
+    auth_failures_per_hour: number;
+  };
+}
+
+export interface UsageRow {
+  key: string;
+  calls: number;
+  errors: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+}
+
+export interface Usage {
+  days: number;
+  calls: number;
+  errors: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  accounts: number;
+  average_latency_ms: number | null;
+  highest_account_share: number | null;
+  daily_spend_ceiling_usd: number;
+  by_model: UsageRow[];
+  by_purpose: UsageRow[];
+  by_day: UsageRow[];
+}
+
+export interface Trace {
+  run_id: string;
+  found: boolean;
+  tasks: {
+    id: string;
+    task_type: string;
+    state: string;
+    attempts: number;
+    max_attempts: number;
+    last_error: string | null;
+    created_at: string;
+    finished_at: string | null;
+    owner_email: string | null;
+  }[];
+  calls: {
+    purpose: string;
+    provider: string;
+    model: string;
+    prompt_version: string | null;
+    input_tokens: number;
+    output_tokens: number;
+    cost_usd: number;
+    latency_ms: number;
+    status: string;
+    error_class: string | null;
+    created_at: string;
+  }[];
+}
+
+export interface AdminSource {
+  key: string;
+  display_name: string;
+  enabled: boolean;
+  compliance_status: string;
+  health_status: string;
+  last_success_at: string | null;
+  last_failure_at: string | null;
+  failure_streak: number;
+  breaker_open_until: string | null;
+  jobs_open: number;
+  enable_blocker: string | null;
+  review_expired: boolean;
+}
+
+export interface FetchLogRow {
+  started_at: string;
+  board_id: string | null;
+  outcome: string;
+  http_status: number | null;
+  duration_ms: number;
+  jobs_seen: number;
+  jobs_new: number;
+  jobs_changed: number;
+  jobs_closed: number;
+  jobs_skipped: number;
+  error_class: string | null;
+}
+
+export function fetchHealth(signal?: AbortSignal): Promise<Health> {
+  return request<Health>("GET", `${BASE}/health`, { signal });
+}
+
+export function fetchUsage(days: 7 | 30, signal?: AbortSignal): Promise<Usage> {
+  return request<Usage>("GET", `${BASE}/usage?days=${days}`, { signal });
+}
+
+export function fetchTrace(runId: string, signal?: AbortSignal): Promise<Trace> {
+  return request<Trace>("GET", `${BASE}/trace/${encodeURIComponent(runId)}`, { signal });
+}
+
+export function fetchSources(signal?: AbortSignal): Promise<AdminSource[]> {
+  return request<AdminSource[]>("GET", `${BASE}/sources`, { signal });
+}
+
+export function fetchSourceLog(key: string, signal?: AbortSignal): Promise<FetchLogRow[]> {
+  return request<FetchLogRow[]>("GET", `${BASE}/sources/${encodeURIComponent(key)}/log`, { signal });
+}
+
+export function pollSource(key: string): Promise<MessageResponse> {
+  return request<MessageResponse>("POST", `${BASE}/sources/${encodeURIComponent(key)}/poll`);
+}

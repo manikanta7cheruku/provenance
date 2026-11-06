@@ -2,8 +2,12 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import {
   AdminLayout,
   AuditPage,
+  HealthPage,
   InvitesPage,
+  SourcesPage,
   SystemPage,
+  TracePage,
+  UsagePage,
   UserPage,
   UsersPage,
 } from "../features/admin";
@@ -79,7 +83,11 @@ function ProductApp() {
               <Route path="/runs/:runId" element={<RunDetailPage />} />
               <Route element={<RequireAdmin />}>
                 <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<SystemPage />} />
+                  <Route index element={<HealthPage />} />
+                  <Route path="queue" element={<SystemPage />} />
+                  <Route path="sources" element={<SourcesPage />} />
+                  <Route path="usage" element={<UsagePage />} />
+                  <Route path="runs" element={<TracePage />} />
                   <Route path="users" element={<UsersPage />} />
                   <Route path="users/:userId" element={<UserPage />} />
                   <Route path="invites" element={<InvitesPage />} />

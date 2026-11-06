@@ -11,8 +11,17 @@ from sqlalchemy import func, select
 from sqlalchemy.engine import Engine
 
 from pv_api.errors import ApiError
-from pv_api.schemas import LlmCallOut, RunDetail, RunList, RunStepOut, RunSummary
+from pv_api.schemas import (
+    LlmCallOut,
+    RunDetail,
+    RunFailureOut,
+    RunList,
+    RunStepOut,
+    RunSummary,
+    RunTotalsOut,
+)
 from pv_domain.failures import FailureClass
+from pv_domain.run_explain import explain_failure, step_label, subject_for
 from pv_domain.states import (
     RunState,
     StepState,
@@ -98,16 +107,42 @@ def get_run(engine: Engine, user_id: uuid.UUID, run_id: uuid.UUID) -> RunDetail:
             .scalars()
             .all()
         )
+        subject_label, subject_path = subject_for(run.subject_type, run.subject_id)
+        failure = None
+        if run.state == RunState.FAILED.value:
+            what, todo = explain_failure(run.error_class, run.can_retry)
+            failure = RunFailureOut(what=what, next=todo, retry_possible=run.can_retry)
+        totals = RunTotalsOut(
+            steps=len(steps),
+            steps_failed=sum(1 for s in steps if s.state == StepState.FAILED.value),
+            model_calls=len(calls),
+            model_calls_failed=sum(1 for c in calls if c.status != "ok"),
+            input_tokens=sum(c.input_tokens for c in calls),
+            output_tokens=sum(c.output_tokens for c in calls),
+            cost_usd=round(sum(float(c.estimated_cost_usd) for c in calls), 6),
+            models=sorted({f"{c.provider} / {c.model}" for c in calls}),
+            prompt_versions=sorted({c.prompt_version for c in calls if c.prompt_version}),
+        )
         return RunDetail(
             run=_summary(run),
             error_summary=run.error_summary,
+            subject_label=subject_label,
+            subject_path=subject_path,
+            failure=failure,
+            totals=totals,
             steps=[
                 RunStepOut(
                     ordinal=s.ordinal,
                     step_name=s.step_name,
+                    step_label=step_label(s.step_name),
                     ui_state=ui_state_for_step(StepState(s.state)).value,
                     duration_ms=s.duration_ms,
                     error_summary=s.error_summary,
+                    counts={
+                        k: v
+                        for k, v in (s.detail or {}).items()
+                        if isinstance(v, int) and not isinstance(v, bool)
+                    },
                 )
                 for s in steps
             ],

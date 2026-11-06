@@ -5,6 +5,7 @@
   seed-demo-run --email someone@example.com
   set-plan --email someone@example.com --plan pro
   show-plan --email someone@example.com
+  check-alerts
 
 Invite codes are printed once and stored only as hashes.
 seed-demo-run creates one finished demo run with three steps for that user, so the Runs
@@ -46,6 +47,10 @@ def main(argv: list[str] | None = None) -> int:
     promote.add_argument("--email", required=True)
     demo = sub.add_parser("seed-demo-run", help="create one finished demo run for a user")
     demo.add_argument("--email", required=True)
+    sub.add_parser(
+        "check-alerts",
+        help="print what needs attention now. Exit code 1 when anything is critical",
+    )
     setplan = sub.add_parser("set-plan", help="put a person on a plan (free, starter or pro)")
     setplan.add_argument("--email", required=True)
     setplan.add_argument("--plan", required=True)
@@ -56,6 +61,20 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     engine = create_db_engine(get_settings().database_url.get_secret_value())
+    if args.command == "check-alerts":
+        from pv_api.services.observability_service import build_snapshot, thresholds_for
+        from pv_domain.alerts import CRITICAL, evaluate
+
+        # Request timings live in the API process, so they are not measured from here.
+        found = evaluate(build_snapshot(engine, None), thresholds_for(get_settings()))
+        if not found:
+            print("Nothing needs attention. (Request timings are not measured by this command.)")
+            return 0
+        for alert in found:
+            print(f"[{alert.severity.upper()}] {alert.title}")
+            print(f"    {alert.detail}")
+            print(f"    Do: {alert.action}")
+        return 1 if any(a.severity == CRITICAL for a in found) else 0
     if args.command == "create-invite":
         code = generate_token()
         email = normalize_email(args.email) if args.email else None

@@ -81,6 +81,8 @@ class Settings(BaseSettings):
     # Operator configuration, never user input. Change it for a proxy or a local test double.
     gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
     llm_model: str = ""
+    # Daily model spend (USD, last 24 hours) at which the console alerts. 0 means no ceiling is set.
+    llm_daily_spend_ceiling_usd: float = 0.0
     llm_embedding_model: str = ""
     llm_embedding_dimensions: int = 768
     llm_min_interval_seconds: float = 0.0

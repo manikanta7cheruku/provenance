@@ -21,6 +21,7 @@ from pv_api.schemas import (
     AdminUserList,
     AuditList,
     FetchLogOut,
+    HealthOut,
     InviteCreate,
     InviteCreated,
     InviteOut,
@@ -28,8 +29,10 @@ from pv_api.schemas import (
     PollQueuedOut,
     SourceUpdateIn,
     SystemOverview,
+    TraceOut,
+    UsageOut,
 )
-from pv_api.services import admin_service, dedupe_service, search_service
+from pv_api.services import admin_service, dedupe_service, observability_service, search_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -43,6 +46,27 @@ def overview(_: AdminUser, engine: EngineDep) -> AdminOverview:
 @router.get("/system", response_model=SystemOverview)
 def system(_: AdminUser, engine: EngineDep) -> SystemOverview:
     return admin_service.system_overview(engine)
+
+
+@router.get("/health", response_model=HealthOut)
+def health(_: AdminUser, request: Request, engine: EngineDep, settings: SettingsDep) -> HealthOut:
+    stats = request.app.state.request_stats.snapshot()
+    return observability_service.health(engine, settings, stats)
+
+
+@router.get("/usage", response_model=UsageOut)
+def usage(
+    _: AdminUser,
+    engine: EngineDep,
+    settings: SettingsDep,
+    days: Annotated[str, Query(pattern="^(7|30)$")] = "7",
+) -> UsageOut:
+    return observability_service.usage(engine, settings, int(days))
+
+
+@router.get("/trace/{run_id}", response_model=TraceOut)
+def trace(run_id: uuid.UUID, _: AdminUser, engine: EngineDep) -> TraceOut:
+    return observability_service.trace(engine, run_id)
 
 
 @router.post("/tasks/{task_id}/requeue", response_model=MessageResponse)

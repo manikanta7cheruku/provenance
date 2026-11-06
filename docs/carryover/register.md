@@ -204,6 +204,18 @@ The product runs end to end without a key and says so honestly. These items need
 | C-138 | 3.4 | A screen reader pass of the export panel | Axe passes. No screen reader was used on the panel, the status changes and the download links | Do it at 3.7 | open |
 | C-139 | 3.4 | Short-lived signed links | Downloads need the signed-in session. Signed links need object storage | At 3.7, when files move to object storage, return a signed link that expires in minutes and keep the session check | open |
 
+## V. Observability and the console (added at 3.5)
+| ID | Phase.Checkpoint | Item | Why open | How to close | State |
+|---|---|---|---|---|---|
+| C-140 | 3.5 | Set alert thresholds from measurement | The limits (queue age, failure streaks, error rates, slowness, failed sign-ins) were chosen before there was traffic | After a few weeks of real use, read the Health and Cost pages, find the normal range for each, and change `pv_domain.alerts.Thresholds` with a test | open |
+| C-141 | 3.5 | Deliver alerts to a channel you read | Alerts show on the console and in `check-alerts`. Nothing is pushed | At 3.7 choose a channel (email, chat or a pager), run `check-alerts` on a schedule or from a monitor, and send only new critical alerts | open |
+| C-142 | 3.5 | Request statistics across processes, and tracing | Timings are kept in each API process and reset on restart. No distributed tracing. SSRF rejections are not counted anywhere | At 3.7 export metrics to a shared store, add trace spans keyed by run id, and record SSRF rejections as security events | open |
+| C-143 | 3.5 | Cost by plan, and cost per unit | The plan is in a tenant table, so cost cannot be added up by plan without crossing the admin boundary | Record the plan on each model call (a column on `llm_calls`), then add cost by plan. This is needed to close C-131 | open |
+| C-144 | 3.5 | The latest evaluation summary | The requirements list it. There is no evaluation yet | Show it on Health when the harness exists (3.6) | open |
+| C-145 | 3.5 | Break-glass access | The requirements describe an audited, reasoned access to content. No admin route can read content, so none was built | Only if support ever needs it: a capability, a stated reason, an audit event visible in the log | open |
+| C-146 | 3.5 | A screen reader pass of the console and the run page | Axe passes. No screen reader was used on the tables, statuses and forms | Do it at 3.7 | open |
+| C-147 | 3.5 | Database, disk, connection and backup alerts | They need the deployment (3.7) and a backup process | Add the snapshot fields and rules when production exists | open |
+
 ## F. Production and deployment (Phase 3)
 | ID | Phase.Checkpoint | Item | State |
 |---|---|---|---|

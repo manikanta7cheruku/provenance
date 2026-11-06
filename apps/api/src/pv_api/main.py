@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from pv_api import __version__
 from pv_api.errors import ApiError, api_error_handler, validation_error_handler
 from pv_api.logging_config import configure_logging
+from pv_api.metrics import RequestStats
 from pv_api.ratelimiter import RateLimiter
 from pv_api.routes import (
     admin,
@@ -66,6 +67,10 @@ async def request_context(
         response = await call_next(request)
         status_code = response.status_code
     finally:
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        stats = getattr(request.app.state, "request_stats", None)
+        if stats is not None and not request.url.path.startswith(("/healthz", "/readyz")):
+            stats.record(status_code, elapsed_ms)
         logger.info(
             "request",
             extra={
@@ -73,7 +78,7 @@ async def request_context(
                 "method": request.method,
                 "path": request.url.path,
                 "status": status_code,
-                "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+                "duration_ms": round(elapsed_ms, 1),
             },
         )
     response.headers["X-Request-ID"] = request_id
@@ -138,6 +143,7 @@ def create_app(
     app.state.engine = engine
     app.state.storage = storage if storage is not None else build_storage(cfg)
     app.state.limiter = RateLimiter(engine, rate_policies or DEFAULT_POLICIES)
+    app.state.request_stats = RequestStats()
     app.state.github = github_gateway if github_gateway is not None else build_gateway(cfg)
 
     if cfg.cors_origin_list:
