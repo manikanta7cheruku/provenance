@@ -448,11 +448,17 @@ def test_the_command_describes_the_dataset(capsys: pytest.CaptureFixture[str]) -
 def test_the_llm_command_says_so_when_no_model_is_set(
     capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from pv_config import get_settings
+    from types import SimpleNamespace
 
-    get_settings.cache_clear()
-    monkeypatch.setenv("GEMINI_API_KEY", "")
-    monkeypatch.setenv("LLM_MODEL", "")
+    from pydantic import SecretStr
+
+    import pv_config
+
+    # No environment is assumed: a stand-in for the settings has no key and no model.
+    monkeypatch.setattr(
+        pv_config,
+        "get_settings",
+        lambda: SimpleNamespace(gemini_api_key=SecretStr(""), llm_model=""),
+    )
     assert main(["run", "--llm"]) == 2
     assert "GEMINI_API_KEY and LLM_MODEL must be set" in capsys.readouterr().out
-    get_settings.cache_clear()
