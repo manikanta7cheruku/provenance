@@ -21,6 +21,8 @@ GET_ROUTES = [
     "/api/v1/admin/overview",
     "/api/v1/admin/system",
     "/api/v1/admin/health",
+    "/api/v1/admin/evaluation",
+    f"/api/v1/admin/evaluation/{uuid.uuid4()}",
     "/api/v1/admin/usage",
     f"/api/v1/admin/trace/{uuid.uuid4()}",
     "/api/v1/admin/users",

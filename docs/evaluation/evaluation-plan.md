@@ -1,6 +1,6 @@
 # Evaluation Plan
 
-Status: Decided (Phase 0). Awareness starts in Phase 1. Full harness in checkpoint 3.6.
+Status: Decided (Phase 0). Awareness started in Phase 1. Full harness built in checkpoint 3.6 (see [checkpoint 3.6](../checkpoints/checkpoint-3.6.md), [ADR-0054](../adr/0054-evaluation-harness-and-the-ranker-decision.md) and the [labeling guidelines](labeling-guidelines.md)).
 
 ## 1. Phase 1 evaluation awareness (checkpoints 1.6 to 1.9)
 
@@ -26,6 +26,8 @@ About 100 labeled jobs, versioned, with written labeling guidelines created befo
 | Preparation | claim grounding, relevance to gaps, resource URL validity |
 
 An LLM judge is never the sole authority on factual correctness. Grounding is checked by code against evidence.
+
+**State at the end of Phase 3 (checkpoint 3.6).** Built: a dataset of 100 synthetic postings with labeling guidelines written first; six deterministic suites over our own checks (extraction grounding, eligibility with false negatives weighted three times, evidence verdicts, scoring bands, pairwise ranking agreement, claim checking) with a limit and a baseline per metric; a regression gate in the unit tests; an LLM suite for extraction that runs on demand; stored runs with git commit, dataset version and the versions of every rule and prompt; the admin Evaluation page; and the learned-ranker decision. Not built: human-labeled real postings (the dataset is synthetic, so it shows our checks behave as written, not how a real model reads real ones), a real-model baseline, generation metrics beyond the claim check (contradiction rate, human preference, preparation relevance and resource links), and an aggregate count of feedback labels for the ranker decision. See the carryover register, section W.
 
 ## 3. Running
 

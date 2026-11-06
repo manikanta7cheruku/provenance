@@ -361,3 +361,52 @@ export function fetchSourceLog(key: string, signal?: AbortSignal): Promise<Fetch
 export function pollSource(key: string): Promise<MessageResponse> {
   return request<MessageResponse>("POST", `${BASE}/sources/${encodeURIComponent(key)}/poll`);
 }
+
+// ---- checkpoint 3.6: evaluation
+
+export interface EvalRun {
+  id: string;
+  created_at: string;
+  suite: "deterministic" | "llm";
+  trigger: string;
+  dataset_version: string;
+  git_sha: string | null;
+  model: string | null;
+  passed: boolean;
+  case_count: number;
+  failure_count: number;
+  regressions: string[];
+}
+
+export interface EvalMetric {
+  name: string;
+  label: string;
+  suite: string;
+  value: number;
+  baseline: number | null;
+  limit: number;
+  direction: "higher" | "lower";
+  status: "ok" | "regressed" | "below_limit" | "new";
+  delta: number | null;
+  cases: number;
+  previous: number | null;
+  change: number | null;
+}
+
+export interface EvalDetail {
+  run: EvalRun;
+  versions: Record<string, string>;
+  metrics: EvalMetric[];
+  suites: { name: string; cases: number; failed: number }[];
+  failures: { suite: string; case_id: string; expected: string; got: string; note: string }[];
+  against: EvalRun | null;
+}
+
+export function fetchEvaluations(signal?: AbortSignal): Promise<{ runs: EvalRun[]; latest: Record<string, EvalRun> }> {
+  return request("GET", `${BASE}/evaluation`, { signal });
+}
+
+export function fetchEvaluation(id: string, against: string | null, signal?: AbortSignal): Promise<EvalDetail> {
+  const query = against ? `?against=${encodeURIComponent(against)}` : "";
+  return request<EvalDetail>("GET", `${BASE}/evaluation/${encodeURIComponent(id)}${query}`, { signal });
+}

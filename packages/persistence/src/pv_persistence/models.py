@@ -1135,3 +1135,27 @@ class ReportExport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+# ---- checkpoint 3.6: evaluation runs (migration 0022)
+
+
+class EvaluationRun(Base):
+    """One evaluation run. System table: synthetic data, no owner, append-only for the app."""
+
+    __tablename__ = "evaluation_runs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    suite: Mapped[str] = mapped_column(Text)
+    trigger: Mapped[str] = mapped_column(Text, default="manual")
+    dataset_version: Mapped[str] = mapped_column(Text)
+    git_sha: Mapped[str | None] = mapped_column(Text, default=None)
+    model: Mapped[str | None] = mapped_column(Text, default=None)
+    passed: Mapped[bool] = mapped_column(Boolean)
+    case_count: Mapped[int] = mapped_column(Integer)
+    failure_count: Mapped[int] = mapped_column(Integer)
+    versions: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    metrics: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    suites: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    failures: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)

@@ -1,0 +1,33 @@
+{
+  "deterministic": {
+    "dataset_version": "jobs-v1",
+    "metrics": {
+      "bad_value_leak_rate": 0.0,
+      "band_accuracy": 1.0,
+      "eligibility_accuracy": 1.0,
+      "eligibility_false_negative_rate": 0.0,
+      "eligibility_false_positive_rate": 0.0,
+      "eligibility_weighted_error": 0.0,
+      "fact_accuracy": 1.0,
+      "false_flag_rate": 0.0,
+      "injection_paraphrase_leak_rate": 0.0,
+      "injection_quoted_leak_rate": 1.0,
+      "invented_leak_rate": 0.0,
+      "naive_ranker_agreement": 0.7462,
+      "pairwise_agreement": 0.9865,
+      "requirement_precision": 1.0,
+      "requirement_recall": 1.0,
+      "uncertainty_accuracy": 1.0,
+      "unsupported_claim_recall": 1.0,
+      "unsupported_verdict_leak_rate": 0.0,
+      "verdict_acceptance_accuracy": 1.0
+    },
+    "versions": {
+      "dataset": "jobs-v1",
+      "eligibility_rules": "eligibility-1",
+      "extraction_prompt": "job-extract-1",
+      "preparation_rules": "prep-rules-1",
+      "scoring": "scoring-1"
+    }
+  }
+}

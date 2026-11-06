@@ -153,6 +153,22 @@ def test_failed_sign_ins_and_wrong_origins() -> None:
     assert only(Snapshot(origin_rejections_1h=20), "origin_rejections").severity == WARNING
 
 
+# ------------------------------------------------------------------ evaluation
+
+
+def test_a_failing_evaluation_names_the_suites_and_a_pass_or_no_run_raises_nothing() -> None:
+    alert = only(
+        Snapshot(evaluation_seen=True, evaluation_failed=("deterministic", "llm")),
+        "evaluation_regressed",
+    )
+    assert alert.severity == WARNING and "deterministic, llm" in alert.detail
+    assert "Open Evaluation" in alert.action
+    assert "evaluation_regressed" not in keys(Snapshot(evaluation_seen=True))
+    assert "evaluation_regressed" not in keys(
+        Snapshot()
+    )  # no run stored: not measured, not an alert
+
+
 # ------------------------------------------------------------------ the whole
 
 

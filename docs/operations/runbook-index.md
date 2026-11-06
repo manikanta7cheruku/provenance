@@ -29,3 +29,4 @@ Each runbook is written in checkpoint 3.7 (earlier ones when their component is 
 | [Plans and quotas](runbooks/plans-and-quotas.md) | 3.3 (written) |
 | [Reports](runbooks/reports.md) | 3.4 (written) |
 | [Alerts](runbooks/alerts.md) | 3.5 (written) |
+| [Evaluation](runbooks/evaluation.md) | 3.6 (written) |

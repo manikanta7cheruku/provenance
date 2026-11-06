@@ -20,6 +20,8 @@ from pv_api.schemas import (
     AdminUserDetail,
     AdminUserList,
     AuditList,
+    EvalDetailOut,
+    EvalListOut,
     FetchLogOut,
     HealthOut,
     InviteCreate,
@@ -32,7 +34,13 @@ from pv_api.schemas import (
     TraceOut,
     UsageOut,
 )
-from pv_api.services import admin_service, dedupe_service, observability_service, search_service
+from pv_api.services import (
+    admin_service,
+    dedupe_service,
+    evaluation_service,
+    observability_service,
+    search_service,
+)
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -67,6 +75,18 @@ def usage(
 @router.get("/trace/{run_id}", response_model=TraceOut)
 def trace(run_id: uuid.UUID, _: AdminUser, engine: EngineDep) -> TraceOut:
     return observability_service.trace(engine, run_id)
+
+
+@router.get("/evaluation", response_model=EvalListOut)
+def evaluation(_: AdminUser, engine: EngineDep) -> EvalListOut:
+    return evaluation_service.listing(engine)
+
+
+@router.get("/evaluation/{run_id}", response_model=EvalDetailOut)
+def evaluation_run(
+    run_id: uuid.UUID, _: AdminUser, engine: EngineDep, against: uuid.UUID | None = None
+) -> EvalDetailOut:
+    return evaluation_service.detail(engine, run_id, against)
 
 
 @router.post("/tasks/{task_id}/requeue", response_model=MessageResponse)

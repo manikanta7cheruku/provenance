@@ -1,5 +1,6 @@
 export { AdminLayout } from "./AdminLayout";
 export { AuditPage } from "./AuditPage";
+export { EvaluationPage } from "./EvaluationPage";
 export { HealthPage } from "./HealthPage";
 export { InvitesPage } from "./InvitesPage";
 export { SourcesPage } from "./SourcesPage";

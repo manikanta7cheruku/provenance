@@ -33,6 +33,7 @@ from pv_api.schemas import (
 )
 from pv_config import Settings
 from pv_domain.alerts import Alert, Snapshot, Thresholds, evaluate, worst
+from pv_persistence.evaluation import latest_per_suite
 from pv_persistence.health import check_readiness
 from pv_persistence.models import JobSource
 from pv_persistence.observability import (
@@ -70,6 +71,7 @@ def build_snapshot(
         sources = source_health(db)
         model = llm_totals(db, moment - timedelta(hours=24))
         security = security_counts(db, moment - timedelta(hours=1))
+        latest = latest_per_suite(db)
     return Snapshot(
         database_ok=report.database,
         migrations=report.migrations,
@@ -90,6 +92,8 @@ def build_snapshot(
         auth_failures_1h=security.get("auth.login_failed", 0)
         + security.get("auth.password_change_failed", 0),
         origin_rejections_1h=security.get("origin_rejected", 0),
+        evaluation_failed=tuple(sorted(s for s, r in latest.items() if not r.passed)),
+        evaluation_seen=bool(latest),
     )
 
 
@@ -184,11 +188,22 @@ def _components(
             "behind": "The database is behind the code.",
         }.get(snapshot.migrations, "Could not be checked."),
     )
-    evaluation = ComponentOut(
-        name="Evaluation",
-        status="unknown",
-        detail="No evaluation results yet. They arrive with checkpoint 3.6.",
-    )
+    if not snapshot.evaluation_seen:
+        evaluation = ComponentOut(
+            name="Evaluation",
+            status="unknown",
+            detail="No evaluation has been stored yet. Run python -m pv_eval run --store.",
+        )
+    elif snapshot.evaluation_failed:
+        evaluation = ComponentOut(
+            name="Evaluation",
+            status="warning",
+            detail="Not passing: " + ", ".join(snapshot.evaluation_failed) + ".",
+        )
+    else:
+        evaluation = ComponentOut(
+            name="Evaluation", status="ok", detail="The latest run of every suite passed."
+        )
     return [
         api,
         database,
